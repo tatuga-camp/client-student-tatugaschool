@@ -1,3 +1,4 @@
+import axios from "axios";
 import { StudentOnSubject, Subject, TeacherOnSubject } from "../interfaces";
 import createAxiosInstance from "./apiService";
 
@@ -7,7 +8,7 @@ type RequestGetSubjectByCodeService = {
   code: string;
 };
 
-type ResponseGetSubjectByCodeService = Subject & {
+export type ResponseGetSubjectByCodeService = Subject & {
   studentOnSubjects: StudentOnSubject[];
   teacherOnSubjects: TeacherOnSubject[];
 };
@@ -16,10 +17,14 @@ export async function GetSubjectByCodeService(
   input: RequestGetSubjectByCodeService
 ): Promise<ResponseGetSubjectByCodeService> {
   try {
-    const response = await axiosInstance({
+    const response = await axios({
       method: "GET",
-      url: `v1/subjects/code/${input.code}`,
+      url: `${process.env.NEXT_PUBLIC_SERVER_URL}/v1/subjects/code/${input.code}`,
+      headers: {
+        "Content-Type": "application/json",
+      },
     });
+
     return response.data;
   } catch (error: any) {
     console.error("Get Subject request failed:", error.response.data);

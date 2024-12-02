@@ -1,3 +1,71 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import url("https://fonts.googleapis.com/css2?family=Anuphan:wght@100;200;300;400;500;600;700&display=swap");
+
+@layer tailwind-base, primereact, tailwind-utilities;
+
+@layer tailwind-base {
+  @tailwind base;
+}
+@layer tailwind-utilities {
+  @tailwind components;
+  @tailwind utilities;
+}
+@layer components {
+  .main-button {
+    @apply bg-secondary-color text-white  py-2 px-4 rounded-md active:scale-105 hover:bg-primary-color active:drop-shadow-md transition duration-150;
+  }
+  .second-button {
+    @apply bg-white text-black  py-2 px-4 rounded-md active:scale-105 hover:bg-gray-100/50 active:drop-shadow-md transition duration-150;
+  }
+  .success-button {
+    @apply bg-success-color text-white  py-2 px-4 rounded-md active:scale-105 hover:bg-success-color active:drop-shadow-md transition duration-150;
+  }
+  .reject-button {
+    @apply bg-red-500 text-white  py-2 px-4 rounded-md active:scale-105 hover:bg-red-700 active:drop-shadow-md transition duration-150;
+  }
+  .main-input {
+    @apply border rounded-md outline-none hover:border-blue-500  focus:shadow-[0_0_0_0.2rem_rgba(191,219,254,1)] px-4 py-2;
+  }
+  .gradient-bg {
+    @apply bg-gradient-to-r to-secondary-color from-primary-color;
+  }
+}
+
+/* * {
+  box-sizing: border-box;
+  background: rgba(0, 100, 0, 0.1) !important;
+} */
+
+.p-password-input {
+  width: 100%;
+}
+
+.gradient-shadow {
+  background: rgb(97, 73, 205);
+  background: -moz-linear-gradient(
+    0deg,
+    rgba(97, 73, 205, 1) 0%,
+    rgba(97, 73, 205, 1) 7%,
+    rgba(0, 212, 255, 0) 100%
+  );
+  background: -webkit-linear-gradient(
+    0deg,
+    rgba(97, 73, 205, 1) 0%,
+    rgba(97, 73, 205, 1) 7%,
+    rgba(0, 212, 255, 0) 100%
+  );
+  background: linear-gradient(
+    0deg,
+    rgba(97, 73, 205, 1) 0%,
+    rgba(97, 73, 205, 1) 7%,
+    rgba(0, 212, 255, 0) 100%
+  );
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#6149cd",endColorstr="#00d4ff",GradientType=1);
+}
+
+.hideScrollBar {
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+  scrollbar-width: none; /* Firefox */
+}
+.hideScrollBar::-webkit-scrollbar {
+  display: none; /* Safari and Chrome */
+}

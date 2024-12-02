@@ -16,10 +16,10 @@ const createAxiosInstance = () => {
       if (
         (!access_token || !refresh_token) &&
         typeof window !== "undefined" &&
-        !request?.startsWith("/v1/auth/")
+        !request?.startsWith("/v1/auth/student/")
       ) {
         console.log("redirect to login 1");
-        window.location.href = "/auth/sign-in";
+        window.location.href = "/welcome";
       }
 
       // Redirect to login if access token is expired and the request is not sign-in
@@ -27,10 +27,10 @@ const createAxiosInstance = () => {
         refresh_token &&
         isTokenExpired(refresh_token) &&
         typeof window !== "undefined" &&
-        !request?.startsWith("/v1/auth/")
+        !request?.startsWith("/v1/auth/student/")
       ) {
         console.log("redirect to login 1");
-        window.location.href = "/auth/sign-in";
+        window.location.href = "/welcome";
       }
 
       // Add access token to the header if it is found and not expired
@@ -66,7 +66,7 @@ const createAxiosInstance = () => {
         } catch (refreshError) {
           console.log("refreshError", refreshError);
           if (typeof window !== "undefined") {
-            window.location.href = "/auth/sign-in";
+            window.location.href = "/welcome";
           }
         }
       }
