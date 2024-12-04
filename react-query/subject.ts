@@ -6,7 +6,7 @@ import {
 
 export function useGetSubjectByCode(
   code: string,
-  option: {
+  option?: {
     initialData?: ResponseGetSubjectByCodeService | undefined;
     enable?: boolean | undefined;
   }
