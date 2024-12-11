@@ -16,7 +16,7 @@ export async function StudentRefetchTokenService(
   try {
     const response = await axiosInstance({
       method: "POST",
-      url: "/v1/auth/student/refetch-token",
+      url: "/v1/auth/student/refresh-token",
       data: { ...input },
     });
     return response.data;
@@ -26,7 +26,7 @@ export async function StudentRefetchTokenService(
   }
 }
 
-type RequestStudentSignInService = {
+export type RequestStudentSignInService = {
   studentId: string;
   password?: string;
 };
@@ -47,6 +47,7 @@ export async function StudentSignInService(
     });
     return response.data;
   } catch (error: any) {
+    console.log(error);
     console.error("Student Sign-In request failed:", error.response.data);
     throw error?.response?.data;
   }

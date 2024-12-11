@@ -7,14 +7,14 @@ import { useGetSubjectByCode } from "../react-query";
 
 type Props = {
   active: boolean;
-  code: string;
-  setSelectMenu: React.Dispatch<React.SetStateAction<string>>;
-  selectMenu: string;
+
   menuList: { title: string; icon: ReactNode; url?: string }[];
 };
 
-function Sidebar({ active, code, menuList, setSelectMenu, selectMenu }: Props) {
+function Sidebar({ active, menuList }: Props) {
   const router = useRouter();
+
+  const [selectMenu, setSelectMenu] = React.useState("Dashboard");
   return (
     <div
       className={`text-black  overflow-hidden flex flex-col items-center justify-start gap-3

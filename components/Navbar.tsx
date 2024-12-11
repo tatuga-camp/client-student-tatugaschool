@@ -3,27 +3,33 @@ import Link from "next/link";
 import React from "react";
 import { IoMenu } from "react-icons/io5";
 import { defaultCanvas } from "../data";
-import { useGetSubjectByCode } from "../react-query";
+import { useGetSubjectByCode, useGetSubjectById } from "../react-query";
 import Sidebar from "./Sidebar";
 import useClickOutside from "../hook/useClickOutside";
+import { useRouter } from "next/router";
 
 type NavbarProps = {
   trigger: boolean;
   setTrigger: React.Dispatch<React.SetStateAction<boolean>>;
 };
 function Navbar({ trigger, setTrigger }: NavbarProps) {
+  const router = useRouter();
+  const subject = useGetSubjectById({ id: router.query.subjectId as string });
+
   return (
     <nav className="w-full font-Anuphan  ">
       <section className="w-full gradient-bg z-20 gap-5 flex items-center justify-start p-3">
-        <button
-          onClick={() => setTrigger(!trigger)}
-          className={`text-black flex ${
-            trigger ? "rotate-90" : "rotate-0"
-          }  hover:bg-primary-color bg-white transition duration-150 hover:text-white 
+        {subject.data && (
+          <button
+            onClick={() => setTrigger(!trigger)}
+            className={`text-black flex ${
+              trigger ? "rotate-90" : "rotate-0"
+            }  hover:bg-primary-color bg-white transition duration-150 hover:text-white 
       items-center justify-center rounded-full text-base border-2 border-gray-200 p-1`}
-        >
-          <IoMenu />
-        </button>
+          >
+            <IoMenu />
+          </button>
+        )}
         <Link
           href="/"
           className="flex items-center justify-center gap-1 md:gap-2"

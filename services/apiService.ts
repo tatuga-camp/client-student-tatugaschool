@@ -16,7 +16,7 @@ const createAxiosInstance = () => {
       if (
         (!access_token || !refresh_token) &&
         typeof window !== "undefined" &&
-        !request?.startsWith("/v1/auth/student/")
+        !request?.startsWith("/v1/auth/")
       ) {
         console.log("redirect to login 1");
         window.location.href = "/welcome";
@@ -27,14 +27,14 @@ const createAxiosInstance = () => {
         refresh_token &&
         isTokenExpired(refresh_token) &&
         typeof window !== "undefined" &&
-        !request?.startsWith("/v1/auth/student/")
+        !request?.startsWith("/v1/auth/")
       ) {
-        console.log("redirect to login 1");
+        console.log("redirect to login 2");
         window.location.href = "/welcome";
       }
 
       // Add access token to the header if it is found and not expired
-      if (access_token && !isTokenExpired(access_token)) {
+      if (access_token) {
         config.headers["Authorization"] = `Bearer ${access_token}`;
       }
 

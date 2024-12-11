@@ -8,18 +8,12 @@ import createAxiosInstance from "./apiService";
 
 const axiosInstance = createAxiosInstance();
 
-type RequestGetStudentService = {
-  studentId: string;
-};
-
 type ResponseGetStudentService = Student;
-export async function GetStudentService(
-  input: RequestGetStudentService
-): Promise<ResponseGetStudentService> {
+export async function GetStudentService(): Promise<ResponseGetStudentService> {
   try {
     const response = await axiosInstance({
       method: "GET",
-      url: `v1/students/student/${input.studentId}`,
+      url: `v1/students/student/get-as-user`,
     });
     return response.data;
   } catch (error: any) {

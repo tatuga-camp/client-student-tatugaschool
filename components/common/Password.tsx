@@ -47,8 +47,9 @@ interface InputHTMLAttributes<T> extends HTMLAttributes<T> {
   type?: HTMLInputTypeAttribute | undefined;
   value?: string | readonly string[] | number | undefined;
   width?: number | string | undefined;
-
+  feedback?: boolean | undefined;
   onChange?: ChangeEventHandler<T> | undefined;
+  toggleMask?: boolean | undefined;
 }
 
 type Props = {

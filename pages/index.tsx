@@ -1,11 +1,11 @@
 import { GetServerSideProps } from "next";
-import React from "react";
-import { SubjectQuery } from "../interfaces";
+import React, { useEffect } from "react";
+import { ErrorMessages, StudentOnSubject, SubjectQuery } from "../interfaces";
 import {
   GetSubjectByCodeService,
   ResponseGetSubjectByCodeService,
 } from "../services";
-import { useGetSubjectByCode } from "../react-query";
+import { useGetSubjectByCode, useSignIn } from "../react-query";
 import Head from "next/head";
 import Layout from "../components/layouts/Layout";
 import ListMemberCircle from "../components/ListMemberCircle";
@@ -15,6 +15,10 @@ import { decodeBlurhashToCanvas } from "../utils";
 import { defaultBlurHash } from "../data";
 import { FaSearch } from "react-icons/fa";
 import { GoChevronRight } from "react-icons/go";
+import Swal from "sweetalert2";
+import { useRouter } from "next/router";
+import Password from "../components/common/Password";
+import { IoMdClose } from "react-icons/io";
 
 type IndexProps = {
   subjectData: ResponseGetSubjectByCodeService;
@@ -24,7 +28,94 @@ function Index({ subjectData, code }: IndexProps) {
   const subject = useGetSubjectByCode(code, {
     initialData: subjectData,
   });
-  const [selectMenu, setSelectMenu] = React.useState("Dashboard");
+  const router = useRouter();
+  const [search, setSearch] = React.useState("");
+  const [students, setStudents] = React.useState<StudentOnSubject[]>();
+  const [selectStudentId, setSelectStudentId] = React.useState<string | null>(
+    null
+  );
+
+  const signIn = useSignIn();
+
+  useEffect(() => {
+    if (subject.data) {
+      setStudents(subject.data.studentOnSubjects);
+    }
+  }, [subject.status]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value);
+    if (subject.data) {
+      setStudents(
+        subject.data.studentOnSubjects.filter(
+          (student) =>
+            student.firstName
+              .toLowerCase()
+              .includes(e.target.value.toLowerCase()) ||
+            student.lastName
+              .toLowerCase()
+              .includes(e.target.value.toLowerCase()) ||
+            student.number.toString().includes(e.target.value)
+        )
+      );
+    }
+  };
+
+  const handleSignIn = async ({
+    studentId,
+    name,
+  }: {
+    studentId: string;
+    name: string;
+  }) => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: `You will join this subject as ${name}`,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Yes",
+      cancelButtonText: "No",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await signIn.mutateAsync({
+            studentId: studentId,
+          });
+          router.push(`/subject/${subject.data?.id}`);
+          Swal.fire({
+            title: "Success",
+            text: "You have successfully joined this subject",
+            icon: "success",
+          });
+        } catch (error) {
+          let result = error as ErrorMessages;
+          console.error(error);
+          if (result.message === "Please enter your password") {
+            setSelectStudentId(studentId);
+          } else {
+            Swal.fire({
+              title: result.error ? result.error : "Something Went Wrong",
+              text: result.message.toString(),
+              footer: result.statusCode
+                ? "Code Error: " + result.statusCode?.toString()
+                : "",
+              icon: "error",
+            });
+          }
+        }
+      }
+    });
+  };
+
+  if (selectStudentId) {
+    return (
+      <ShowPasswordRequired
+        code={code}
+        studentId={selectStudentId}
+        onClose={() => setSelectStudentId(null)}
+      />
+    );
+  }
   return (
     <>
       <Head>
@@ -34,26 +125,9 @@ function Index({ subjectData, code }: IndexProps) {
           content={`welcome to subject ${subject.data?.title} by ${subject.data?.teacherOnSubjects[0].firstName}`}
         />
       </Head>
-      <Layout code={code} setSelectMenu={setSelectMenu} selectMenu={selectMenu}>
-        <div className="w-full flex flex-col">
-          <header className="w-full border-b p-5 h-20 flex items-center justify-between gap-5">
-            <h1 className="text-xl text-gray-700 font-bold">
-              {subject.data?.title}
-            </h1>
-            <div className="flex items-center justify-center gap-2">
-              {subject.data && (
-                <ListMemberCircle members={subject.data?.teacherOnSubjects} />
-              )}
-              <div
-                className="bg-primary-color flex items-center justify-center gap-1
-               text-white px-2 text-sm py-1 rounded-md"
-              >
-                <HiUsers />
-                Teachers
-              </div>
-            </div>
-          </header>
 
+      <Layout>
+        <div className="w-full flex flex-col">
           <main className="w-full h-1 grow  bg-white overflow-y-auto">
             <div className="w-full bg-sky-100 h-40"></div>
             <header className="w-full relative -top-20 flex items-center h-max justify-center">
@@ -118,6 +192,8 @@ function Index({ subjectData, code }: IndexProps) {
                   <div className="b relative px-6">
                     <FaSearch className="absolute left-9 top-3 text-gray-400" />
                     <input
+                      value={search}
+                      onChange={handleChange}
                       type="text"
                       placeholder="Search..."
                       className="w-96 pl-10 pr-4 py-2 border 
@@ -126,7 +202,7 @@ function Index({ subjectData, code }: IndexProps) {
                   </div>
                 </header>
                 <ul className="grid grid-cols-1 max-h-96 overflow-y-auto p-3">
-                  {subject.data?.studentOnSubjects
+                  {students
                     ?.sort((a, b) => Number(a.number) - Number(b.number))
                     .map((student, index) => {
                       const odd = index % 2 === 0;
@@ -161,7 +237,15 @@ function Index({ subjectData, code }: IndexProps) {
                               </p>
                             </div>
                           </div>
-                          <button className="main-button flex items-center justify-center gap-1 px-4 py-1">
+                          <button
+                            onClick={() =>
+                              handleSignIn({
+                                studentId: student.studentId,
+                                name: `${student.firstName} ${student.lastName}`,
+                              })
+                            }
+                            className="main-button flex items-center justify-center gap-1 px-4 py-1"
+                          >
                             Join <GoChevronRight />
                           </button>
                         </li>
@@ -237,6 +321,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     };
   } catch (error) {
     console.error("Error fetching subject", error);
+
     return {
       redirect: {
         destination: "/welcome",
@@ -244,4 +329,77 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
       },
     };
   }
+};
+
+type PropsshowPasswordRequired = {
+  onClose: () => void;
+  studentId: string;
+  code: string;
+};
+const ShowPasswordRequired = ({
+  onClose,
+  studentId,
+  code,
+}: PropsshowPasswordRequired) => {
+  const signIn = useSignIn();
+
+  const router = useRouter();
+  const subject = useGetSubjectByCode(code);
+
+  const handleSignInForm = async (e: React.FormEvent) => {
+    try {
+      e.preventDefault();
+      const form = e.currentTarget as HTMLFormElement;
+      const password = (form.elements.namedItem("password") as HTMLInputElement)
+        .value;
+      await signIn.mutateAsync({
+        studentId: studentId,
+        password: password,
+      });
+      router.push(`/subject/${subject.data?.id}`);
+      Swal.fire({
+        title: "Success",
+        text: "You have successfully joined this subject",
+        icon: "success",
+      });
+    } catch (error) {
+      let result = error as ErrorMessages;
+      Swal.fire({
+        title: result.error ? result.error : "Something Went Wrong",
+        text: result.message.toString(),
+        footer: result.statusCode
+          ? "Code Error: " + result.statusCode?.toString()
+          : "",
+        icon: "error",
+      });
+    }
+  };
+
+  return (
+    <Layout>
+      <form
+        onSubmit={handleSignInForm}
+        className="w-full h-screen flex items-center justify-center bg-gray-100/50"
+      >
+        <div className="w-96 gap-2 h-max flex flex-col border justify-center items-center relative py-10 bg-white p-3 rounded-md">
+          <button
+            type="button"
+            onClick={() => onClose()}
+            className="text-lg hover:bg-gray-300/50 w-6 h-6 absolute top-2 right-2 m-auto rounded flex items-center justify-center font-semibold"
+          >
+            <IoMdClose />
+          </button>
+          <h1 className="text-lg font-semibold">Enter your password</h1>
+          <Password toggleMask name="password" feedback={false} />
+          <button type="submit" className="main-button w-80">
+            Submit
+          </button>
+
+          <p className="text-xs text-gray-500">
+            If you forget your password, please contact your teacher.
+          </p>
+        </div>
+      </form>
+    </Layout>
+  );
 };
