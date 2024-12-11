@@ -54,3 +54,24 @@ export async function GetSubjectFromStudentService(
     throw error?.response?.data;
   }
 }
+
+export type RequestGetSubjectByIdService = {
+  subjectId: string;
+};
+
+type ResponseGetSubjectByIdService = Subject;
+
+export async function GetSubjectByIdService(
+  input: RequestGetSubjectByIdService
+): Promise<ResponseGetSubjectByIdService> {
+  try {
+    const response = await axiosInstance({
+      method: "GET",
+      url: `v1/subjects/student/${input.subjectId}`,
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error("Get Subject request failed:", error.response.data);
+    throw error?.response?.data;
+  }
+}
