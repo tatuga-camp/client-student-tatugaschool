@@ -1,4 +1,4 @@
-import React, { memo, ReactNode } from "react";
+import React, { memo, ReactNode, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import { decodeBlurhashToCanvas } from "../utils";
@@ -7,14 +7,23 @@ import { useGetSubjectByCode } from "../react-query";
 
 type Props = {
   active: boolean;
-
   menuList: { title: string; icon: ReactNode; url?: string }[];
 };
 
 function Sidebar({ active, menuList }: Props) {
   const router = useRouter();
-
   const [selectMenu, setSelectMenu] = React.useState("Dashboard");
+
+  useEffect(() => {
+    if (router.pathname === "/") {
+      setSelectMenu("Dashboard");
+    } else if (router.pathname === "/subject/[subjectId]") {
+      setSelectMenu("Subject");
+    } else if (router.pathname === "/student/[studentId]") {
+      setSelectMenu("Profile");
+    }
+  }, [router.pathname]);
+
   return (
     <div
       className={`text-black  overflow-hidden flex flex-col items-center justify-start gap-3

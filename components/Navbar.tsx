@@ -7,21 +7,23 @@ import { useGetSubjectByCode, useGetSubjectById } from "../react-query";
 import Sidebar from "./Sidebar";
 import useClickOutside from "../hook/useClickOutside";
 import { useRouter } from "next/router";
+import { UseQueryResult } from "@tanstack/react-query";
+import { Student, Subject } from "../interfaces";
+import ButtonProfile from "./ButtonProfile";
 
 type NavbarProps = {
-  trigger: boolean;
-  setTrigger: React.Dispatch<React.SetStateAction<boolean>>;
+  trigger?: boolean;
+  setTrigger?: React.Dispatch<React.SetStateAction<boolean>>;
+  subject?: UseQueryResult<Subject, Error>;
+  student?: Student;
 };
-function Navbar({ trigger, setTrigger }: NavbarProps) {
-  const router = useRouter();
-  const subject = useGetSubjectById({ id: router.query.subjectId as string });
-
+function Navbar({ trigger, setTrigger, subject, student }: NavbarProps) {
   return (
     <nav className="w-full font-Anuphan  ">
       <section className="w-full gradient-bg z-20 gap-5 flex items-center justify-start p-3">
-        {subject.data && (
+        {subject?.data && (
           <button
-            onClick={() => setTrigger(!trigger)}
+            onClick={() => setTrigger?.(!trigger)}
             className={`text-black flex ${
               trigger ? "rotate-90" : "rotate-0"
             }  hover:bg-primary-color bg-white transition duration-150 hover:text-white 
@@ -50,6 +52,8 @@ function Navbar({ trigger, setTrigger }: NavbarProps) {
             Tatuga School
           </div>
         </Link>
+
+        {student && <ButtonProfile student={student} />}
       </section>
     </nav>
   );

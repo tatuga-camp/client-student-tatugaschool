@@ -1,6 +1,12 @@
 import axios from "axios";
 import { StudentRefetchTokenService } from "./auth";
-import { getAccessToken, getRefetchtoken, setAccessToken } from "../utils";
+import {
+  getAccessToken,
+  getRefetchtoken,
+  removeAccessToken,
+  removeRefreshToken,
+  setAccessToken,
+} from "../utils";
 
 const createAxiosInstance = () => {
   const instance = axios.create({
@@ -65,6 +71,8 @@ const createAxiosInstance = () => {
           return instance(originalRequest);
         } catch (refreshError) {
           console.log("refreshError", refreshError);
+          removeAccessToken();
+          removeRefreshToken();
           if (typeof window !== "undefined") {
             window.location.href = "/welcome";
           }
