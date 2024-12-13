@@ -1,5 +1,5 @@
 import { GetServerSidePropsContext } from "next";
-import { parseCookies, setCookie } from "nookies";
+import { destroyCookie, parseCookies, setCookie } from "nookies";
 
 export function getRefetchtoken(ctx?: GetServerSidePropsContext): {
   refresh_token: string | null;
@@ -30,4 +30,12 @@ export function setRefreshToken({ refresh_token }: { refresh_token: string }) {
   });
 
   return { refresh_token };
+}
+
+export function removeAccessToken() {
+  destroyCookie(null, "access_token");
+}
+
+export function removeRefreshToken() {
+  destroyCookie(null, "refresh_token");
 }

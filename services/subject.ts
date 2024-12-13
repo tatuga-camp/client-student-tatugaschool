@@ -59,7 +59,7 @@ export type RequestGetSubjectByIdService = {
   subjectId: string;
 };
 
-type ResponseGetSubjectByIdService = Subject;
+type ResponseGetSubjectByIdService = ResponseGetSubjectByCodeService;
 
 export async function GetSubjectByIdService(
   input: RequestGetSubjectByIdService

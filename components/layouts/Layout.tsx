@@ -7,9 +7,14 @@ import useClickOutside from "../../hook/useClickOutside";
 import { useRouter } from "next/router";
 import { useGetStudent, useGetSubjectById } from "../../react-query";
 import { FaBookOpen, FaUser } from "react-icons/fa";
+import { UseQueryResult } from "@tanstack/react-query";
+import { ResponseGetSubjectByCodeService } from "../../services";
+import Header from "../subject/Header";
+import TeacherList from "../subject/TeacherList";
 
 type LayoutProps = {
   children: ReactNode;
+  subject: UseQueryResult<ResponseGetSubjectByCodeService, Error>;
 };
 
 function Layout({ children }: LayoutProps) {
@@ -24,7 +29,12 @@ function Layout({ children }: LayoutProps) {
   const student = useGetStudent();
   return (
     <div className="flex h-screen  flex-col">
-      <Navbar trigger={trigger} setTrigger={setTrigger} />
+      <Navbar
+        subject={subject}
+        student={student.data}
+        trigger={trigger}
+        setTrigger={setTrigger}
+      />
       <div className="flex h-full ">
         <div ref={sidebarRef} className="h-full">
           {subject.data && student.data && (
@@ -41,16 +51,28 @@ function Layout({ children }: LayoutProps) {
                   url: `/subject/${subject.data.id}`,
                 },
                 {
-                  title: "Dashboard",
+                  title: "Homepage",
                   icon: <IoMenu />,
-                  url: `/?subject_code=16ad5c`,
+                  url: `/welcome`,
                 },
               ]}
               active={trigger}
             />
           )}
         </div>
-        {children}
+
+        <div className="w-full flex flex-col">
+          <main className="w-full h-1 grow  bg-white overflow-y-auto">
+            <div className="w-full bg-sky-100 h-40"></div>
+            {subject.data && <Header subject={subject.data} />}
+            <section className="w-full px-40 justify-center gap-5 pb-20 flex">
+              {children}
+              {subject.data && (
+                <TeacherList teachers={subject.data?.teacherOnSubjects} />
+              )}
+            </section>
+          </main>
+        </div>
       </div>
     </div>
   );
