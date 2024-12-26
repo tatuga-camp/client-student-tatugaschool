@@ -3,6 +3,7 @@ import React, {
   HTMLAttributes,
   HTMLInputAutoCompleteAttribute,
   HTMLInputTypeAttribute,
+  Ref,
 } from "react";
 import { Password as PasswordPrimereact } from "primereact/password";
 import { classNames } from "primereact/utils";
@@ -50,6 +51,7 @@ interface InputHTMLAttributes<T> extends HTMLAttributes<T> {
   feedback?: boolean | undefined;
   onChange?: ChangeEventHandler<T> | undefined;
   toggleMask?: boolean | undefined;
+  inputRef?: Ref<HTMLInputElement> | undefined;
 }
 
 type Props = {

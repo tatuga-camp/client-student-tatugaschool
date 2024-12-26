@@ -2,18 +2,21 @@ import {
   Assignment,
   FileOnAssignment,
   FileOnStudentOnAssignment,
+  StudentAssignmentContentType,
   StudentAssignmentStatus,
+  StudentOnAssignment,
 } from "../interfaces";
 import createAxiosInstance from "./apiService";
 
 const axiosInstance = createAxiosInstance();
 
-type RequestGetAssignmentsService = {
+export type RequestGetAssignmentsService = {
   subjectId: string;
 };
 
-type ResponseGetAssignmentsService = (Assignment & {
+export type ResponseGetAssignmentsService = (Assignment & {
   files: FileOnAssignment[];
+  studentOnAssignment: StudentOnAssignment;
 })[];
 export async function GetAssignmentsService(
   input: RequestGetAssignmentsService
@@ -62,7 +65,8 @@ type RequestGetFileOnStudentAssignmentService = {
   studentOnAssignmentId: string;
 };
 
-type ResponseGetFileOnStudentAssignmentService = FileOnStudentOnAssignment[];
+export type ResponseGetFileOnStudentAssignmentService =
+  FileOnStudentOnAssignment[];
 export async function GetFileOnStudentAssignmentService(
   input: RequestGetFileOnStudentAssignmentService
 ): Promise<ResponseGetFileOnStudentAssignmentService> {
@@ -81,12 +85,13 @@ export async function GetFileOnStudentAssignmentService(
   }
 }
 
-type RequestCreateFileOnStudentAssignmentService = {
+export type RequestCreateFileOnStudentAssignmentService = {
   type: string;
-  url: string;
+  body: string;
   blurHash?: string;
   size: number;
   studentOnAssignmentId: string;
+  contentType: StudentAssignmentContentType;
 };
 
 type ResponseCreateFileOnStudentAssignmentService = FileOnStudentOnAssignment;
@@ -96,6 +101,35 @@ export async function CreateFileOnStudentAssignmentService(
   try {
     const response = await axiosInstance({
       method: "POST",
+      url: `v1/file-on-student-assignments/student`,
+      data: { ...input },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error(
+      "CreateFileOnStudentAssignment request failed:",
+      error.response.data
+    );
+    throw error?.response?.data;
+  }
+}
+
+export type RequestUpdateFileOnStudentAssignmentService = {
+  query: {
+    id: string;
+  };
+  body: {
+    body: string;
+  };
+};
+
+type ResponseUpdateFileOnStudentAssignmentService = FileOnStudentOnAssignment;
+export async function UpdateFileOnStudentAssignmentService(
+  input: RequestUpdateFileOnStudentAssignmentService
+): Promise<ResponseUpdateFileOnStudentAssignmentService> {
+  try {
+    const response = await axiosInstance({
+      method: "PATCH",
       url: `v1/file-on-student-assignments/student`,
       data: { ...input },
     });

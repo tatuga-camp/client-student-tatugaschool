@@ -1,0 +1,27 @@
+import React from "react";
+import { StudentAssignmentStatus } from "../../interfaces";
+
+type Props = {
+  status: StudentAssignmentStatus;
+};
+function AssignmentStatusCard({ status }: Props) {
+  return (
+    <div
+      className={`flex w-full items-center h-full 
+  text-white py-2 rounded-md px-2 
+
+  ${status === "SUBMITTED" && "bg-gradient-to-r from-amber-200 to-yellow-400"}
+
+  ${status === "REVIEWD" && "bg-gradient-to-r from-emerald-400 to-cyan-400"}
+
+  ${status === "PENDDING" && "bg-gradient-to-r from-stone-500 to-stone-700"}
+  justify-center text-sm font-normal `}
+    >
+      {status === "SUBMITTED" && "Waiting for Review"}
+      {status === "REVIEWD" && "Reviewed"}
+      {status === "PENDDING" && "No work"}
+    </div>
+  );
+}
+
+export default AssignmentStatusCard;

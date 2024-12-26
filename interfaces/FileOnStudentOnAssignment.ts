@@ -3,9 +3,12 @@ export interface FileOnStudentOnAssignment {
   createAt: Date;
   updateAt: Date;
   type: string;
-  url: string;
+  body: string;
+  contentType: StudentAssignmentContentType;
   size: number;
   subjectId: string;
   schoolId: string;
   studentOnAssignmentId: string;
 }
+
+export type StudentAssignmentContentType = "FILE" | "TEXT";
