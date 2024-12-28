@@ -52,7 +52,7 @@ function TextCard({ file, onShowText }: Props) {
           onClick={() => onShowText?.(file)}
           className="flex max-w-40 truncate items-center gap-2"
         >
-          <span>Document</span>
+          <span>{file.name}</span>
         </button>
       </div>
 
@@ -60,7 +60,7 @@ function TextCard({ file, onShowText }: Props) {
         type="button"
         onClick={handleDeleteFile}
         disabled={deleteFile.isPending}
-        className="text-xl mr-5 hover:bg-red-300/50 p-2 
+        className="text-xl  hover:bg-red-300/50 p-2 
         flex items-center justify-center
         rounded-full active:scale-105 text-red-500"
       >
@@ -132,7 +132,7 @@ function FileCard({ file }: Props) {
         type="button"
         onClick={handleDeleteFile}
         disabled={deleteFile.isPending}
-        className="text-xl mr-5 hover:bg-red-300/50 p-2 
+        className="text-xl  hover:bg-red-300/50 p-2 
         flex items-center justify-center
         rounded-full active:scale-105 text-red-500"
       >

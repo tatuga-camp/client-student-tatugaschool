@@ -6,6 +6,7 @@ import {
   useCreateFileStudentAssignment,
   useGetAssignments,
   useGetFileStudentAssignment,
+  useUpdateStudentOnAssignment,
 } from "../../../../react-query";
 import parse from "html-react-parser";
 import {
@@ -15,7 +16,11 @@ import {
   FaRegSadTear,
   FaYoutube,
 } from "react-icons/fa";
-import { MdAssignmentAdd } from "react-icons/md";
+import {
+  MdAssignmentAdd,
+  MdOutlineDone,
+  MdOutlineRemoveDone,
+} from "react-icons/md";
 import { useRouter } from "next/router";
 import AssignmentStatusCard from "../../../../components/subject/AssignmentStatus";
 import { generateBlurHash, timeAgo, timeLeft } from "../../../../utils";
@@ -27,6 +32,7 @@ import AssignmentLink from "../../../../components/subject/AssignmentLink";
 import {
   ErrorMessages,
   FileOnStudentOnAssignment,
+  StudentAssignmentStatus,
   StudentOnAssignment,
 } from "../../../../interfaces";
 import Swal from "sweetalert2";
@@ -38,6 +44,9 @@ import { ProgressBar } from "primereact/progressbar";
 import { Toast } from "primereact/toast";
 import FileStudentAssignmentCard from "../../../../components/subject/FileStudentAssignmentCard";
 import AssignmentUploadFile from "../../../../components/subject/AssignmentUploadFile";
+import { IoChevronDownSharp } from "react-icons/io5";
+import useAdjustPosition from "../../../../hook/useWindow";
+import useClickOutside from "../../../../hook/useClickOutside";
 
 const SummitWorkMenus = [
   {
@@ -56,6 +65,33 @@ const SummitWorkMenus = [
 
 type SummitWorkMenu = (typeof SummitWorkMenus)[number]["title"];
 
+const menuSummitLists = [
+  {
+    title: "Mark as done",
+    icon: (
+      <div
+        className="w-5 bg-green-200 text-green-600
+   h-5 overflow-hidden rounded-full flex items-center justify-center"
+      >
+        <MdOutlineDone />
+      </div>
+    ),
+  },
+  {
+    title: "Mark as not done",
+    icon: (
+      <div
+        className="w-5 bg-red-200 text-red-600
+h-5 overflow-hidden rounded-full flex items-center justify-center"
+      >
+        <MdOutlineRemoveDone />
+      </div>
+    ),
+  },
+] as const;
+
+type MenuSummitList = (typeof menuSummitLists)[number]["title"];
+
 function Index({
   assignmentId,
   subjectId,
@@ -65,7 +101,11 @@ function Index({
 }) {
   const router = useRouter();
   const toast = React.useRef<Toast>(null);
-
+  const divRef = React.useRef<HTMLDivElement>(null);
+  const updateWork = useUpdateStudentOnAssignment();
+  const adjustedStyle = useAdjustPosition(divRef, 20); // 20px padding
+  const [triggerSummitDropDown, setTriggerSummitDropDown] =
+    React.useState(false);
   const [selectMenu, setSelectMenu] = React.useState<{
     title: SummitWorkMenu;
     file?: FileOnStudentOnAssignment;
@@ -76,6 +116,10 @@ function Index({
 
   const studentFiles = useGetFileStudentAssignment({
     studentOnAssignmentId: assignment?.studentOnAssignment.id as string,
+  });
+
+  useClickOutside(divRef, () => {
+    setTriggerSummitDropDown(false);
   });
   if (!assignment) {
     return (
@@ -129,6 +173,131 @@ function Index({
     );
   };
 
+  const handleUpdateWork = async (status: StudentAssignmentStatus) => {
+    try {
+      await updateWork.mutateAsync({
+        query: {
+          studentOnAssignmentId: studentOnAssignment.id,
+        },
+        body: {
+          status,
+        },
+      });
+      toast.current?.show({
+        severity: "success",
+        summary: "Success",
+        detail: "Work updated successfully",
+        life: 3000,
+      });
+      setTriggerSummitDropDown(false);
+    } catch (error) {
+      let result = error as ErrorMessages;
+      Swal.fire({
+        title: result.error ? result.error : "Something Went Wrong",
+        text: result.message.toString(),
+        footer: result.statusCode
+          ? "Code Error: " + result.statusCode?.toString()
+          : "",
+        icon: "error",
+      });
+    }
+  };
+
+  const SummitStatus = () => {
+    return (
+      <div className="w-full bg-white  border p-2 rounded-md h-max">
+        <div className="font-semibold flex w-full items-center justify-between text-xl p-2">
+          <div className="flex flex-col gap-0">
+            Summit Work
+            <span className="text-xs font-normal text-gray-500">
+              You can summit work here
+            </span>
+          </div>{" "}
+          <IoIosInformationCircle />
+        </div>
+        <div className="flex relative  items-center">
+          <button
+            onClick={() => {
+              handleUpdateWork("SUBMITTED");
+            }}
+            disabled={updateWork.isPending}
+            type="submit"
+            className="w-52 p-2 h-10 opacity-85 hover:opacity-100 
+            font-medium rounded-r-none rounded-md text-base text-white
+     gradient-bg flex items-center gap-2 justify-center"
+          >
+            Mark as done{" "}
+            <div
+              className="w-5 bg-green-200 text-green-600
+             h-5 overflow-hidden rounded-full flex items-center justify-center"
+            >
+              <MdOutlineDone />
+            </div>
+          </button>
+          <button
+            onClick={() => setTriggerSummitDropDown((prev) => !prev)}
+            type="button"
+            className="w-max p-2 h-10  font-medium rounded-l-none rounded-md text-base text-white
+     gradient-bg"
+          >
+            <IoChevronDownSharp />
+          </button>
+          {triggerSummitDropDown && (
+            <div
+              style={{
+                position: "absolute",
+                ...adjustedStyle,
+              }}
+              ref={divRef}
+            >
+              <div className="w-60 h-max z-40 p-1 absolute top-8 rounded-md bg-white drop-shadow border">
+                {menuSummitLists.map((menu, index) => {
+                  return (
+                    <button
+                      disabled={updateWork.isPending}
+                      onClick={() => {
+                        if (menu.title === "Mark as done") {
+                          handleUpdateWork("SUBMITTED");
+                        }
+                        if (menu.title === "Mark as not done") {
+                          handleUpdateWork("PENDDING");
+                        }
+                      }}
+                      key={index}
+                      className={`w-full p-2 flex gap-10 items-center justify-start text-base
+             font-medium 
+             text-gray-500 hover:bg-primary-color hover:text-white
+             
+             `}
+                    >
+                      {menu.icon}
+                      {menu.title}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+        <span>
+          {assignment.studentOnAssignment.status === "SUBMITTED" &&
+            assignment.studentOnAssignment.completedAt && (
+              <div className="text-sm break-words text-green-500 font-medium mt-2">
+                Marked as done at{" "}
+                {new Date(
+                  assignment.studentOnAssignment.completedAt
+                ).toLocaleDateString(undefined, {
+                  minute: "numeric",
+                  hour: "numeric",
+                  day: "numeric",
+                  month: "long",
+                })}{" "}
+              </div>
+            )}
+        </span>
+      </div>
+    );
+  };
   const StudentWorkInfo = () => {
     return (
       <div className="w-full bg-white  border p-2 rounded-md h-max">
@@ -287,6 +456,7 @@ function Index({
       <Layout
         listData={
           <>
+            <SummitStatus />
             <SummitWork />
             <StudentWorkInfo />
           </>

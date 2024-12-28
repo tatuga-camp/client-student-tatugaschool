@@ -22,10 +22,14 @@ function AssignmentText({
   onClose,
 }: Props) {
   const [value, setValue] = React.useState(text ? text.body : "");
+  const [title, setTitle] = React.useState<string | null>(
+    text ? text.name : ""
+  );
   const update = useUpdateFileStudentAssignment();
   const create = useCreateFileStudentAssignment();
-  const handleSave = async () => {
+  const handleSave = async (e: React.FormEvent) => {
     try {
+      e.preventDefault();
       if (text) {
         await update.mutateAsync({
           query: {
@@ -33,6 +37,7 @@ function AssignmentText({
           },
           body: {
             body: value,
+            name: title ?? "",
           },
         });
         toast.current?.show({
@@ -46,6 +51,7 @@ function AssignmentText({
         await create.mutateAsync({
           studentOnAssignmentId: studentOnAssignmentId,
           body: value,
+          name: title,
           contentType: "TEXT",
           size: 0,
           type: "tiny-editor",
@@ -71,12 +77,18 @@ function AssignmentText({
     }
   };
   return (
-    <div className="w-full h-full flex flex-col gap-2">
+    <form onSubmit={handleSave} className="w-full h-full flex flex-col gap-2">
       <div className="w-full flex justify-between mt-2">
-        <h3>{text ? "Edit" : "Add"} Document</h3>
+        <input
+          onChange={(e) => setTitle(e.target.value)}
+          value={title ?? ""}
+          type="text"
+          placeholder="Add Your Title"
+          required
+          className="w-72 h-10 main-input"
+        />
         <button
           disabled={update.isPending || create.isPending}
-          onClick={handleSave}
           className="main-button w-60 flex items-center justify-center"
         >
           {update.isPending || create.isPending ? (
@@ -94,7 +106,7 @@ function AssignmentText({
       <div className="h-96">
         <TextEditor value={value} onChange={(content) => setValue(content)} />
       </div>
-    </div>
+    </form>
   );
 }
 
