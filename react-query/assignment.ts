@@ -7,9 +7,11 @@ import {
   RequestCreateFileOnStudentAssignmentService,
   RequestGetAssignmentsService,
   RequestUpdateFileOnStudentAssignmentService,
+  RequestUpdateWorkService,
   ResponseGetAssignmentsService,
   ResponseGetFileOnStudentAssignmentService,
   UpdateFileOnStudentAssignmentService,
+  UpdateWorkService,
 } from "../services/assignment";
 
 export function useGetAssignments(input: RequestGetAssignmentsService) {
@@ -28,6 +30,30 @@ export function useGetFileStudentAssignment(input: {
       { studentOnAssignmentId: input.studentOnAssignmentId },
     ],
     queryFn: () => GetFileOnStudentAssignmentService(input),
+  });
+}
+
+export function useUpdateStudentOnAssignment() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationKey: ["update-student-on-assignment"],
+    mutationFn: (input: RequestUpdateWorkService) => UpdateWorkService(input),
+    onSuccess(studentOnAssignment, variables, context) {
+      queryClient.setQueryData(
+        ["assignments", { subjectId: studentOnAssignment.subjectId }],
+        (prevData: ResponseGetAssignmentsService) => {
+          return prevData.map((assignment) => {
+            if (assignment.id === studentOnAssignment.assignmentId) {
+              return {
+                ...assignment,
+                studentOnAssignment: studentOnAssignment,
+              };
+            }
+            return assignment;
+          });
+        }
+      );
+    },
   });
 }
 

@@ -5,6 +5,7 @@ export interface FileOnStudentOnAssignment {
   type: string;
   body: string;
   contentType: StudentAssignmentContentType;
+  name: string | null;
   size: number;
   subjectId: string;
   schoolId: string;

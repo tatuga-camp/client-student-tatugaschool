@@ -33,7 +33,7 @@ export async function GetAssignmentsService(
   }
 }
 
-type RequestUpdateWorkService = {
+export type RequestUpdateWorkService = {
   query: {
     studentOnAssignmentId: string;
   };
@@ -43,9 +43,7 @@ type RequestUpdateWorkService = {
   };
 };
 
-type ResponseUpdateWorkService = (Assignment & {
-  files: FileOnAssignment[];
-})[];
+type ResponseUpdateWorkService = StudentOnAssignment;
 export async function UpdateWorkService(
   input: RequestUpdateWorkService
 ): Promise<ResponseUpdateWorkService> {
@@ -53,6 +51,7 @@ export async function UpdateWorkService(
     const response = await axiosInstance({
       method: "PATCH",
       url: `v1/student-on-assignments/student`,
+      data: { ...input },
     });
     return response.data;
   } catch (error: any) {
@@ -87,6 +86,7 @@ export async function GetFileOnStudentAssignmentService(
 
 export type RequestCreateFileOnStudentAssignmentService = {
   type: string;
+  name: string | null;
   body: string;
   blurHash?: string;
   size: number;
@@ -120,6 +120,7 @@ export type RequestUpdateFileOnStudentAssignmentService = {
   };
   body: {
     body: string;
+    name?: string;
   };
 };
 
