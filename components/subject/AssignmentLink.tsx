@@ -16,6 +16,7 @@ function AssignmentLink({ studentOnAssignmentId }: Props) {
       await createFile.mutateAsync({
         studentOnAssignmentId: studentOnAssignmentId,
         type: "link-url",
+        name: link,
         body: link,
         contentType: "FILE",
         size: 0,

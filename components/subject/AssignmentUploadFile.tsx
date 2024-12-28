@@ -46,6 +46,7 @@ function AssignmentUploadFile({ studentOnAssignmentId, toast }: Props) {
         await createFile.mutateAsync({
           studentOnAssignmentId: studentOnAssignmentId,
           type: file.type,
+          name: file.name,
           body: signURL.originalURL,
           size: file.size,
           blurHash: blurHash,
