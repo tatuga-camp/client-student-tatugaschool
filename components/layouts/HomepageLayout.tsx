@@ -22,7 +22,9 @@ function HomepageLayout({ children, subject }: LayoutProps) {
             <section className="w-full px-40 justify-center gap-5 pb-20 flex">
               {children}
               {subject.data && (
-                <TeacherList teachers={subject.data?.teacherOnSubjects} />
+                <div className="w-4/12 bg flex flex-col gap-2">
+                  <TeacherList teachers={subject.data?.teacherOnSubjects} />
+                </div>
               )}
             </section>
           </main>

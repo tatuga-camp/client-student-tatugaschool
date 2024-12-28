@@ -1,5 +1,5 @@
 import { GetServerSideProps } from "next";
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { ErrorMessages, StudentOnSubject, SubjectQuery } from "../interfaces";
 import {
   GetSubjectByCodeService,
@@ -32,6 +32,7 @@ function Index({ subjectData, code }: IndexProps) {
   const subject = useGetSubjectByCode(code, {
     initialData: subjectData,
   });
+  const passwordInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const [search, setSearch] = React.useState("");
   const [students, setStudents] = React.useState<StudentOnSubject[]>();
@@ -128,6 +129,9 @@ function Index({ subjectData, code }: IndexProps) {
           console.error(error);
           if (result.message === "Please enter your password") {
             setSelectStudentId(studentId);
+            setTimeout(() => {
+              passwordInputRef.current?.focus();
+            }, 1000);
           } else {
             Swal.fire({
               title: result.error ? result.error : "Something Went Wrong",
@@ -166,7 +170,12 @@ function Index({ subjectData, code }: IndexProps) {
               <IoMdClose />
             </button>
             <h1 className="text-lg font-semibold">Enter your password</h1>
-            <Password toggleMask name="password" feedback={false} />
+            <Password
+              inputRef={passwordInputRef}
+              toggleMask
+              name="password"
+              feedback={false}
+            />
             <button
               disabled={signIn.isPending}
               type="submit"

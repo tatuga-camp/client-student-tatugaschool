@@ -36,7 +36,7 @@ function Index({ subjectId }: { subjectId: string }) {
         <meta name="description" content={subject.data?.title} />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <Layout subject={subject}>
+      <Layout>
         <main className="w-7/12 flex flex-col">
           <ul className="w-full flex justify-start items-center gap-5">
             {menuLists.map((menu, index) => {
@@ -62,7 +62,7 @@ function Index({ subjectId }: { subjectId: string }) {
               );
             })}
           </ul>
-          {selectMenu === "Classwork" && <Classwork />}
+          {selectMenu === "Classwork" && <Classwork subjectId={subjectId} />}
           {selectMenu === "Attendance" && <Attendance />}
           {selectMenu === "Grade" && <Grade />}
         </main>
