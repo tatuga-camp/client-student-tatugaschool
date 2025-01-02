@@ -43,6 +43,7 @@ function TextCard({ file, onShowText }: Props) {
     <li className="w-full h-14 flex overflow-hidden rounded-md items-center justify-between  bg-white border">
       <div className="w-full h-full flex items-center justify-start gap-2">
         <button
+          onClick={() => onShowText?.(file)}
           className="w-16 bg-gradient-to-r from-green-200 to-green-600 text-white text-lg flex items-center justify-center
                border-r h-full"
         >

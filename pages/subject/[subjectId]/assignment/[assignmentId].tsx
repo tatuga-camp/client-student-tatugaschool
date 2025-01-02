@@ -281,20 +281,19 @@ function Index({
           )}
         </div>
         <span>
-          {assignment.studentOnAssignment.status === "SUBMITTED" &&
-            assignment.studentOnAssignment.completedAt && (
-              <div className="text-sm break-words text-green-500 font-medium mt-2">
-                Marked as done at{" "}
-                {new Date(
-                  assignment.studentOnAssignment.completedAt
-                ).toLocaleDateString(undefined, {
-                  minute: "numeric",
-                  hour: "numeric",
-                  day: "numeric",
-                  month: "long",
-                })}{" "}
-              </div>
-            )}
+          {assignment.studentOnAssignment.completedAt && (
+            <div className="text-sm break-words text-green-500 font-medium mt-2">
+              Marked as done at{" "}
+              {new Date(
+                assignment.studentOnAssignment.completedAt
+              ).toLocaleDateString(undefined, {
+                minute: "numeric",
+                hour: "numeric",
+                day: "numeric",
+                month: "long",
+              })}{" "}
+            </div>
+          )}
         </span>
       </div>
     );
