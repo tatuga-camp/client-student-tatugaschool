@@ -3,11 +3,13 @@ import { useCreateFileStudentAssignment } from "../../react-query";
 import { ErrorMessages } from "../../interfaces";
 import Swal from "sweetalert2";
 import { ProgressSpinner } from "primereact/progressspinner";
+import { Toast } from "primereact/toast";
 
 type Props = {
   studentOnAssignmentId: string;
+  toast: React.RefObject<Toast>;
 };
-function AssignmentLink({ studentOnAssignmentId }: Props) {
+function AssignmentLink({ studentOnAssignmentId, toast }: Props) {
   const createFile = useCreateFileStudentAssignment();
   const [link, setLink] = React.useState("");
   const handleSumit = async (e: React.FormEvent) => {
@@ -22,6 +24,12 @@ function AssignmentLink({ studentOnAssignmentId }: Props) {
         size: 0,
       });
       setLink("");
+      toast.current?.show({
+        severity: "success",
+        summary: "Success",
+        detail: "Link added successfully",
+        life: 3000,
+      });
     } catch (error) {
       let result = error as ErrorMessages;
       Swal.fire({

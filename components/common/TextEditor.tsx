@@ -10,8 +10,18 @@ declare const tinymce: TinyMCE;
 type Props = {
   value: string;
   onChange: (content: string) => void;
+  menubar?: boolean;
+  toolbar?: boolean | string;
 };
-function TextEditor({ value, onChange }: Props) {
+function TextEditor({
+  value,
+  onChange,
+  menubar = true,
+  toolbar = "undo redo | formatselect | blocks | " +
+    "bold italic backcolor | alignleft aligncenter " +
+    "alignright alignjustify | bullist numlist outdent indent | " +
+    "removeformat | image | link ",
+}: Props) {
   const [isLoaded, setIsLoaded] = React.useState(false);
   return (
     <>
@@ -30,12 +40,15 @@ function TextEditor({ value, onChange }: Props) {
           link_context_toolbar: true,
           height: "100%",
           width: "100%",
-          menubar: true,
+          menubar: menubar,
+          toolbar: toolbar,
           image_title: true,
           automatic_uploads: true,
           paste_data_images: false,
-          smart_paste: false,
+          smart_paste: true,
+          branding: false,
           file_picker_types: "image",
+
           file_picker_callback: async (callback, value, meta) => {
             const input = document.createElement("input");
             input.setAttribute("type", "file");
@@ -80,11 +93,7 @@ function TextEditor({ value, onChange }: Props) {
           ],
           contextmenu:
             "paste | link  inserttable | cell row column deletetable",
-          toolbar:
-            "undo redo | formatselect | blocks | " +
-            "bold italic backcolor | alignleft aligncenter " +
-            "alignright alignjustify | bullist numlist outdent indent | " +
-            "removeformat | image | link ",
+
           content_style:
             "body { font-family:Helvetica,Arial,sans-serif; font-size:14px }",
         }}

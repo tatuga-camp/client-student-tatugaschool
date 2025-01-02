@@ -47,6 +47,7 @@ import AssignmentUploadFile from "../../../../components/subject/AssignmentUploa
 import { IoChevronDownSharp } from "react-icons/io5";
 import useAdjustPosition from "../../../../hook/useWindow";
 import useClickOutside from "../../../../hook/useClickOutside";
+import CommentSection from "../../../../components/subject/CommentSection";
 
 const SummitWorkMenus = [
   {
@@ -443,7 +444,10 @@ function Index({
               />
             )}
             {selectMenu.title === "Link" && (
-              <AssignmentLink studentOnAssignmentId={studentOnAssignment.id} />
+              <AssignmentLink
+                toast={toast}
+                studentOnAssignmentId={studentOnAssignment.id}
+              />
             )}
           </div>
           <footer
@@ -462,36 +466,43 @@ function Index({
           </>
         }
       >
-        <main className="w-7/12 bg-white p-3 rounded-md h-max flex flex-col">
-          <h1 className="text-xl border-b">{assignment.title}</h1>
+        <main className="w-7/12  h-max flex flex-col gap-5">
+          <div className="w-full bg-white p-3 rounded-md">
+            <h1 className="text-xl border-b">{assignment.title}</h1>
 
-          <div className={` my-5`}>{parse(assignment.description)}</div>
-          <ul className="grid  gap-2 w-full">
-            {assignment.files?.map((file, index) => {
-              const isImage = file.type.includes("image");
-              const fileName = file.url.split("/").pop();
-              return (
-                <li
-                  onClick={() => window.open(file.url, "_blank")}
-                  key={index}
-                  className="w-full hover:cursor-pointer h-14 hover:bg-gray-100 transition
+            <div className={` my-5`}>{parse(assignment.description)}</div>
+            <ul className="grid  gap-2 w-full">
+              {assignment.files?.map((file, index) => {
+                const isImage = file.type.includes("image");
+                const fileName = file.url.split("/").pop();
+                return (
+                  <li
+                    onClick={() => window.open(file.url, "_blank")}
+                    key={index}
+                    className="w-full hover:cursor-pointer h-14 hover:bg-gray-100 transition
                              flex overflow-hidden rounded-md items-center justify-between  bg-white border"
-                >
-                  <div className="w-full h-full flex items-center justify-start gap-2">
-                    <div
-                      className="w-16 gradient-bg text-white text-lg flex items-center justify-center
+                  >
+                    <div className="w-full h-full flex items-center justify-start gap-2">
+                      <div
+                        className="w-16 gradient-bg text-white text-lg flex items-center justify-center
                        border-r h-full"
-                    >
-                      {isImage ? <FaRegFileImage /> : <FaRegFile />}
+                      >
+                        {isImage ? <FaRegFileImage /> : <FaRegFile />}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span>{fileName}</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span>{fileName}</span>
-                    </div>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+          <div className="bg-white p-2">
+            <CommentSection
+              studentOnAssignmentId={assignment.studentOnAssignment.id}
+            />
+          </div>
         </main>
       </Layout>
     </>
