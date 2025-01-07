@@ -8,7 +8,7 @@ export interface StudentOnAssignment {
   photo: string;
   blurHash?: string | undefined;
   number: string;
-  score: number;
+  score: number | null;
   body: string;
   isAssigned: boolean;
   status: StudentAssignmentStatus;

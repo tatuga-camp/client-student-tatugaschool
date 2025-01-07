@@ -20,7 +20,10 @@ type Props = {
   studentOnAssignmentId: string;
 };
 function CommentSection({ studentOnAssignmentId }: Props) {
-  const comments = useGetComments({ studentOnAssignmentId });
+  const comments = useGetComments({
+    studentOnAssignmentId,
+    refetchInterval: 5000,
+  });
   const student = useGetStudent();
   const [comment, setComment] = React.useState("");
   const create = useCreateComment();

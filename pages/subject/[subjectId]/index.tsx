@@ -53,7 +53,7 @@ function Index({ subjectId }: { subjectId: string }) {
                         ? "gradient-bg text-white"
                         : "bg-white text-black"
                     }
-                    flex items-center justify-start gap-2 p-2 rounded-md border 
+                    flex items-center w-40 justify-start gap-2 p-2 rounded-md border 
                    hover:bg-primary-color  h-10 active:gradient-bg hover:text-white`}
                 >
                   {menu.icon}
@@ -64,7 +64,7 @@ function Index({ subjectId }: { subjectId: string }) {
           </ul>
           {selectMenu === "Classwork" && <Classwork subjectId={subjectId} />}
           {selectMenu === "Attendance" && <Attendance />}
-          {selectMenu === "Grade" && <Grade />}
+          {selectMenu === "Grade" && <Grade subjectId={subjectId} />}
         </main>
       </Layout>
     </>

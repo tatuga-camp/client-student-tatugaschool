@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import Navbar from "../Navbar";
 import Sidebar from "../Sidebar";
 import { IoMenu } from "react-icons/io5";
-import React from "react";
+import React, { useEffect } from "react";
 import useClickOutside from "../../hook/useClickOutside";
 import { useRouter } from "next/router";
 import { useGetStudent, useGetSubjectById } from "../../react-query";
@@ -10,6 +10,7 @@ import { FaBookOpen, FaUser } from "react-icons/fa";
 
 import Header from "../subject/Header";
 import TeacherList from "../subject/TeacherList";
+import { getLocalStorage } from "../../utils";
 
 type LayoutProps = {
   children: ReactNode;
@@ -19,6 +20,7 @@ type LayoutProps = {
 function Layout({ children, listData }: LayoutProps) {
   const [trigger, setTrigger] = React.useState(false);
   const sidebarRef = React.useRef<HTMLDivElement>(null);
+  const [subject_code, setSubjectCode] = React.useState<null | string>();
   const router = useRouter();
   useClickOutside(sidebarRef, () => {
     setTrigger(false);
@@ -26,6 +28,12 @@ function Layout({ children, listData }: LayoutProps) {
 
   const subject = useGetSubjectById({ id: router.query.subjectId as string });
   const student = useGetStudent();
+
+  useEffect(() => {
+    if (subject.data) {
+      setSubjectCode(() => subject.data.code);
+    }
+  }, [subject.data]);
   return (
     <div className="flex h-screen  flex-col">
       <Navbar
@@ -52,7 +60,7 @@ function Layout({ children, listData }: LayoutProps) {
                 {
                   title: "Homepage",
                   icon: <IoMenu />,
-                  url: `/welcome`,
+                  url: `/?subject_code=${subject_code}`,
                 },
               ]}
               active={trigger}

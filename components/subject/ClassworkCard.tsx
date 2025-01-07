@@ -112,7 +112,7 @@ function AssignmentCard({
                 border p-1 rounded-md flex flex-col items-center justify-start ga-2 "
               >
                 <span className="font-medium max-w-40 truncate text-white text-base">
-                  {assignemnt.studentOnAssignment.score.toLocaleString()}
+                  {assignemnt.studentOnAssignment.score?.toLocaleString()}
                 </span>
                 <span className="text-xs text-white">Your Score</span>
               </li>

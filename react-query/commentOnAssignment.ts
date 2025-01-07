@@ -10,7 +10,10 @@ import {
   UpdateCommentService,
 } from "../services";
 
-export function useGetComments(input: { studentOnAssignmentId: string }) {
+export function useGetComments(input: {
+  studentOnAssignmentId: string;
+  refetchInterval?: number | false;
+}) {
   return useQuery({
     queryKey: [
       "comment-assignments",
@@ -20,6 +23,7 @@ export function useGetComments(input: { studentOnAssignmentId: string }) {
       GetCommentByStudentOnAssignmentService({
         studentOnAssignmentId: input.studentOnAssignmentId,
       }),
+    refetchInterval: input.refetchInterval,
   });
 }
 

@@ -11,6 +11,7 @@ export function useSignIn() {
     onSuccess: (data) => {
       setAccessToken({ access_token: data.accessToken });
       setRefreshToken({ refresh_token: data.refreshToken });
+      queryClient.clear();
     },
   });
 }

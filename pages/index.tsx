@@ -10,7 +10,7 @@ import Head from "next/head";
 import ListMemberCircle from "../components/ListMemberCircle";
 import { HiUsers } from "react-icons/hi";
 import Image from "next/image";
-import { decodeBlurhashToCanvas } from "../utils";
+import { decodeBlurhashToCanvas, setLocalStorage } from "../utils";
 import { defaultBlurHash } from "../data";
 import { FaSearch } from "react-icons/fa";
 import { GoChevronRight } from "react-icons/go";
