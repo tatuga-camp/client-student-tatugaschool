@@ -1,7 +1,7 @@
 import { GetServerSideProps } from "next";
 import React from "react";
 import Layout from "../../../components/layouts/Layout";
-import { useGetSubjectById } from "../../../react-query";
+import { useGetStudent, useGetSubjectById } from "../../../react-query";
 import Head from "next/head";
 import { MdAssignmentAdd } from "react-icons/md";
 import { FaStarHalfStroke, FaUserGroup } from "react-icons/fa6";
@@ -28,7 +28,21 @@ type MenuSubject = (typeof menuLists)[number]["title"];
 
 function Index({ subjectId }: { subjectId: string }) {
   const subject = useGetSubjectById({ id: subjectId });
+  const student = useGetStudent();
   const [selectMenu, setSelectMenu] = React.useState<MenuSubject>("Classwork");
+
+  if (!student.data) {
+    return (
+      <Layout>
+        <main className="w-7/12 flex flex-col">
+          <div className="w-full flex justify-center items-center gap-5">
+            <h1 className="text-2xl font-bold">Student not found</h1>
+          </div>
+        </main>
+      </Layout>
+    );
+  }
+
   return (
     <>
       <Head>
@@ -63,7 +77,9 @@ function Index({ subjectId }: { subjectId: string }) {
             })}
           </ul>
           {selectMenu === "Classwork" && <Classwork subjectId={subjectId} />}
-          {selectMenu === "Attendance" && <Attendance />}
+          {selectMenu === "Attendance" && (
+            <Attendance subjectId={subjectId} studentId={student.data.id} />
+          )}
           {selectMenu === "Grade" && <Grade subjectId={subjectId} />}
         </main>
       </Layout>

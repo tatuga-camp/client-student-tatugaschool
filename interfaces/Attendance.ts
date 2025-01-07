@@ -5,7 +5,7 @@ export interface Attendance {
   startDate: Date;
   endDate: Date;
   status: string;
-  note?: string;
+  note: string | null;
   attendanceTableId: string;
   studentId: string;
   attendanceRowId: string;
