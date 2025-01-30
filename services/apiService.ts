@@ -53,9 +53,12 @@ const createAxiosInstance = () => {
     (response) => response,
     async (error) => {
       const originalRequest = error.config;
+      console.log("originalRequest", error);
       if (error.response.status === 401 && !originalRequest._retry) {
         originalRequest._retry = true;
         const { refresh_token } = getRefetchtoken();
+        console.log("refresh_token", refresh_token);
+
         if (!refresh_token) {
           // redirect to login
           throw new Error("Token not found");
@@ -64,6 +67,7 @@ const createAxiosInstance = () => {
           const { accessToken } = await StudentRefetchTokenService({
             refreshToken: refresh_token,
           });
+
           setAccessToken({ access_token: accessToken });
           instance.defaults.headers.common[
             "Authorization"
@@ -86,12 +90,16 @@ const createAxiosInstance = () => {
 };
 
 const isTokenExpired = (token: string) => {
-  if (!token) return true;
-
-  const [, payload] = token.split(".");
-  const decodedPayload = JSON.parse(atob(payload));
-  const exp = decodedPayload.exp;
-  return Math.floor(Date.now() / 1000) >= exp;
+  try {
+    if (!token) return true;
+    console.log("token", token);
+    const [, payload] = token.split(".");
+    const decodedPayload = JSON.parse(window.atob(payload));
+    const exp = decodedPayload.exp;
+    return Math.floor(Date.now() / 1000) >= exp;
+  } catch (error) {
+    console.log("error", error);
+  }
 };
 
 export default createAxiosInstance;

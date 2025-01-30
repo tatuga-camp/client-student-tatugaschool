@@ -34,7 +34,7 @@ export async function GetSubjectByCodeService(
 
 type RequestGetSubjectFromStudentService = {
   studentId: string;
-  eduYear: string;
+  educationYear: string;
 };
 
 type ResponseGetSubjectFromStudentService = Subject[];
@@ -46,7 +46,7 @@ export async function GetSubjectFromStudentService(
     const response = await axiosInstance({
       method: "GET",
       url: `v1/subjects/student/${input.studentId}`,
-      params: { eduYear: input.eduYear },
+      params: { educationYear: input.educationYear },
     });
     return response.data;
   } catch (error: any) {

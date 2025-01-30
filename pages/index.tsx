@@ -11,7 +11,7 @@ import ListMemberCircle from "../components/ListMemberCircle";
 import { HiUsers } from "react-icons/hi";
 import Image from "next/image";
 import { decodeBlurhashToCanvas, setLocalStorage } from "../utils";
-import { defaultBlurHash } from "../data";
+import { defaultBlurHash, defaultCanvas } from "../data";
 import { FaSearch } from "react-icons/fa";
 import { GoChevronRight } from "react-icons/go";
 import Swal from "sweetalert2";
@@ -27,8 +27,9 @@ import SpinLoading from "../components/common/SpinLoading";
 type IndexProps = {
   subjectData: ResponseGetSubjectByCodeService;
   code: string;
+  error?: any;
 };
-function Index({ subjectData, code }: IndexProps) {
+function Index({ subjectData, code, error }: IndexProps) {
   const subject = useGetSubjectByCode(code, {
     initialData: subjectData,
   });
@@ -105,47 +106,86 @@ function Index({ subjectData, code }: IndexProps) {
     studentId: string;
     name: string;
   }) => {
-    Swal.fire({
-      title: "Are you sure?",
-      text: `You will join this subject as ${name}`,
-      icon: "question",
-      showCancelButton: true,
-      confirmButtonText: "Yes",
-      cancelButtonText: "No",
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        try {
-          await signIn.mutateAsync({
-            studentId: studentId,
-          });
-          router.push(`/subject/${subject.data?.id}`);
-          Swal.fire({
-            title: "Success",
-            text: "You have successfully joined this subject",
-            icon: "success",
-          });
-        } catch (error) {
-          let result = error as ErrorMessages;
-          console.error(error);
-          if (result.message === "Please enter your password") {
-            setSelectStudentId(studentId);
-            setTimeout(() => {
-              passwordInputRef.current?.focus();
-            }, 1000);
-          } else {
-            Swal.fire({
-              title: result.error ? result.error : "Something Went Wrong",
-              text: result.message.toString(),
-              footer: result.statusCode
-                ? "Code Error: " + result.statusCode?.toString()
-                : "",
-              icon: "error",
-            });
-          }
-        }
+    try {
+      await signIn.mutateAsync({
+        studentId: studentId,
+      });
+      router.push(`/subject/${subject.data?.id}`);
+      Swal.fire({
+        title: "Success",
+        text: "You have successfully joined this subject",
+        icon: "success",
+      });
+    } catch (error) {
+      let result = error as ErrorMessages;
+      console.error(error);
+      if (result?.message === "Please enter your password") {
+        setSelectStudentId(studentId);
+        setTimeout(() => {
+          passwordInputRef.current?.focus();
+        }, 1000);
+      } else {
+        Swal.fire({
+          title: result?.error ? result?.error : "Something Went Wrong",
+          text: result?.message?.toString(),
+          footer: result?.statusCode
+            ? "Code Error: " + result?.statusCode?.toString()
+            : "",
+          icon: "error",
+        });
       }
-    });
+    }
   };
+
+  if (error) {
+    return (
+      <main className="w-screen font-Anuphan h-screen flex flex-col gap-5 items-center bg-gradient-to-r from-rose-400 to-red-500 justify-center">
+        <div className="flex items-center justify-center bg-white px-3 rounded-full py-1 gap-1 md:gap-2">
+          <div
+            className="w-6 h-6 rounded-md overflow-hidden ring-1 ring-white
+                 relative hover:scale-105 active:scale-110 transition duration-150"
+          >
+            <Image
+              src="/favicon.ico"
+              placeholder="blur"
+              blurDataURL={defaultCanvas}
+              fill
+              alt="logo tatuga school"
+            />
+          </div>
+          <div className="font-bold uppercase hidden md:block text-lg md:text-base text-icon-color">
+            Tatuga School
+          </div>
+        </div>
+        <section className="w-96 h-32 flex flex-col justify-around bg-white rounded-md p-2">
+          <h1 className="text-lg font-semibold text-center">
+            {error?.message ?? "Something went wrong"}
+          </h1>
+          <button
+            onClick={() => router.push("/welcome")}
+            className="second-button w-full border"
+          >
+            BACK
+          </button>
+        </section>
+        <section className="flex mt-5 items-center flex-col">
+          <span className="text-white font-medium text-sm">
+            Create Your School Today!
+          </span>
+          <p className="text-white font-light text-sm">
+            Tatuga School is a platform that provides a variety of learning
+            methods and materials for students.
+          </p>
+          <a
+            href="https://tatugacamp.com"
+            className="text-white font-light text-sm"
+          >
+            © 2024 Tatuga Camp LP. All rights reserved.
+          </a>
+        </section>
+      </main>
+    );
+  }
 
   return (
     <>
@@ -289,7 +329,6 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
         },
       };
     }
-
     const subject = await GetSubjectByCodeService({
       code: query.subject_code,
     });
@@ -299,13 +338,11 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
         code: query.subject_code,
       },
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error fetching subject", error);
-
     return {
-      redirect: {
-        destination: "/welcome",
-        permanent: false,
+      props: {
+        error: error,
       },
     };
   }

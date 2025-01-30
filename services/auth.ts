@@ -48,7 +48,6 @@ export async function StudentSignInService(
     return response.data;
   } catch (error: any) {
     console.log(error);
-    console.error("Student Sign-In request failed:", error.response.data);
     throw error?.response?.data;
   }
 }
