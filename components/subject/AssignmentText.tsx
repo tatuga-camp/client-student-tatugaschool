@@ -14,11 +14,13 @@ type Props = {
   studentOnAssignmentId: string;
   text?: FileOnStudentOnAssignment | undefined;
   onClose: () => void;
+  schoolId: string;
 };
 function AssignmentText({
   studentOnAssignmentId,
   text,
   toast,
+  schoolId,
   onClose,
 }: Props) {
   const [value, setValue] = React.useState(text ? text.body : "");
@@ -104,7 +106,11 @@ function AssignmentText({
         </button>
       </div>
       <div className="h-96">
-        <TextEditor value={value} onChange={(content) => setValue(content)} />
+        <TextEditor
+          value={value}
+          onChange={(content) => setValue(content)}
+          schoolId={schoolId}
+        />
       </div>
     </form>
   );

@@ -14,8 +14,13 @@ import { FcUpload } from "react-icons/fc";
 type Props = {
   studentOnAssignmentId: string;
   toast: React.RefObject<Toast>;
+  schoolId: string;
 };
-function AssignmentUploadFile({ studentOnAssignmentId, toast }: Props) {
+function AssignmentUploadFile({
+  studentOnAssignmentId,
+  toast,
+  schoolId,
+}: Props) {
   const [loading, setLoading] = React.useState(false);
   const createFile = useCreateFileStudentAssignment();
 
@@ -32,6 +37,7 @@ function AssignmentUploadFile({ studentOnAssignmentId, toast }: Props) {
         const signURL = await getSignedURLStudentService({
           fileName: file.name,
           fileType: file.type,
+          schoolId,
         });
 
         const upload = await UploadSignURLService({

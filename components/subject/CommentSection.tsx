@@ -87,12 +87,15 @@ function CommentSection({ studentOnAssignmentId }: Props) {
           />
         </div>
         <div className="grow h-40 relative ">
-          <TextEditor
-            menubar={false}
-            toolbar={false}
-            value={comment}
-            onChange={(content) => setComment(content)}
-          />
+          {student.data && (
+            <TextEditor
+              menubar={false}
+              toolbar={false}
+              value={comment}
+              schoolId={student.data?.schoolId}
+              onChange={(content) => setComment(content)}
+            />
+          )}
           <button
             disabled={loadingComments}
             className="absolute flex w-24 items-center justify-center main-button bottom-8 right-2 bg-blue-500 text-white px-2 py-1 rounded"

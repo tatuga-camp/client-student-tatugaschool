@@ -430,6 +430,7 @@ function Index({
             </div>
             {selectMenu.title === "Create" && (
               <AssignmentText
+                schoolId={studentOnAssignment.schoolId}
                 onClose={() => setSelectMenu(null)}
                 text={selectMenu.file}
                 studentOnAssignmentId={studentOnAssignment.id}
@@ -438,6 +439,7 @@ function Index({
             )}
             {selectMenu.title === "Upload" && (
               <AssignmentUploadFile
+                schoolId={studentOnAssignment.schoolId}
                 toast={toast}
                 studentOnAssignmentId={studentOnAssignment.id}
               />
