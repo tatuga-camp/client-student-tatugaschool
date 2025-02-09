@@ -36,10 +36,13 @@ function Grade({ subjectId }: Props) {
                 className="w-full border p-5 rounded flex flex-col"
                 key={index}
               >
+                <span
+                  title={assignment.title}
+                  className="text-black break-words"
+                >
+                  {assignment.title}
+                </span>
                 <div className="w-full flex gap-2">
-                  <span className="text-black max-w-60 truncate">
-                    {assignment.title}
-                  </span>
                   <span className="text-gray-500 font-semibold">
                     {score.toFixed(2) ?? 0} / {maxScore}
                   </span>

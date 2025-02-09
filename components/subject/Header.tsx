@@ -9,12 +9,12 @@ type Props = {
 };
 function Header({ subject }: Props) {
   return (
-    <header className="w-full relative -top-20 flex items-center h-max justify-center">
+    <header className="w-full relative md:-top-20 flex items-center h-max justify-center">
       <section
-        className={`w-8/12 z-30 overflow-hidden ring-4 ring-white
+        className={`w-12/12 md:w-8/12 z-30 overflow-hidden ring-4 ring-white
                      h-60 relative flex justify-between  p-5 shadow-inner ${
                        subject.backgroundImage ? "" : "gradient-bg"
-                     }  rounded-md`}
+                     } rounded-none   md:rounded-md`}
       >
         {subject.backgroundImage && (
           <div className="gradient-shadow  -z-10  absolute w-full h-full top-0 bottom-0 right-0 left-0 m-auto"></div>

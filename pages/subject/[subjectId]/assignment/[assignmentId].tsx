@@ -467,7 +467,7 @@ function Index({
           </>
         }
       >
-        <main className="w-7/12  h-max flex flex-col gap-5">
+        <main className="w-full xl:w-7/12  h-max flex flex-col gap-5">
           <div className="w-full bg-white p-3 rounded-md">
             <h1 className="text-xl border-b">{assignment.title}</h1>
 

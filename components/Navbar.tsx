@@ -34,7 +34,9 @@ function Navbar({ trigger, setTrigger, subject, student }: NavbarProps) {
         )}
         <Link
           href="/"
-          className="flex items-center justify-center gap-1 md:gap-2"
+          className={`${
+            student ? "hidden" : "flex"
+          }  items-center   justify-center gap-1 md:gap-2`}
         >
           <div
             className="w-5 h-5 rounded-md overflow-hidden ring-1 ring-white
@@ -48,7 +50,7 @@ function Navbar({ trigger, setTrigger, subject, student }: NavbarProps) {
               alt="logo tatuga school"
             />
           </div>
-          <div className="font-bold uppercase hidden md:block text-xs md:text-base text-white">
+          <div className="font-bold uppercase block text-xs md:text-base text-white">
             Tatuga School
           </div>
         </Link>

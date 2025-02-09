@@ -2,8 +2,9 @@ import React, { memo, ReactNode, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import { decodeBlurhashToCanvas } from "../utils";
-import { defaultBlurHash } from "../data";
+import { defaultBlurHash, defaultCanvas } from "../data";
 import { useGetSubjectByCode } from "../react-query";
+import Link from "next/link";
 
 type Props = {
   active: boolean;
@@ -26,9 +27,9 @@ function Sidebar({ active, menuList }: Props) {
 
   return (
     <div
-      className={`text-black  overflow-hidden flex flex-col items-center justify-start gap-3
+      className={`text-black  fixed z-50  overflow-hidden  flex-col items-center justify-start gap-3
             transition-width gradient-bg h-full  ${
-              active ? "w-60  p-5" : "w-14 "
+              active ? "w-60  p-5 flex" : "md:w-14 hidden"
             } `}
     >
       <ul
@@ -36,6 +37,27 @@ function Sidebar({ active, menuList }: Props) {
           !active && "place-items-center"
         }  grid  gap-2 pt-5 w-full`}
       >
+        <Link
+          href="/"
+          className="flex items-center md:hidden  justify-center gap-1 md:gap-2"
+        >
+          <div
+            className="w-5 h-5 rounded-md overflow-hidden ring-1 ring-white
+         relative hover:scale-105 active:scale-110 transition duration-150"
+          >
+            <Image
+              src="/favicon.ico"
+              placeholder="blur"
+              blurDataURL={defaultCanvas}
+              fill
+              alt="logo tatuga school"
+            />
+          </div>
+          <div className="font-bold uppercase block text-xs md:text-base text-white">
+            Tatuga School
+          </div>
+        </Link>
+
         {menuList.map((menu, index) => {
           return (
             <button

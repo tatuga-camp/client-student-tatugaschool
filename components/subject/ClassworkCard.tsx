@@ -73,7 +73,7 @@ function AssignmentCard({
        `}
       >
         <div
-          className={`p-2 w-24 flex flex-col gap-2 items-center justify-center 
+          className={`p-2 w-24 hidden md:flex flex-col gap-2 items-center justify-center 
     h-full   text-2xl text-white
     ${assignemnt.status === "Draft" ? "bg-gray-400" : "gradient-bg"}
     `}
@@ -87,7 +87,7 @@ function AssignmentCard({
               status={assignemnt.studentOnAssignment.status}
             />
           </div>
-          <div className="font-semibold text-start text-lg border-b max-w-[80%] truncate">
+          <div className="font-semibold text-start text-lg border-b max-w-96 truncate">
             {assignemnt.title}
           </div>
           <div className="text-gray-500 text-xs flex gap-1">
@@ -198,7 +198,7 @@ function MaterialCard({
       `}
       >
         <div
-          className={`p-2 w-24 flex flex-col gap-2 items-center justify-center 
+          className={`p-2 hidden h w-24 md:flex flex-col gap-2 items-center justify-center 
       h-full   text-2xl text-white
       ${
         material.status === "Draft"
@@ -212,7 +212,7 @@ function MaterialCard({
           <span className="text-xs">{material.status}</span>
         </div>
         <div className="flex h-max p-2  flex-col gap-2 grow">
-          <div className="font-semibold text-start text-lg border-b max-w-[80%] truncate">
+          <div className="font-semibold text-start text-lg border-b max-w-96 truncate">
             {material.title}
           </div>
           <div className="text-gray-500 text-xs flex gap-1">

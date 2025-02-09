@@ -17,12 +17,12 @@ function HomepageLayout({ children, subject }: LayoutProps) {
       <div className="flex h-full ">
         <div className="w-full flex flex-col">
           <main className="w-full h-1 grow  bg-white overflow-y-auto">
-            <div className="w-full bg-sky-100 h-40"></div>
+            <div className="w-full hidden md:block bg-sky-100 h-40"></div>
             {subject.data && <Header subject={subject.data} />}
-            <section className="w-full px-40 justify-center gap-5 pb-20 flex">
+            <section className="w-full px-2 flex-col-reverse md:px-40 mt-5 md:mt-0 md:flex-row  justify-center gap-5 pb-20 flex">
               {children}
               {subject.data && (
-                <div className="w-4/12 bg flex flex-col gap-2">
+                <div className="w-full md:w-4/12 bg flex flex-col gap-2">
                   <TeacherList teachers={subject.data?.teacherOnSubjects} />
                 </div>
               )}

@@ -51,7 +51,7 @@ function Index({ subjectId }: { subjectId: string }) {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Layout>
-        <main className="w-7/12 flex flex-col">
+        <main className="w-full xl:w-7/12  flex flex-col">
           <ul className="w-full flex justify-start items-center gap-5">
             {menuLists.map((menu, index) => {
               return (

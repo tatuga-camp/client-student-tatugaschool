@@ -34,7 +34,7 @@ function Attendance({ subjectId, studentId }: Props) {
     }
   }, [attendanceTables.data]);
   return (
-    <div>
+    <div className="w-full">
       {selectNote && (
         <PopupLayout
           onClose={() => {
@@ -96,7 +96,7 @@ function Attendance({ subjectId, studentId }: Props) {
           )}
         </ul>
       </div>
-      <div className="mt-5 ">
+      <div className="mt-5 max-w-full overflow-auto ">
         <table className="">
           <thead className="border-collapse">
             <tr className="border">

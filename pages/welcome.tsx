@@ -52,13 +52,13 @@ function Welcome() {
               alt="logo tatuga school"
             />
           </div>
-          <div className="font-bold uppercase hidden md:block text-lg md:text-base text-icon-color">
+          <div className="font-bold uppercase  block text-lg md:text-base text-icon-color">
             Tatuga School
           </div>
         </div>
         <form
           onSubmit={handleSummit}
-          className="w-96  bg-white rounded-lg p-5 drop-shadow-md
+          className="w-80 md:w-96  bg-white rounded-lg p-5 drop-shadow-md
          border flex items-center justify-center flex-col gap-2"
         >
           <InputMask
@@ -76,7 +76,7 @@ function Welcome() {
           <span className="text-white font-medium text-sm">
             Create Your School Today!
           </span>
-          <p className="text-white font-light text-sm">
+          <p className="text-white text-center font-light text-sm">
             Tatuga School is a platform that provides a variety of learning
             methods and materials for students.
           </p>
