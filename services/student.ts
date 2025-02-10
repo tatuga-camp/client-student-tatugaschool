@@ -22,7 +22,7 @@ export async function GetStudentService(): Promise<ResponseGetStudentService> {
   }
 }
 
-type RequestUpdateStudentService = {
+export type RequestUpdateStudentService = {
   query: {
     studentId: string;
   };

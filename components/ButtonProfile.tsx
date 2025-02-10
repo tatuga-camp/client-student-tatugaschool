@@ -8,25 +8,30 @@ import { AiOutlineLogout } from "react-icons/ai";
 import { Student } from "../interfaces";
 import { decodeBlurhashToCanvas } from "../utils";
 import { defaultBlurHash, defaultCanvas } from "../data";
+import Link from "next/link";
 
 type Props = {
   student: Student;
+  subjectId: string;
 };
-function ButtonProfile({ student }: Props) {
+function ButtonProfile({ student, subjectId }: Props) {
   const queryClient = new QueryClient();
   const [loading, setLoading] = useState(false);
 
   const handleLogout = () => {
     setLoading(true);
     queryClient.clear();
-    destroyCookie(null, "access_token", { path: "/" });
-    destroyCookie(null, "refresh_token", { path: "/" });
+    destroyCookie(null, "student_access_token", { path: "/" });
+    destroyCookie(null, "student_refresh_token", { path: "/" });
     router.push("/welcome");
   };
   return (
     <div className="flex items-center flex-1 justify-end ">
       <div className="flex items-center justify-end w-max transition-width    bg-white rounded-lg px-4 py-2 gap-4">
-        <div className="flex gap-2">
+        <Link
+          href={`/student/${student.id}?subject_id=${subjectId}`}
+          className="flex gap-2"
+        >
           <div className="w-10 h-10 relative rounded-full overflow-hidden ">
             <Image
               src={student.photo || defaultCanvas}
@@ -37,9 +42,6 @@ function ButtonProfile({ student }: Props) {
                 student.blurHash ?? defaultBlurHash
               )}
               className=" object-cover cursor-pointer"
-              onClick={() => {
-                router.push("/account");
-              }}
             />
           </div>
           <div
@@ -53,7 +55,7 @@ function ButtonProfile({ student }: Props) {
               {student.firstName} {student.lastName}
             </span>
           </div>
-        </div>
+        </Link>
         <button
           disabled={loading}
           onClick={handleLogout}

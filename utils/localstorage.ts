@@ -1,4 +1,4 @@
-export type LocalStorageKeys = "subject_code";
+export type LocalStorageKeys = "subject_code" | "subject_id";
 
 export function setLocalStorage(key: LocalStorageKeys, value: string) {
   localStorage.setItem(key, value);
