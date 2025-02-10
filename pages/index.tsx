@@ -1,28 +1,24 @@
 import { GetServerSideProps } from "next";
+import Head from "next/head";
+import Image from "next/image";
+import { useRouter } from "next/router";
 import React, { useEffect, useRef } from "react";
+import { FaSearch } from "react-icons/fa";
+import { GoChevronRight } from "react-icons/go";
+import { IoMdClose } from "react-icons/io";
+import Swal from "sweetalert2";
+import Password from "../components/common/Password";
+import SpinLoading from "../components/common/SpinLoading";
+import HomepageLayout from "../components/layouts/HomepageLayout";
+import { defaultBlurHash, defaultCanvas } from "../data";
 import { ErrorMessages, StudentOnSubject, SubjectQuery } from "../interfaces";
+import { useGetSubjectByCode, useSignIn } from "../react-query";
 import {
   GetSubjectByCodeService,
   ResponseGetSubjectByCodeService,
 } from "../services";
-import { useGetSubjectByCode, useSignIn } from "../react-query";
-import Head from "next/head";
-import ListMemberCircle from "../components/ListMemberCircle";
-import { HiUsers } from "react-icons/hi";
-import Image from "next/image";
 import { decodeBlurhashToCanvas, setLocalStorage } from "../utils";
-import { defaultBlurHash, defaultCanvas } from "../data";
-import { FaSearch } from "react-icons/fa";
-import { GoChevronRight } from "react-icons/go";
-import Swal from "sweetalert2";
-import { useRouter } from "next/router";
-import Password from "../components/common/Password";
-import { IoMdClose } from "react-icons/io";
-import HomepageLayout from "../components/layouts/HomepageLayout";
-import TeacherList from "../components/subject/TeacherList";
-import Header from "../components/subject/Header";
-import { ProgressSpinner } from "primereact/progressspinner";
-import SpinLoading from "../components/common/SpinLoading";
+import { Password as PasswordPrimereact } from "primereact/password";
 
 type IndexProps = {
   subjectData: ResponseGetSubjectByCodeService;
@@ -33,7 +29,7 @@ function Index({ subjectData, code, error }: IndexProps) {
   const subject = useGetSubjectByCode(code, {
     initialData: subjectData,
   });
-  const passwordInputRef = useRef<HTMLInputElement>(null);
+  const passwordInputRef = useRef<PasswordPrimereact>(null);
   const router = useRouter();
   const [search, setSearch] = React.useState("");
   const [students, setStudents] = React.useState<StudentOnSubject[]>();
@@ -78,6 +74,7 @@ function Index({ subjectData, code, error }: IndexProps) {
   useEffect(() => {
     if (subject.data) {
       setStudents(subject.data.studentOnSubjects);
+      setLocalStorage("subject_id", subject.data.id);
     }
   }, [subject.status]);
 
@@ -213,6 +210,7 @@ function Index({ subjectData, code, error }: IndexProps) {
             <Password
               inputRef={passwordInputRef}
               toggleMask
+              required={true}
               name="password"
               feedback={false}
             />

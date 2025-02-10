@@ -8,6 +8,7 @@ import { FaStarHalfStroke, FaUserGroup } from "react-icons/fa6";
 import Classwork from "../../../components/subject/Classwork";
 import Attendance from "../../../components/subject/Attendance";
 import Grade from "../../../components/subject/Grade";
+import { setLocalStorage } from "../../../utils";
 
 const menuLists = [
   {
@@ -30,8 +31,7 @@ function Index({ subjectId }: { subjectId: string }) {
   const subject = useGetSubjectById({ id: subjectId });
   const student = useGetStudent();
   const [selectMenu, setSelectMenu] = React.useState<MenuSubject>("Classwork");
-
-  if (!student.data) {
+  if (student.error) {
     return (
       <Layout>
         <main className="w-7/12 flex flex-col">
@@ -50,7 +50,7 @@ function Index({ subjectId }: { subjectId: string }) {
         <meta name="description" content={subject.data?.title} />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <Layout>
+      <Layout subjectId={subjectId}>
         <main className="w-full xl:w-7/12  flex flex-col">
           <ul className="w-full flex justify-start items-center gap-5">
             {menuLists.map((menu, index) => {
@@ -77,7 +77,7 @@ function Index({ subjectId }: { subjectId: string }) {
             })}
           </ul>
           {selectMenu === "Classwork" && <Classwork subjectId={subjectId} />}
-          {selectMenu === "Attendance" && (
+          {selectMenu === "Attendance" && student.data && (
             <Attendance subjectId={subjectId} studentId={student.data.id} />
           )}
           {selectMenu === "Grade" && <Grade subjectId={subjectId} />}
