@@ -255,7 +255,7 @@ function Index(subjectId: { subjectId: string }) {
 
           <h1 className="text-lg font-medium mt-5">Update Password</h1>
           <span className="text-sm text-gray-500">
-            Leave it blank if you don't want to update your password
+            Leave it blank if you don&apos;t want to update your password
           </span>
 
           <label className="flex flex-col gap-1">
