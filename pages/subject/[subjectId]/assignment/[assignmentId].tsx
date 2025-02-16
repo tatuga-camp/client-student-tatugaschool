@@ -1,53 +1,37 @@
-import { GetServerSideProps } from "next";
-import React from "react";
-import Layout from "../../../../components/layouts/Layout";
-import Head from "next/head";
-import {
-  useCreateFileStudentAssignment,
-  useGetAssignments,
-  useGetFileStudentAssignment,
-  useUpdateStudentOnAssignment,
-} from "../../../../react-query";
 import parse from "html-react-parser";
-import {
-  FaPlus,
-  FaRegFile,
-  FaRegFileImage,
-  FaRegSadTear,
-  FaYoutube,
-} from "react-icons/fa";
-import {
-  MdAssignmentAdd,
-  MdOutlineDone,
-  MdOutlineRemoveDone,
-} from "react-icons/md";
+import { GetServerSideProps } from "next";
+import Head from "next/head";
 import { useRouter } from "next/router";
-import AssignmentStatusCard from "../../../../components/subject/AssignmentStatus";
-import { generateBlurHash, timeAgo, timeLeft } from "../../../../utils";
-import { RiEmotionHappyFill } from "react-icons/ri";
-import { IoIosInformationCircle, IoMdClose } from "react-icons/io";
+import { Toast } from "primereact/toast";
+import React from "react";
+import { FaRegFile, FaRegFileImage, FaRegSadTear } from "react-icons/fa";
 import { FcLink, FcPlus, FcUpload } from "react-icons/fc";
-import AssignmentText from "../../../../components/subject/AssignmentText";
+import { IoIosInformationCircle, IoMdClose } from "react-icons/io";
+import { IoChevronDownSharp } from "react-icons/io5";
+import { MdOutlineDone, MdOutlineRemoveDone } from "react-icons/md";
+import { RiEmotionHappyFill } from "react-icons/ri";
+import Swal from "sweetalert2";
+import Layout from "../../../../components/layouts/Layout";
 import AssignmentLink from "../../../../components/subject/AssignmentLink";
+import AssignmentStatusCard from "../../../../components/subject/AssignmentStatus";
+import AssignmentText from "../../../../components/subject/AssignmentText";
+import AssignmentUploadFile from "../../../../components/subject/AssignmentUploadFile";
+import CommentSection from "../../../../components/subject/CommentSection";
+import FileStudentAssignmentCard from "../../../../components/subject/FileStudentAssignmentCard";
+import useClickOutside from "../../../../hook/useClickOutside";
+import useAdjustPosition from "../../../../hook/useWindow";
 import {
   ErrorMessages,
   FileOnStudentOnAssignment,
   StudentAssignmentStatus,
   StudentOnAssignment,
 } from "../../../../interfaces";
-import Swal from "sweetalert2";
 import {
-  getSignedURLStudentService,
-  UploadSignURLService,
-} from "../../../../services";
-import { ProgressBar } from "primereact/progressbar";
-import { Toast } from "primereact/toast";
-import FileStudentAssignmentCard from "../../../../components/subject/FileStudentAssignmentCard";
-import AssignmentUploadFile from "../../../../components/subject/AssignmentUploadFile";
-import { IoChevronDownSharp } from "react-icons/io5";
-import useAdjustPosition from "../../../../hook/useWindow";
-import useClickOutside from "../../../../hook/useClickOutside";
-import CommentSection from "../../../../components/subject/CommentSection";
+  useGetAssignments,
+  useGetFileStudentAssignment,
+  useUpdateStudentOnAssignment,
+} from "../../../../react-query";
+import { timeAgo, timeLeft } from "../../../../utils";
 
 const SummitWorkMenus = [
   {

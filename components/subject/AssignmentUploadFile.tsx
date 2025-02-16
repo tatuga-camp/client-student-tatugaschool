@@ -38,6 +38,7 @@ function AssignmentUploadFile({
           fileName: file.name,
           fileType: file.type,
           schoolId,
+          fileSize: file.size,
         });
 
         const upload = await UploadSignURLService({

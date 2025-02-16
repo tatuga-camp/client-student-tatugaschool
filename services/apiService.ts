@@ -57,7 +57,6 @@ const createAxiosInstance = () => {
       if (error.response.status === 401 && !originalRequest._retry) {
         originalRequest._retry = true;
         const { refresh_token } = getRefetchtoken();
-        console.log("refresh_token", refresh_token);
 
         if (!refresh_token) {
           // redirect to login

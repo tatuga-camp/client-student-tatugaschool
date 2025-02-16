@@ -70,6 +70,7 @@ function Index(subjectId: { subjectId: string }) {
       setLoading(true);
       const signURL = await getSignedURLStudentService({
         fileName: file.name,
+        fileSize: file.size,
         fileType: file.type,
         schoolId: student.data?.schoolId,
       });
