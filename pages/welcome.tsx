@@ -32,11 +32,23 @@ function Welcome() {
   return (
     <>
       <Head>
-        <title>Welcome to Tatuga School</title>
+        <title>Join Subject - Student</title>
+        <meta name="description" content="Join A Subject For Student!" />
+        <link rel="icon" href="/favicon.ico" />
+        <meta property="og:title" content="Tatuga School" />
+        <meta property="og:description" content="Join A Subject For Student!" />
+        <meta property="og:site_name" content="Tatuga School" />
+        <meta property="og:type" content="website" />
+        <meta property="og:image" content="/icon.svg" />
+
+        <meta property="twitter:title" content="Tatuga School" />
         <meta
-          name="description"
-          content="Tatuga School is an online learning platform for students"
+          property="twitter:description"
+          content="Join A Subject For Student!"
         />
+
+        <meta property="twitter:image" content="/icon.svg" />
+        <meta name="twitter:card" content="summary" />
       </Head>
       <main className="w-screen font-Anuphan h-screen flex flex-col gap-5 items-center gradient-bg  justify-center">
         <div className="flex items-center justify-center bg-white px-3 rounded-full py-1 gap-1 md:gap-2">

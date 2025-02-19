@@ -44,7 +44,10 @@ function Attendance({ subjectId, studentId }: Props) {
           <div className="bg-white p-3 rounded-md flex flex-col w-80 h-96">
             <div className="w-full flex justify-end">
               <button
-                onClick={() => setSelectNote(null)}
+                onClick={() => {
+                  document.body.style.overflow = "auto";
+                  setSelectNote(null);
+                }}
                 className="text-lg hover:bg-gray-300/50 w-6  h-6  rounded
          flex items-center justify-center font-semibold"
               >
