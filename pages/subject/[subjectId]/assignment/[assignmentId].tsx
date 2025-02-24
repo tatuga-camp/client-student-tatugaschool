@@ -32,6 +32,7 @@ import {
   useUpdateStudentOnAssignment,
 } from "../../../../react-query";
 import { timeAgo, timeLeft } from "../../../../utils";
+import LoadingSpinner from "../../../../components/common/LoadingSpinner";
 
 const SummitWorkMenus = [
   {
@@ -201,24 +202,59 @@ function Index({
           <IoIosInformationCircle />
         </div>
         <div className="flex relative  items-center">
-          <button
-            onClick={() => {
-              handleUpdateWork("SUBMITTED");
-            }}
-            disabled={updateWork.isPending}
-            type="submit"
-            className="w-52 p-2 h-10 opacity-85 hover:opacity-100 
+          {studentOnAssignment.status === "PENDDING" && (
+            <button
+              onClick={() => {
+                handleUpdateWork("SUBMITTED");
+              }}
+              disabled={updateWork.isPending}
+              type="submit"
+              className="w-52 p-2 h-10 opacity-85 hover:opacity-100 
             font-medium rounded-r-none rounded-md text-base text-white
      gradient-bg flex items-center gap-2 justify-center"
-          >
-            Mark as done{" "}
-            <div
-              className="w-5 bg-green-200 text-green-600
-             h-5 overflow-hidden rounded-full flex items-center justify-center"
             >
-              <MdOutlineDone />
-            </div>
-          </button>
+              {updateWork.isPending ? <LoadingSpinner /> : "Mark as done"}
+              <div
+                className="w-5 bg-green-200 text-green-600
+             h-5 overflow-hidden rounded-full flex items-center justify-center"
+              >
+                <MdOutlineDone />
+              </div>
+            </button>
+          )}
+          {studentOnAssignment.status === "SUBMITTED" && (
+            <button
+              onClick={() => {
+                handleUpdateWork("PENDDING");
+              }}
+              disabled={updateWork.isPending}
+              type="submit"
+              className="w-52 p-2 h-10 opacity-85 hover:opacity-100 
+            font-medium rounded-r-none rounded-md text-base text-white
+    bg-gray-400 flex items-center gap-2 justify-center"
+            >
+              {updateWork.isPending ? <LoadingSpinner /> : "Mark as not done"}
+
+              <div
+                className="w-5 bg-red-200 text-red-600
+h-5 overflow-hidden rounded-full flex items-center justify-center"
+              >
+                <MdOutlineRemoveDone />
+              </div>
+            </button>
+          )}
+
+          {studentOnAssignment.status === "REVIEWD" && (
+            <button
+              disabled={true}
+              type="submit"
+              className="w-52 p-2 h-10 opacity-85 hover:opacity-100 
+              font-medium rounded-r-none rounded-md text-base text-white
+       gradient-bg flex items-center gap-2 justify-center"
+            >
+              Teacher has reviewd
+            </button>
+          )}
           <button
             onClick={() => setTriggerSummitDropDown((prev) => !prev)}
             type="button"
@@ -446,9 +482,9 @@ function Index({
         subjectId={subjectId}
         listData={
           <>
+            <StudentWorkInfo />
             <SummitStatus />
             <SummitWork />
-            <StudentWorkInfo />
           </>
         }
       >
