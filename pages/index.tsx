@@ -19,6 +19,7 @@ import {
 } from "../services";
 import { decodeBlurhashToCanvas, setLocalStorage } from "../utils";
 import { Password as PasswordPrimereact } from "primereact/password";
+import ListStudent from "../components/student/ListStudent";
 
 type IndexProps = {
   subjectData: ResponseGetSubjectByCodeService;
@@ -262,48 +263,18 @@ function Index({ subjectData, code, error }: IndexProps) {
               .map((student, index) => {
                 const odd = index % 2 === 0;
                 return (
-                  <li
-                    key={student.id}
-                    className={`flex justify-between py-2 hover:bg-gray-200/50  items-center ${
-                      odd && "bg-gray-200/20"
-                    } gap-2`}
-                  >
-                    <div className="flex gap-2">
-                      <div className="w-10 h-10 relative rounded-md ring-1  overflow-hidden">
-                        <Image
-                          src={student.photo}
-                          alt={student.firstName}
-                          fill
-                          sizes="(max-width: 768px) 100vw, 33vw"
-                          placeholder="blur"
-                          blurDataURL={decodeBlurhashToCanvas(
-                            student.blurHash ?? defaultBlurHash
-                          )}
-                          className="object-cover"
-                        />
-                      </div>
-                      <div>
-                        <h1 className="text-sm font-semibold">
-                          {student.firstName} {student.lastName}{" "}
-                        </h1>
-                        <p className="text-xs text-gray-500">
-                          Number {student.number}{" "}
-                          {!student.isActive && "(Disabled)"}
-                        </p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() =>
-                        handleSignIn({
-                          studentId: student.studentId,
-                          name: `${student.firstName} ${student.lastName}`,
-                        })
-                      }
-                      className="main-button flex items-center justify-center gap-1 px-4 py-1"
-                    >
-                      Join <GoChevronRight />
-                    </button>
-                  </li>
+                  <ListStudent
+                    key={index}
+                    odd={odd}
+                    student={student}
+                    buttonText="Join"
+                    onClick={(data) => {
+                      handleSignIn({
+                        studentId: data.studentId,
+                        name: `${data.firstName} ${data.lastName}`,
+                      });
+                    }}
+                  />
                 );
               })}
           </ul>

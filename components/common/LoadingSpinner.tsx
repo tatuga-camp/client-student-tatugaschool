@@ -1,12 +1,14 @@
 import { ProgressSpinner } from "primereact/progressspinner";
 import React from "react";
 
-function LoadingSpinner() {
+type Props = {
+  width?: string;
+};
+function LoadingSpinner({ width = "20px" }: Props) {
   return (
     <ProgressSpinner
       animationDuration="1s"
-      style={{ width: "20px" }}
-      className="w-5 h-5"
+      style={{ width: width, height: width }}
       strokeWidth="8"
     />
   );

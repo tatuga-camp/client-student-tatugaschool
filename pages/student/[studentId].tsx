@@ -28,7 +28,7 @@ function Index(subjectId: { subjectId: string }) {
     title: string;
     firstName: string;
     lastName: string;
-    photo: string;
+    photo: string | undefined;
     password?: string;
     confirmPassword?: string;
     blurHash?: string;
@@ -37,6 +37,7 @@ function Index(subjectId: { subjectId: string }) {
     firstName: student.data?.firstName ?? "",
     lastName: student.data?.lastName ?? "",
     photo: student.data?.photo ?? "",
+    blurHash: student.data?.blurHash ?? "",
   });
 
   useEffect(() => {
@@ -107,6 +108,9 @@ function Index(subjectId: { subjectId: string }) {
         throw new Error("Password and Confirm Password not match");
       }
 
+      if (data.photo === student.data.photo) {
+        data.photo = undefined;
+      }
       await update.mutateAsync({
         query: {
           studentId: student.data.id,

@@ -1,16 +1,15 @@
+import { useRouter } from "next/router";
 import type { ReactNode } from "react";
+import React, { useEffect } from "react";
+import { FaBookOpen, FaUser } from "react-icons/fa";
+import { IoMenu } from "react-icons/io5";
+import useClickOutside from "../../hook/useClickOutside";
+import { useGetStudent, useGetSubjectById } from "../../react-query";
 import Navbar from "../Navbar";
 import Sidebar from "../Sidebar";
-import { IoMenu } from "react-icons/io5";
-import React, { useEffect } from "react";
-import useClickOutside from "../../hook/useClickOutside";
-import { useRouter } from "next/router";
-import { useGetStudent, useGetSubjectById } from "../../react-query";
-import { FaBookOpen, FaUser } from "react-icons/fa";
 
 import Header from "../subject/Header";
 import TeacherList from "../subject/TeacherList";
-import { getLocalStorage } from "../../utils";
 
 type LayoutProps = {
   children: ReactNode;

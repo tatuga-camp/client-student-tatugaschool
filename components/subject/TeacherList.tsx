@@ -9,7 +9,7 @@ type Props = {
 };
 function TeacherList({ teachers }: Props) {
   return (
-    <div className="w-full bg-white  border p-2 rounded-md h-max">
+    <div className="w-full bg-white  md:border p-2 rounded-none md:rounded-md h-max">
       <h2 className="font-semibold text-xl p-2">Teachers</h2>
       <ul className="gap-2 grid max-h-60 overflow-y-auto">
         {teachers.map((teacher) => {
