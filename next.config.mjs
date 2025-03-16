@@ -1,6 +1,7 @@
 import path from "path";
 import { fileURLToPath } from "url";
 import CopyPlugin from "copy-webpack-plugin";
+import { hostname } from "os";
 
 // Define __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -22,7 +23,10 @@ const nextConfig = {
     return config;
   },
   images: {
-    remotePatterns: [{ protocol: "https", hostname: "storage.googleapis.com" }],
+    remotePatterns: [
+      { protocol: "https", hostname: "storage.googleapis.com" },
+      { protocol: "https", hostname: "lh3.googleusercontent.com" },
+    ],
   },
 };
 
