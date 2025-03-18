@@ -1,21 +1,20 @@
-import { QueryClient, UseQueryResult } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
+import Link from "next/link";
 import router from "next/router";
 import { destroyCookie } from "nookies";
-import React, { useState } from "react";
-import { FaBell } from "react-icons/fa";
+import { useState } from "react";
 import { AiOutlineLogout } from "react-icons/ai";
+import { defaultBlurHash, defaultCanvas } from "../data";
 import { Student } from "../interfaces";
 import { decodeBlurhashToCanvas } from "../utils";
-import { defaultBlurHash, defaultCanvas } from "../data";
-import Link from "next/link";
 
 type Props = {
   student: Student;
   subjectId: string;
 };
 function ButtonProfile({ student, subjectId }: Props) {
-  const queryClient = new QueryClient();
+  const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
 
   const handleLogout = () => {
