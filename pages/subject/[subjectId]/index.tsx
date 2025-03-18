@@ -59,16 +59,33 @@ function Index({ subjectId }: { subjectId: string }) {
       </Head>
       <Layout subjectId={subjectId}>
         <main className="w-full xl:w-7/12  flex flex-col">
-          <ul className="w-full flex-wrap p-5 flex justify-start items-center gap-2">
-            {menuLists.map((menu, index) => {
-              return (
-                <button
-                  onClick={() => {
-                    window.scrollTo(0, 0);
-                    setSelectMenu(menu.title);
-                  }}
-                  key={index}
-                  className={`
+          {subject.data && (
+            <ul className="w-full flex-wrap p-5 flex justify-start items-center gap-2">
+              {menuLists
+                .filter((m) => {
+                  if (
+                    m.title === "Attendance" &&
+                    !subject.data.allowStudentViewAttendance
+                  ) {
+                    return false; // Exclude "Attendance" if not allowed
+                  }
+                  if (
+                    m.title === "Grade" &&
+                    !subject.data.allowStudentViewOverallScore
+                  ) {
+                    return false; // Exclude "Grade" if not allowed
+                  }
+                  return true; // Keep other items
+                })
+                .map((menu, index) => {
+                  return (
+                    <button
+                      onClick={() => {
+                        window.scrollTo(0, 0);
+                        setSelectMenu(menu.title);
+                      }}
+                      key={index}
+                      className={`
                     ${
                       menu.title === selectMenu
                         ? "gradient-bg text-white"
@@ -76,17 +93,18 @@ function Index({ subjectId }: { subjectId: string }) {
                     }
                     flex items-center w-max justify-start gap-2 p-2 rounded-md border 
                    hover:bg-primary-color  h-10 active:gradient-bg hover:text-white`}
-                >
-                  {menu.icon}
-                  <span>
-                    {menuSubjectDataLanguage[
-                      menu.title.toLowerCase() as keyof typeof menuSubjectDataLanguage
-                    ](language.data ?? "en")}
-                  </span>
-                </button>
-              );
-            })}
-          </ul>
+                    >
+                      {menu.icon}
+                      <span>
+                        {menuSubjectDataLanguage[
+                          menu.title.toLowerCase() as keyof typeof menuSubjectDataLanguage
+                        ](language.data ?? "en")}
+                      </span>
+                    </button>
+                  );
+                })}
+            </ul>
+          )}
           {selectMenu === "Classwork" && <Classwork subjectId={subjectId} />}
           {selectMenu === "Attendance" && student.data && (
             <Attendance subjectId={subjectId} studentId={student.data.id} />
