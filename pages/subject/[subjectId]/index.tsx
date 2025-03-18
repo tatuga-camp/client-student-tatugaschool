@@ -1,7 +1,11 @@
 import { GetServerSideProps } from "next";
 import React from "react";
 import Layout from "../../../components/layouts/Layout";
-import { useGetStudent, useGetSubjectById } from "../../../react-query";
+import {
+  useGetLanguage,
+  useGetStudent,
+  useGetSubjectById,
+} from "../../../react-query";
 import Head from "next/head";
 import { MdAssignmentAdd } from "react-icons/md";
 import { FaStarHalfStroke, FaUserGroup } from "react-icons/fa6";
@@ -9,6 +13,7 @@ import Classwork from "../../../components/subject/Classwork";
 import Attendance from "../../../components/subject/Attendance";
 import Grade from "../../../components/subject/Grade";
 import { setLocalStorage } from "../../../utils";
+import { menuSubjectDataLanguage } from "../../../data/language";
 
 const menuLists = [
   {
@@ -28,9 +33,11 @@ const menuLists = [
 type MenuSubject = (typeof menuLists)[number]["title"];
 
 function Index({ subjectId }: { subjectId: string }) {
+  const language = useGetLanguage();
   const subject = useGetSubjectById({ id: subjectId });
   const student = useGetStudent();
   const [selectMenu, setSelectMenu] = React.useState<MenuSubject>("Classwork");
+
   if (student.error) {
     return (
       <Layout>
@@ -52,7 +59,7 @@ function Index({ subjectId }: { subjectId: string }) {
       </Head>
       <Layout subjectId={subjectId}>
         <main className="w-full xl:w-7/12  flex flex-col">
-          <ul className="w-full flex justify-start items-center gap-5">
+          <ul className="w-full flex-wrap p-5 flex justify-start items-center gap-2">
             {menuLists.map((menu, index) => {
               return (
                 <button
@@ -67,11 +74,15 @@ function Index({ subjectId }: { subjectId: string }) {
                         ? "gradient-bg text-white"
                         : "bg-white text-black"
                     }
-                    flex items-center w-40 justify-start gap-2 p-2 rounded-md border 
+                    flex items-center w-max justify-start gap-2 p-2 rounded-md border 
                    hover:bg-primary-color  h-10 active:gradient-bg hover:text-white`}
                 >
                   {menu.icon}
-                  <span>{menu.title}</span>
+                  <span>
+                    {menuSubjectDataLanguage[
+                      menu.title.toLowerCase() as keyof typeof menuSubjectDataLanguage
+                    ](language.data ?? "en")}
+                  </span>
                 </button>
               );
             })}

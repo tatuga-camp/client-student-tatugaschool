@@ -3,8 +3,13 @@ import Image from "next/image";
 import { useRouter } from "next/router";
 import { decodeBlurhashToCanvas } from "../utils";
 import { defaultBlurHash, defaultCanvas } from "../data";
-import { useGetSubjectByCode } from "../react-query";
+import {
+  useGetLanguage,
+  useGetStudent,
+  useGetSubjectByCode,
+} from "../react-query";
 import Link from "next/link";
+import { sidebarDataLanguage } from "../data/language";
 
 type Props = {
   active: boolean;
@@ -13,8 +18,9 @@ type Props = {
 
 function Sidebar({ active, menuList }: Props) {
   const router = useRouter();
+  const language = useGetLanguage();
   const [selectMenu, setSelectMenu] = React.useState("Dashboard");
-
+  const student = useGetStudent();
   useEffect(() => {
     if (router.pathname === "/") {
       setSelectMenu("Dashboard");
@@ -57,7 +63,33 @@ function Sidebar({ active, menuList }: Props) {
             Tatuga School
           </div>
         </Link>
-
+        {student.data && (
+          <div className="gap-2 md:hidden flex bg-white rounded-md">
+            <div className="w-10 h-10 relative rounded-full overflow-hidden ">
+              <Image
+                src={student.data.photo || defaultCanvas}
+                alt="User Avatar"
+                fill
+                placeholder="blur"
+                blurDataURL={decodeBlurhashToCanvas(
+                  student.data.blurHash ?? defaultBlurHash
+                )}
+                className=" object-cover cursor-pointer"
+              />
+            </div>
+            <div
+              className="items-start overflow-hidden w-max h-max duration-300 
+          transition-width flex-col justify-center gap-0 flex"
+            >
+              <h2 className="font-semibold text-sm text-gray-800">
+                Number {student.data.number}
+              </h2>
+              <span className="text-xs text-gray-500">
+                {student.data.firstName} {student.data.lastName}
+              </span>
+            </div>
+          </div>
+        )}
         {menuList.map((menu, index) => {
           return (
             <button
@@ -79,7 +111,13 @@ function Sidebar({ active, menuList }: Props) {
              hover:bg-gray-200/50 h-10 active:bg-primary-color hover:text-white`}
             >
               {menu.icon}
-              {active && <span>{menu.title}</span>}
+              {active && (
+                <span>
+                  {sidebarDataLanguage[
+                    menu.title.toLowerCase() as keyof typeof sidebarDataLanguage
+                  ](language.data ?? "en")}
+                </span>
+              )}
             </button>
           );
         })}

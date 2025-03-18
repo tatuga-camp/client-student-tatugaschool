@@ -2,24 +2,25 @@ import { GetServerSideProps } from "next";
 import Head from "next/head";
 import Image from "next/image";
 import { useRouter } from "next/router";
+import { Password as PasswordPrimereact } from "primereact/password";
 import React, { useEffect, useRef } from "react";
 import { FaSearch } from "react-icons/fa";
-import { GoChevronRight } from "react-icons/go";
 import { IoMdClose } from "react-icons/io";
 import Swal from "sweetalert2";
 import Password from "../components/common/Password";
 import SpinLoading from "../components/common/SpinLoading";
 import HomepageLayout from "../components/layouts/HomepageLayout";
-import { defaultBlurHash, defaultCanvas } from "../data";
+import ListStudent from "../components/student/ListStudent";
+import { defaultCanvas } from "../data";
 import { ErrorMessages, StudentOnSubject, SubjectQuery } from "../interfaces";
-import { useGetSubjectByCode, useSignIn } from "../react-query";
+import { useGetLanguage, useGetSubjectByCode, useSignIn } from "../react-query";
 import {
   GetSubjectByCodeService,
   ResponseGetSubjectByCodeService,
 } from "../services";
-import { decodeBlurhashToCanvas, setLocalStorage } from "../utils";
-import { Password as PasswordPrimereact } from "primereact/password";
-import ListStudent from "../components/student/ListStudent";
+import { setLocalStorage } from "../utils";
+import Footer from "../components/Footer";
+import { requestDataLanguage, subjectDataLanguage } from "../data/language";
 
 type IndexProps = {
   subjectData: ResponseGetSubjectByCodeService;
@@ -30,6 +31,7 @@ function Index({ subjectData, code, error }: IndexProps) {
   const subject = useGetSubjectByCode(code, {
     initialData: subjectData,
   });
+  const language = useGetLanguage();
   const passwordInputRef = useRef<PasswordPrimereact>(null);
   const router = useRouter();
   const [search, setSearch] = React.useState("");
@@ -55,8 +57,8 @@ function Index({ subjectData, code, error }: IndexProps) {
       });
       router.push(`/subject/${subject.data?.id}`);
       Swal.fire({
-        title: "Success",
-        text: "You have successfully joined this subject",
+        title: requestDataLanguage.successTitle(language.data ?? "en"),
+        text: requestDataLanguage.successDesciption(language.data ?? "en"),
         icon: "success",
       });
     } catch (error) {
@@ -110,8 +112,8 @@ function Index({ subjectData, code, error }: IndexProps) {
       });
       router.push(`/subject/${subject.data?.id}`);
       Swal.fire({
-        title: "Success",
-        text: "You have successfully joined this subject",
+        title: requestDataLanguage.successTitle(language.data ?? "en"),
+        text: requestDataLanguage.successDesciption(language.data ?? "en"),
         icon: "success",
       });
     } catch (error) {
@@ -166,21 +168,7 @@ function Index({ subjectData, code, error }: IndexProps) {
             BACK
           </button>
         </section>
-        <section className="flex mt-5 items-center flex-col">
-          <span className="text-white font-medium text-sm">
-            Create Your School Today!
-          </span>
-          <p className="text-white text-center font-light text-sm">
-            Tatuga School is a platform that provides a variety of learning
-            methods and materials for students.
-          </p>
-          <a
-            href="https://tatugacamp.com"
-            className="text-white font-light text-sm"
-          >
-            © 2024 Tatuga Camp LP. All rights reserved.
-          </a>
-        </section>
+        <Footer />
       </main>
     );
   }
@@ -207,7 +195,9 @@ function Index({ subjectData, code, error }: IndexProps) {
             >
               <IoMdClose />
             </button>
-            <h1 className="text-lg font-semibold">Enter your password</h1>
+            <h1 className="text-lg font-semibold">
+              {subjectDataLanguage.password(language.data ?? "en")}
+            </h1>
             <Password
               inputRef={passwordInputRef}
               toggleMask
@@ -220,11 +210,15 @@ function Index({ subjectData, code, error }: IndexProps) {
               type="submit"
               className="main-button w-80 h-10 flex items-center justify-center"
             >
-              {signIn.isPending ? <SpinLoading /> : "Sign In"}
+              {signIn.isPending ? (
+                <SpinLoading />
+              ) : (
+                subjectDataLanguage.passwordButton(language.data ?? "en")
+              )}
             </button>
 
             <p className="text-xs text-gray-500">
-              If you forget your password, please contact your teacher.
+              {subjectDataLanguage.forgetPassword(language.data ?? "en")}
             </p>
           </form>
           <footer
@@ -239,10 +233,10 @@ function Index({ subjectData, code, error }: IndexProps) {
           <div className="pb-2 border-b flex md:flex-row flex-col justify-between">
             <div>
               <h2 className="font-semibold text-xl leading-4  ">
-                Choose Yourself
+                {subjectDataLanguage.choose(language.data ?? "en")}
               </h2>
               <span className="text-gray-500 text-sm">
-                to join this subject
+                {subjectDataLanguage.joinDescription(language.data ?? "en")}
               </span>
             </div>
             <div className="relative px-6">
@@ -251,7 +245,9 @@ function Index({ subjectData, code, error }: IndexProps) {
                 value={search}
                 onChange={handleChange}
                 type="text"
-                placeholder="Search..."
+                placeholder={subjectDataLanguage.searchPlaceholder(
+                  language.data ?? "en"
+                )}
                 className="w-full md:w-96 pl-10 pr-4 py-2 border 
                       border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-color-focus"
               />
@@ -267,7 +263,9 @@ function Index({ subjectData, code, error }: IndexProps) {
                     key={index}
                     odd={odd}
                     student={student}
-                    buttonText="Join"
+                    buttonText={subjectDataLanguage.buttonJoin(
+                      language.data ?? "en"
+                    )}
                     onClick={(data) => {
                       handleSignIn({
                         studentId: data.studentId,

@@ -1,19 +1,19 @@
-import { GetServerSideProps } from "next";
-import React from "react";
-import { GetSubjectByCodeService } from "../services";
 import Head from "next/head";
-import Link from "next/link";
 import Image from "next/image";
-import { defaultCanvas } from "../data";
-import InputWithIcon from "../components/common/InputWithIcon";
-import { RiLoginBoxLine } from "react-icons/ri";
-import InputMask from "../components/common/InputMask";
 import { useRouter } from "next/router";
+import React from "react";
 import Swal from "sweetalert2";
+import InputMask from "../components/common/InputMask";
+import Footer from "../components/Footer";
+import LanguageSelect from "../components/LanguageSelect";
+import { defaultCanvas } from "../data";
+import { useGetLanguage } from "../react-query";
+import { welcomeDataLanguage } from "../data/language";
 
 function Welcome() {
   const [code, setCode] = React.useState("");
   const router = useRouter();
+  const language = useGetLanguage();
 
   const handleSummit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -50,7 +50,10 @@ function Welcome() {
         <meta property="twitter:image" content="/icon.svg" />
         <meta name="twitter:card" content="summary" />
       </Head>
-      <main className="w-screen font-Anuphan h-screen flex flex-col gap-5 items-center gradient-bg  justify-center">
+      <main className="w-screen relative font-Anuphan h-screen flex flex-col gap-5 items-center gradient-bg  justify-center">
+        <div className="absolute top-2 right-2">
+          <LanguageSelect />
+        </div>
         <div className="flex items-center justify-center bg-white px-3 rounded-full py-1 gap-1 md:gap-2">
           <div
             className="w-6 h-6 rounded-md overflow-hidden ring-1 ring-white
@@ -78,27 +81,15 @@ function Welcome() {
             value={code}
             onChange={(e) => setCode(e.target.value as string)}
             mask="******"
-            placeholder="Enter your code"
+            placeholder={welcomeDataLanguage.placeholder(language.data ?? "en")}
             className="text-xl text-center w-full"
           />
-          <button className="main-button w-full">ENTER</button>
+          <button className="main-button w-full">
+            {welcomeDataLanguage.button(language.data ?? "en")}
+          </button>
         </form>
 
-        <section className="flex mt-5 items-center flex-col">
-          <span className="text-white font-medium text-sm">
-            Create Your School Today!
-          </span>
-          <p className="text-white text-center font-light text-sm">
-            Tatuga School is a platform that provides a variety of learning
-            methods and materials for students.
-          </p>
-          <a
-            href="https://tatugacamp.com"
-            className="text-white font-light text-sm"
-          >
-            © 2024 Tatuga Camp LP. All rights reserved.
-          </a>
-        </section>
+        <Footer />
       </main>
     </>
   );

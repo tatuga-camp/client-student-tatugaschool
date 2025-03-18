@@ -11,3 +11,5 @@ export interface Student {
   schoolId: string;
   classId: string;
 }
+
+export type Language = "en" | "th";

@@ -1,10 +1,13 @@
 import React from "react";
 import { StudentAssignmentStatus } from "../../interfaces";
+import { useGetLanguage } from "../../react-query";
+import { classworkCardDataLanguage } from "../../data/language";
 
 type Props = {
   status: StudentAssignmentStatus;
 };
 function AssignmentStatusCard({ status }: Props) {
+  const language = useGetLanguage();
   return (
     <div
       className={`flex w-full items-center h-full 
@@ -17,9 +20,12 @@ function AssignmentStatusCard({ status }: Props) {
   ${status === "PENDDING" && "bg-gradient-to-r from-stone-500 to-stone-700"}
   justify-center text-sm font-normal `}
     >
-      {status === "SUBMITTED" && "Waiting for Review"}
-      {status === "REVIEWD" && "Reviewed"}
-      {status === "PENDDING" && "No work"}
+      {status === "SUBMITTED" &&
+        classworkCardDataLanguage.WaitReview(language.data ?? "en")}
+      {status === "REVIEWD" &&
+        classworkCardDataLanguage.Reviewed(language.data ?? "en")}
+      {status === "PENDDING" &&
+        classworkCardDataLanguage.NoWork(language.data ?? "en")}
     </div>
   );
 }

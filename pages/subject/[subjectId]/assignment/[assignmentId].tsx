@@ -29,10 +29,12 @@ import {
 import {
   useGetAssignments,
   useGetFileStudentAssignment,
+  useGetLanguage,
   useUpdateStudentOnAssignment,
 } from "../../../../react-query";
 import { timeAgo, timeLeft } from "../../../../utils";
 import LoadingSpinner from "../../../../components/common/LoadingSpinner";
+import { classworkDataLanguage } from "../../../../data/language";
 
 const SummitWorkMenus = [
   {
@@ -53,7 +55,7 @@ type SummitWorkMenu = (typeof SummitWorkMenus)[number]["title"];
 
 const menuSummitLists = [
   {
-    title: "Mark as done",
+    title: "done",
     icon: (
       <div
         className="w-5 bg-green-200 text-green-600
@@ -64,7 +66,7 @@ const menuSummitLists = [
     ),
   },
   {
-    title: "Mark as not done",
+    title: "notdone",
     icon: (
       <div
         className="w-5 bg-red-200 text-red-600
@@ -76,8 +78,6 @@ h-5 overflow-hidden rounded-full flex items-center justify-center"
   },
 ] as const;
 
-type MenuSummitList = (typeof menuSummitLists)[number]["title"];
-
 function Index({
   assignmentId,
   subjectId,
@@ -85,7 +85,7 @@ function Index({
   assignmentId: string;
   subjectId: string;
 }) {
-  const router = useRouter();
+  const language = useGetLanguage();
   const toast = React.useRef<Toast>(null);
   const divRef = React.useRef<HTMLDivElement>(null);
   const updateWork = useUpdateStudentOnAssignment();
@@ -110,7 +110,7 @@ function Index({
   if (!assignment) {
     return (
       <div>
-        <h1>Assignment not found</h1>
+        <h1>{classworkDataLanguage.notFound(language.data ?? "en")}</h1>
       </div>
     );
   }
@@ -120,7 +120,9 @@ function Index({
   const SummitWork = () => {
     return (
       <div className="w-full bg-white  border p-2 rounded-md h-max">
-        <span className="text-xs">Attrach work</span>
+        <span className="text-lg">
+          {classworkDataLanguage.attrachs(language.data ?? "en")}
+        </span>
         <div
           className="w-full h-32 mt-3  pb-5  border-b  
         gap-2 flex items-center justify-evenly rounded-md overflow-hidden"
@@ -135,14 +137,18 @@ function Index({
                 <div className="w-10 text-xl h-10 group-hover:bg-gray-200 transition group-hover:scale-110 rounded-full overflow-hidden flex items-center justify-center border">
                   {menu.icon}
                 </div>
-                <span className="text-sm">{menu.title}</span>
+                <span className="text-sm">
+                  {classworkDataLanguage.attrachType[
+                    menu.title.toLowerCase() as keyof typeof classworkDataLanguage.attrachType
+                  ](language.data ?? "en")}
+                </span>
               </label>
             );
           })}
         </div>
 
         <h1 className="font-semibold flex w-full items-center justify-between text-xl p-2">
-          Your Work
+          {classworkDataLanguage.yourWork(language.data ?? "en")}
         </h1>
         <ul className="grid gap-2 w-full">
           {studentFiles.data?.map((file, index) => {
@@ -194,9 +200,11 @@ function Index({
       <div className="w-full bg-white  border p-2 rounded-md h-max">
         <div className="font-semibold flex w-full items-center justify-between text-xl p-2">
           <div className="flex flex-col gap-0">
-            Summit Work
+            {classworkDataLanguage.summitWorkTitle(language.data ?? "en")}
             <span className="text-xs font-normal text-gray-500">
-              You can summit work here
+              {classworkDataLanguage.summitWorkDescription(
+                language.data ?? "en"
+              )}
             </span>
           </div>{" "}
           <IoIosInformationCircle />
@@ -213,7 +221,13 @@ function Index({
             font-medium rounded-r-none rounded-md text-base text-white
      gradient-bg flex items-center gap-2 justify-center"
             >
-              {updateWork.isPending ? <LoadingSpinner /> : "Mark as done"}
+              {updateWork.isPending ? (
+                <LoadingSpinner />
+              ) : (
+                classworkDataLanguage.menuSummitLists.done(
+                  language.data ?? "en"
+                )
+              )}
               <div
                 className="w-5 bg-green-200 text-green-600
              h-5 overflow-hidden rounded-full flex items-center justify-center"
@@ -233,7 +247,13 @@ function Index({
             font-medium rounded-r-none rounded-md text-base text-white
     bg-gray-400 flex items-center gap-2 justify-center"
             >
-              {updateWork.isPending ? <LoadingSpinner /> : "Mark as not done"}
+              {updateWork.isPending ? (
+                <LoadingSpinner />
+              ) : (
+                classworkDataLanguage.menuSummitLists.notdone(
+                  language.data ?? "en"
+                )
+              )}
 
               <div
                 className="w-5 bg-red-200 text-red-600
@@ -252,7 +272,9 @@ h-5 overflow-hidden rounded-full flex items-center justify-center"
               font-medium rounded-r-none rounded-md text-base text-white
        gradient-bg flex items-center gap-2 justify-center"
             >
-              Teacher has reviewd
+              {classworkDataLanguage.menuSummitLists.review(
+                language.data ?? "en"
+              )}
             </button>
           )}
           <button
@@ -277,10 +299,10 @@ h-5 overflow-hidden rounded-full flex items-center justify-center"
                     <button
                       disabled={updateWork.isPending}
                       onClick={() => {
-                        if (menu.title === "Mark as done") {
+                        if (menu.title === "done") {
                           handleUpdateWork("SUBMITTED");
                         }
-                        if (menu.title === "Mark as not done") {
+                        if (menu.title === "notdone") {
                           handleUpdateWork("PENDDING");
                         }
                       }}
@@ -292,7 +314,9 @@ h-5 overflow-hidden rounded-full flex items-center justify-center"
              `}
                     >
                       {menu.icon}
-                      {menu.title}
+                      {classworkDataLanguage.menuSummitLists[
+                        menu.title as keyof typeof classworkDataLanguage.menuSummitLists
+                      ](language.data ?? "en")}
                     </button>
                   );
                 })}

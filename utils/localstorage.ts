@@ -1,7 +1,8 @@
 export type LocalStorageKeys =
   | "subject_code"
   | "subject_id"
-  | `attendanceRow_id:${string}`;
+  | `attendanceRow_id:${string}`
+  | "language";
 
 export function setLocalStorage(key: LocalStorageKeys, value: string) {
   localStorage.setItem(key, value);

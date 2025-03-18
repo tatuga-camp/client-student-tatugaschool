@@ -10,6 +10,8 @@ import { MdAssignment, MdDragIndicator } from "react-icons/md";
 import { BiBook } from "react-icons/bi";
 import { FaRegFile, FaRegFileImage } from "react-icons/fa6";
 import AssignmentStatusCard from "./AssignmentStatus";
+import { useGetLanguage } from "../../react-query";
+import { classworkCardDataLanguage } from "../../data/language";
 
 type PropsClassworkCard = {
   classwork: Assignment & {
@@ -59,35 +61,27 @@ function AssignmentCard({
   onSelect,
   subjectId,
 }: PropsAssignmentCard) {
+  const language = useGetLanguage();
   return (
     <button
-      className="w-full h-full flex flex-col transition-height"
+      className="w-full h-full  flex flex-col transition-height"
       key={assignemnt.id}
     >
       <div
         onClick={() => onSelect(assignemnt)}
         className={`flex items-stretch w-full h-max  relative justify-start gap-2
-       overflow-hidden hover:ring   bg-white  rounded-md border
+       overflow-hidden hover:ring   bg-white rounded-none  md:rounded-md border
     rounded-b-none"
        }
        `}
       >
-        <div
-          className={`p-2 w-24 hidden md:flex flex-col gap-2 items-center justify-center 
-    h-full   text-2xl text-white
-    ${assignemnt.status === "Draft" ? "bg-gray-400" : "gradient-bg"}
-    `}
-        >
-          <MdAssignment />
-          <span className="text-xs">{assignemnt.status}</span>
-        </div>
-        <div className="flex h-max p-2  flex-col gap-2 grow">
+        <div className="flex  h-max p-2  flex-col gap-2 grow">
           <div className="w-full flex">
             <AssignmentStatusCard
               status={assignemnt.studentOnAssignment.status}
             />
           </div>
-          <div className="font-semibold text-start text-lg border-b max-w-96 truncate">
+          <div className="font-semibold text-start text-lg border-b max-w-72 md:max-w-96 truncate">
             {assignemnt.title}
           </div>
           <div className="text-gray-500 text-xs flex gap-1">
@@ -104,7 +98,9 @@ function AssignmentCard({
               <span className="font-medium max-w-40 truncate text-primary-color text-base">
                 {assignemnt.maxScore.toLocaleString()}
               </span>
-              <span className="text-xs">Max Score</span>
+              <span className="text-xs">
+                {classworkCardDataLanguage.score(language.data ?? "en")}
+              </span>
             </li>
             {assignemnt.studentOnAssignment.status === "REVIEWD" && (
               <li
@@ -114,7 +110,9 @@ function AssignmentCard({
                 <span className="font-medium max-w-40 truncate text-white text-base">
                   {assignemnt.studentOnAssignment.score?.toLocaleString()}
                 </span>
-                <span className="text-xs text-white">Your Score</span>
+                <span className="text-xs text-white">
+                  {classworkCardDataLanguage.yourscore(language.data ?? "en")}
+                </span>
               </li>
             )}
             {assignemnt.weight !== null && (
@@ -122,7 +120,9 @@ function AssignmentCard({
                 <span className="font-medium max-w-40 truncate text-primary-color text-base">
                   {assignemnt.weight}%
                 </span>
-                <span className="text-xs">Weight</span>
+                <span className="text-xs">
+                  {classworkCardDataLanguage.weight(language.data ?? "en")}
+                </span>
               </li>
             )}
             {assignemnt.dueDate && (
@@ -139,7 +139,9 @@ function AssignmentCard({
                     hour: "numeric",
                   })}
                 </span>
-                <span className="text-xs">Deadline</span>
+                <span className="text-xs">
+                  {classworkCardDataLanguage.Deadline(language.data ?? "en")}
+                </span>
               </li>
             )}
           </ul>
@@ -150,7 +152,7 @@ function AssignmentCard({
           selectAssignment?.id === assignemnt.id
             ? "h-80  border border-t-0"
             : "h-0"
-        } bg-white rounded-md text-start rounded-t-none overflow-hidden w-full transition-height   `}
+        } bg-white rounded-none md:rounded-md text-start rounded-t-none overflow-hidden w-full transition-height   `}
       >
         <p
           className={`  overflow-auto
@@ -193,26 +195,12 @@ function MaterialCard({
       <button
         onClick={() => onSelect(material)}
         className={`flex items-stretch w-full h-max  relative justify-start gap-2
-      overflow-hidden hover:ring   bg-white  rounded-md border
+      overflow-hidden hover:ring   bg-white rounded-none  md:rounded-md border
       ${selectMaterial?.id === material.id && "rounded-b-none"}
       `}
       >
-        <div
-          className={`p-2 hidden h w-24 md:flex flex-col gap-2 items-center justify-center 
-      h-full   text-2xl text-white
-      ${
-        material.status === "Draft"
-          ? "bg-gray-400"
-          : "bg-gradient-to-r from-emerald-400 to-cyan-400"
-      }
-      `}
-        >
-          <BiBook />
-
-          <span className="text-xs">{material.status}</span>
-        </div>
         <div className="flex h-max p-2  flex-col gap-2 grow">
-          <div className="font-semibold text-start text-lg border-b max-w-96 truncate">
+          <div className="font-semibold text-start text-lg border-b max-w-72 md:max-w-96 truncate">
             {material.title}
           </div>
           <div className="text-gray-500 text-xs flex gap-1">
@@ -255,7 +243,7 @@ function MaterialCard({
       <div
         className={`${
           selectMaterial?.id === material.id ? "h-80  border border-t-0" : "h-0"
-        } bg-white rounded-md text-start rounded-t-none overflow-hidden w-full transition-height   `}
+        } bg-white rounded-none md:rounded-md text-start rounded-t-none overflow-hidden w-full transition-height   `}
       >
         <p
           className={`  overflow-auto

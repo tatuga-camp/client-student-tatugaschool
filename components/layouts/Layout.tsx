@@ -72,7 +72,7 @@ function Layout({ children, listData, subjectId }: LayoutProps) {
       </div>
       <div className="flex h-full ">
         <div className="w-full flex flex-col">
-          <main className="w-full h-1 grow bg-gray-50  overflow-y-auto">
+          <main className="w-full h-1 grow bg-gray-100  overflow-y-auto">
             <div className="w-full hidden md:block bg-sky-100 h-40"></div>
             {subject.data && !router.pathname.startsWith("/student/") && (
               <Header subject={subject.data} />

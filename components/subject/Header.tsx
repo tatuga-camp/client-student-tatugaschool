@@ -3,11 +3,14 @@ import { Subject } from "../../interfaces";
 import Image from "next/image";
 import { decodeBlurhashToCanvas } from "../../utils";
 import { defaultBlurHash } from "../../data";
+import { useGetLanguage } from "../../react-query";
+import { subjectDataLanguage } from "../../data/language";
 
 type Props = {
   subject: Subject;
 };
 function Header({ subject }: Props) {
+  const language = useGetLanguage();
   return (
     <header className="w-full relative md:-top-20 flex items-center h-max justify-center">
       <section
@@ -41,12 +44,14 @@ function Header({ subject }: Props) {
           <div className="flex gap-2">
             <div className="bg-white w-max px-2 py-1 rounded-md">
               <h2 className="text-xs text-primary-color">
-                Academic year: {subject.educationYear}
+                {subjectDataLanguage.educationYear(language.data ?? "en")}:{" "}
+                {subject.educationYear}
               </h2>
             </div>
             <div className="bg-white w-max px-2 py-1 rounded-md">
               <h2 className="text-xs text-primary-color">
-                Subject Code: {subject.code}
+                {subjectDataLanguage.code(language.data ?? "en")}:{" "}
+                {subject.code}
               </h2>
             </div>
           </div>

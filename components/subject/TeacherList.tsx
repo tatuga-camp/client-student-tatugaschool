@@ -3,14 +3,19 @@ import React from "react";
 import { TeacherOnSubject } from "../../interfaces";
 import { decodeBlurhashToCanvas } from "../../utils";
 import { defaultBlurHash } from "../../data";
+import { useGetLanguage } from "../../react-query";
+import { subjectDataLanguage } from "../../data/language";
 
 type Props = {
   teachers: TeacherOnSubject[];
 };
 function TeacherList({ teachers }: Props) {
+  const language = useGetLanguage();
   return (
     <div className="w-full bg-white  md:border p-2 rounded-none md:rounded-md h-max">
-      <h2 className="font-semibold text-xl p-2">Teachers</h2>
+      <h2 className="font-semibold text-xl p-2">
+        {subjectDataLanguage.teacher(language.data ?? "en")}
+      </h2>
       <ul className="gap-2 grid max-h-60 overflow-y-auto">
         {teachers.map((teacher) => {
           return (
