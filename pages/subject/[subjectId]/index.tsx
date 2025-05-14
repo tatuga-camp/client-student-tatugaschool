@@ -1,19 +1,18 @@
 import { GetServerSideProps } from "next";
+import Head from "next/head";
 import React from "react";
+import { FaStarHalfStroke, FaUserGroup } from "react-icons/fa6";
+import { MdAssignmentAdd } from "react-icons/md";
 import Layout from "../../../components/layouts/Layout";
+import Attendance from "../../../components/subject/Attendance";
+import Classwork from "../../../components/subject/Classwork";
+import Grade from "../../../components/subject/Grade";
+import { menuSubjectDataLanguage } from "../../../data/language";
 import {
   useGetLanguage,
   useGetStudent,
   useGetSubjectById,
 } from "../../../react-query";
-import Head from "next/head";
-import { MdAssignmentAdd } from "react-icons/md";
-import { FaStarHalfStroke, FaUserGroup } from "react-icons/fa6";
-import Classwork from "../../../components/subject/Classwork";
-import Attendance from "../../../components/subject/Attendance";
-import Grade from "../../../components/subject/Grade";
-import { setLocalStorage } from "../../../utils";
-import { menuSubjectDataLanguage } from "../../../data/language";
 
 const menuLists = [
   {

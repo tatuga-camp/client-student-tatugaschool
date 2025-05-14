@@ -64,7 +64,7 @@ function AssignmentCard({
   const language = useGetLanguage();
   return (
     <button
-      className="w-full h-full  flex flex-col transition-height"
+      className="w-full  flex flex-col transition-height"
       key={assignemnt.id}
     >
       <div
@@ -165,7 +165,9 @@ function AssignmentCard({
           href={`/subject/${subjectId}/assignment/${assignemnt.id}`}
           className="flex gap-2 border-t  items-center p-2 h-20"
         >
-          <button className="main-button w-40">View</button>
+          <button className="main-button w-40">
+            {classworkCardDataLanguage.view(language.data ?? "en")}
+          </button>
         </Link>
       </div>
     </button>
@@ -187,11 +189,9 @@ function MaterialCard({
   selectMaterial,
   onSelect,
 }: PropsMaterialCard) {
+  const language = useGetLanguage();
   return (
-    <div
-      className="w-full h-full flex flex-col transition-height"
-      key={material.id}
-    >
+    <div className="w-full  flex flex-col transition-height" key={material.id}>
       <button
         onClick={() => onSelect(material)}
         className={`flex items-stretch w-full h-max  relative justify-start gap-2
@@ -256,7 +256,9 @@ function MaterialCard({
           href={`/subject/${subjectId}/assignment/${material.id}`}
           className="flex gap-2 border-t  items-center p-2 h-20"
         >
-          <button className="main-button w-40">View</button>
+          <button className="main-button w-40">
+            {classworkCardDataLanguage.view(language.data ?? "en")}
+          </button>
         </Link>
       </div>
     </div>

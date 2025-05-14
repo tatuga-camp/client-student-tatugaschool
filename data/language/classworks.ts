@@ -31,6 +31,16 @@ export const classworkCardDataLanguage = {
         return "Max Score";
     }
   },
+  view: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "View detail";
+      case "th":
+        return "ดูรายละเอียด";
+      default:
+        return "View detail";
+    }
+  },
   yourscore: (language: Language) => {
     switch (language) {
       case "en":

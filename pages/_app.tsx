@@ -22,12 +22,13 @@ function MyApp({ Component, pageProps }: AppProps) {
         defaultOptions: {
           queries: {
             staleTime: 2 * 60 * 1000, // 2 minutes
+            refetchInterval: 2 * 60 * 1000, // 2 minutes
             refetchOnMount: false, // Disables automatic refetching when component is mounted.removed
             refetchOnWindowFocus: false, // Disables automatic refetching when browser window is focused.
             retry: (failureCount, error) => {
               const errorResponse = error as unknown as ErrorMessages;
               // Don't retry for certain error responses
-              if (errorResponse.statusCode === 401) {
+              if (errorResponse?.statusCode === 401) {
                 return false;
               }
               // Retry others just once

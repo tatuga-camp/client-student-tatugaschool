@@ -13,7 +13,7 @@ function Classwork({ subjectId }: Props) {
     null
   );
   return (
-    <ul className="w-full mt-5 p-0 md:p-2 grid gap-2 ">
+    <ul className="w-full h-max mt-5 p-0 md:p-2 gap-5 flex flex-col  ">
       {assignments.data
         ?.sort((a, b) => a.order - b.order)
         .map((classwork, index) => {

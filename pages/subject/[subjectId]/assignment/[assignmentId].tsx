@@ -118,6 +118,9 @@ function Index({
     assignment.studentOnAssignment;
 
   const SummitWork = () => {
+    if (assignment.type === "Material") {
+      return null;
+    }
     return (
       <div className="w-full bg-white  border p-2 rounded-md h-max">
         <span className="text-lg">
@@ -196,6 +199,9 @@ function Index({
   };
 
   const SummitStatus = () => {
+    if (assignment.type === "Material") {
+      return null;
+    }
     return (
       <div className="w-full bg-white  border p-2 rounded-md h-max">
         <div className="font-semibold flex w-full items-center justify-between text-xl p-2">
@@ -343,6 +349,9 @@ h-5 overflow-hidden rounded-full flex items-center justify-center"
     );
   };
   const StudentWorkInfo = () => {
+    if (assignment.type === "Material") {
+      return null;
+    }
     return (
       <div className="w-full bg-white  border p-2 rounded-md h-max">
         <div className="font-semibold flex w-full items-center justify-between text-xl p-2">

@@ -9,7 +9,7 @@ function Footer() {
       <span className="text-white font-medium text-sm">
         {footerDataLanguage.title(language.data ?? "en")}
       </span>
-      <p className="text-white font-light text-sm">
+      <p className="text-white text-center font-light text-sm">
         {footerDataLanguage.description(language.data ?? "en")}
       </p>
       <a
