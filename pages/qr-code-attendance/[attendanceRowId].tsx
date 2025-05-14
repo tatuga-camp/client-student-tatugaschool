@@ -31,6 +31,7 @@ import {
 } from "../../utils";
 import {
   qrcodeAttendanceLanguage,
+  qrcodeMenuBarLanguage,
   requestDataLanguage,
 } from "../../data/language";
 import LanguageSelect from "../../components/LanguageSelect";
@@ -53,9 +54,7 @@ function Index({ id }: { id: string }) {
   );
   const [triggerFormSignIn, setTriggerFormSignIn] = useState<boolean>(false);
   const [note, setNote] = useState<string>("");
-  const [selectMenu, setSelectMenu] = useState<"pick status" | "add note">(
-    "pick status",
-  );
+  const [selectMenu, setSelectMenu] = useState<"status" | "note">("status");
   const qrCode = useGetAttendanceQRCode({
     attendanceRowId: id,
   });
@@ -224,6 +223,9 @@ function Index({ id }: { id: string }) {
         </Head>
 
         <main className="gradient-bg flex min-h-screen w-screen flex-col items-center justify-center gap-2 text-white">
+          <div className="flex w-full justify-end p-2">
+            <LanguageSelect />
+          </div>
           <div className="flex items-center justify-center gap-1 rounded-full bg-white px-3 py-1 md:gap-2">
             <div className="relative h-6 w-6 overflow-hidden rounded-md ring-1 ring-white transition duration-150 hover:scale-105 active:scale-110">
               <Image
@@ -310,10 +312,11 @@ function Index({ id }: { id: string }) {
           />
         </PopupLayout>
       )}
-      <div className="fixed right-2 top-2">
-        <LanguageSelect />
-      </div>
+
       <main className="gradient-bg flex min-h-screen w-screen flex-col items-center justify-center gap-2 font-Anuphan text-white">
+        <div className="flex w-full justify-end p-2">
+          <LanguageSelect />
+        </div>
         <div className="flex items-center justify-center gap-1 rounded-full bg-white px-3 py-1 md:gap-2">
           <div className="relative h-6 w-6 overflow-hidden rounded-md ring-1 ring-white transition duration-150 hover:scale-105 active:scale-110">
             <Image
@@ -353,7 +356,7 @@ function Index({ id }: { id: string }) {
               onClick={() => {
                 setSelectStatus(null);
                 setSelectStudent(null);
-                setSelectMenu("pick status");
+                setSelectMenu("status");
                 setNote("");
               }}
               className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded border text-lg font-semibold hover:bg-gray-300/50"
@@ -387,22 +390,23 @@ function Index({ id }: { id: string }) {
                 </div>
               </div>
               <header className="flex items-center justify-center gap-2">
-                {(["pick status", "add note"] as const).map((text) => {
+                {(["status", "note"] as const).map((text) => {
                   return (
                     <button
                       key={text}
                       onClick={() => setSelectMenu(text)}
                       className={`${selectMenu === text ? "main-button" : "second-button"} flex items-center justify-center gap-2 border`}
                     >
-                      {text === "add note" && <PiNote />}{" "}
-                      {text === "pick status" && <GrStatusUnknown />} {text}
+                      {text === "note" && <PiNote />}{" "}
+                      {text === "status" && <GrStatusUnknown />}{" "}
+                      {qrcodeMenuBarLanguage[text](language.data ?? "en")}
                     </button>
                   );
                 })}
               </header>
             </div>
 
-            {selectMenu === "pick status" ? (
+            {selectMenu === "status" ? (
               <div className="grid w-full grid-cols-2 gap-2 overflow-auto p-2">
                 {qrCode.data?.status.map((status, index) => {
                   return (

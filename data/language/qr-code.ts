@@ -1,5 +1,28 @@
 import { Language } from "../../interfaces";
 
+export const qrcodeMenuBarLanguage = {
+  status: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "Update Status";
+      case "th":
+        return "สถานะเช็คชื่อ";
+      default:
+        return "Update Status";
+    }
+  },
+  note: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "Add Note";
+      case "th":
+        return "เพิ่มโน็ต";
+      default:
+        return "Add Note";
+    }
+  },
+};
+
 export const qrcodeAttendanceLanguage = {
   title: (language: Language) => {
     switch (language) {
