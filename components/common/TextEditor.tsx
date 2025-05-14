@@ -12,7 +12,7 @@ type Props = {
   onChange: (content: string) => void;
   menubar?: boolean;
   schoolId: string;
-  toolbar?: string;
+  toolbar?: string | false;
 };
 function TextEditor({
   value,

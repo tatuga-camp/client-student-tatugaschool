@@ -1,20 +1,15 @@
+import Image from "next/image";
+import { ProgressSpinner } from "primereact/progressspinner";
 import React from "react";
+import Swal from "sweetalert2";
+import { defaultBlurHash } from "../../data";
+import { ErrorMessages } from "../../interfaces";
 import {
   useCreateComment,
-  useDeleteComment,
   useGetComments,
   useGetStudent,
 } from "../../react-query";
-import Image from "next/image";
-import { defaultBlurHash } from "../../data";
 import TextEditor from "../common/TextEditor";
-import { ErrorMessages } from "../../interfaces";
-import Swal from "sweetalert2";
-import { ProgressSpinner } from "primereact/progressspinner";
-import parse from "html-react-parser";
-import { timeAgo } from "../../utils";
-import { FiDelete } from "react-icons/fi";
-import { MdDelete } from "react-icons/md";
 import CommentList from "./CommentList";
 type Props = {
   studentOnAssignmentId: string;
@@ -56,14 +51,11 @@ function CommentSection({ studentOnAssignmentId }: Props) {
   };
 
   return (
-    <div className="w-full flex flex-col gap-2">
+    <div className="flex w-full flex-col gap-2">
       <header className="h-10 border-b">
         <h1 className="text-lg font-semibold">Comments</h1>
       </header>
-      <ul
-        ref={commentBodyRef}
-        className="w-full   h-max max-h-40 overflow-auto"
-      >
+      <ul ref={commentBodyRef} className="h-max max-h-40 w-full overflow-auto">
         {comments.data?.map((comment, index) => (
           <CommentList
             studentOnAssignmentId={studentOnAssignmentId}
@@ -73,8 +65,8 @@ function CommentSection({ studentOnAssignmentId }: Props) {
           />
         ))}
       </ul>
-      <form onSubmit={handleCreateComment} className="w-full flex gap-2">
-        <div className="w-10 border h-10 rounded-full overflow-hidden relative">
+      <form onSubmit={handleCreateComment} className="flex w-full gap-2">
+        <div className="relative h-10 w-10 overflow-hidden rounded-full border">
           <Image
             src={student.data?.photo || "/avatar.png"}
             alt="avatar"
@@ -86,7 +78,7 @@ function CommentSection({ studentOnAssignmentId }: Props) {
             className="object-cover"
           />
         </div>
-        <div className="grow h-40 relative ">
+        <div className="relative h-40 grow">
           {student.data && (
             <TextEditor
               menubar={false}
@@ -98,13 +90,13 @@ function CommentSection({ studentOnAssignmentId }: Props) {
           )}
           <button
             disabled={loadingComments}
-            className="absolute flex w-24 items-center justify-center main-button bottom-8 right-2 bg-blue-500 text-white px-2 py-1 rounded"
+            className="main-button absolute bottom-8 right-2 flex w-24 items-center justify-center rounded bg-blue-500 px-2 py-1 text-white"
           >
             {loadingComments ? (
               <ProgressSpinner
                 animationDuration="0.5s"
                 style={{ width: "20px" }}
-                className="w-5 h-5  "
+                className="h-5 w-5"
                 strokeWidth="8"
               />
             ) : (
