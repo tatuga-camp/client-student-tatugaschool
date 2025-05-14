@@ -21,6 +21,8 @@ import {
 import { setLocalStorage } from "../utils";
 import Footer from "../components/Footer";
 import { requestDataLanguage, subjectDataLanguage } from "../data/language";
+import PopupLayout from "../components/layouts/PopupLayout";
+import SignInStudentForm from "../components/student/SignInStudentForm";
 
 type IndexProps = {
   subjectData: ResponseGetSubjectByCodeService;
@@ -37,7 +39,7 @@ function Index({ subjectData, code, error }: IndexProps) {
   const [search, setSearch] = React.useState("");
   const [students, setStudents] = React.useState<StudentOnSubject[]>();
   const [selectStudentId, setSelectStudentId] = React.useState<string | null>(
-    null
+    null,
   );
 
   const signIn = useSignIn();
@@ -93,19 +95,13 @@ function Index({ subjectData, code, error }: IndexProps) {
             student.lastName
               .toLowerCase()
               .includes(e.target.value.toLowerCase()) ||
-            student.number.toString().includes(e.target.value)
-        )
+            student.number.toString().includes(e.target.value),
+        ),
       );
     }
   };
 
-  const handleSignIn = async ({
-    studentId,
-    name,
-  }: {
-    studentId: string;
-    name: string;
-  }) => {
+  const handleSignIn = async ({ studentId }: { studentId: string }) => {
     try {
       await signIn.mutateAsync({
         studentId: studentId,
@@ -139,12 +135,9 @@ function Index({ subjectData, code, error }: IndexProps) {
 
   if (error) {
     return (
-      <main className="w-screen font-Anuphan h-screen flex flex-col gap-5 items-center bg-gradient-to-r from-rose-400 to-red-500 justify-center">
-        <div className="flex items-center justify-center bg-white px-3 rounded-full py-1 gap-1 md:gap-2">
-          <div
-            className="w-6 h-6 rounded-md overflow-hidden ring-1 ring-white
-                 relative hover:scale-105 active:scale-110 transition duration-150"
-          >
+      <main className="flex h-screen w-screen flex-col items-center justify-center gap-5 bg-gradient-to-r from-rose-400 to-red-500 font-Anuphan">
+        <div className="flex items-center justify-center gap-1 rounded-full bg-white px-3 py-1 md:gap-2">
+          <div className="relative h-6 w-6 overflow-hidden rounded-md ring-1 ring-white transition duration-150 hover:scale-105 active:scale-110">
             <Image
               src="/favicon.ico"
               placeholder="blur"
@@ -153,12 +146,12 @@ function Index({ subjectData, code, error }: IndexProps) {
               alt="logo tatuga school"
             />
           </div>
-          <div className="font-bold uppercase  block text-lg md:text-base text-icon-color">
+          <div className="block text-lg font-bold uppercase text-icon-color md:text-base">
             Tatuga School
           </div>
         </div>
-        <section className="w-80 md:w-96 h-32 flex flex-col justify-around bg-white rounded-md p-2">
-          <h1 className="text-lg font-semibold text-center">
+        <section className="flex h-32 w-80 flex-col justify-around rounded-md bg-white p-2 md:w-96">
+          <h1 className="text-center text-lg font-semibold">
             {error?.message ?? "Something went wrong"}
           </h1>
           <button
@@ -183,59 +176,28 @@ function Index({ subjectData, code, error }: IndexProps) {
         />
       </Head>
       {selectStudentId && (
-        <div className="w-full h-screen flex fixed z-50  items-center justify-center">
-          <form
+        <PopupLayout
+          onClose={() => {
+            setSelectStudentId(null);
+          }}
+        >
+          <SignInStudentForm
+            onClose={() => setSelectStudentId(null)}
             onSubmit={handleSignInForm}
-            className="w-96 gap-2 h-max flex flex-col border justify-center items-center relative py-10 bg-white p-3 rounded-md"
-          >
-            <button
-              type="button"
-              onClick={() => setSelectStudentId(null)}
-              className="text-lg hover:bg-gray-300/50 w-6 h-6 absolute top-2 right-2 m-auto rounded flex items-center justify-center font-semibold"
-            >
-              <IoMdClose />
-            </button>
-            <h1 className="text-lg font-semibold">
-              {subjectDataLanguage.password(language.data ?? "en")}
-            </h1>
-            <Password
-              inputRef={passwordInputRef}
-              toggleMask
-              required={true}
-              name="password"
-              feedback={false}
-            />
-            <button
-              disabled={signIn.isPending}
-              type="submit"
-              className="main-button w-80 h-10 flex items-center justify-center"
-            >
-              {signIn.isPending ? (
-                <SpinLoading />
-              ) : (
-                subjectDataLanguage.passwordButton(language.data ?? "en")
-              )}
-            </button>
-
-            <p className="text-xs text-gray-500">
-              {subjectDataLanguage.forgetPassword(language.data ?? "en")}
-            </p>
-          </form>
-          <footer
-            onClick={() => setSelectStudentId(null)}
-            className="w-screen h-screen fixed top-0 right-0 left-0 bottom-0 -z-10 bg-black/50"
-          ></footer>
-        </div>
+            isPending={signIn.isPending}
+            passwordInputRef={passwordInputRef}
+          />
+        </PopupLayout>
       )}
 
       <HomepageLayout subject={subject}>
-        <main className="w-full md:w-8/12 bg-gray-50 p-3 py-4 rounded-md h-max min-h-96">
-          <div className="pb-2 border-b flex md:flex-row flex-col justify-between">
+        <main className="h-max min-h-96 w-full rounded-md bg-gray-50 p-3 py-4 md:w-8/12">
+          <div className="flex flex-col justify-between border-b pb-2 md:flex-row">
             <div>
-              <h2 className="font-semibold text-xl leading-4  ">
+              <h2 className="text-xl font-semibold leading-4">
                 {subjectDataLanguage.choose(language.data ?? "en")}
               </h2>
-              <span className="text-gray-500 text-sm">
+              <span className="text-sm text-gray-500">
                 {subjectDataLanguage.joinDescription(language.data ?? "en")}
               </span>
             </div>
@@ -246,14 +208,13 @@ function Index({ subjectData, code, error }: IndexProps) {
                 onChange={handleChange}
                 type="text"
                 placeholder={subjectDataLanguage.searchPlaceholder(
-                  language.data ?? "en"
+                  language.data ?? "en",
                 )}
-                className="w-full md:w-96 pl-10 pr-4 py-2 border 
-                      border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-color-focus"
+                className="w-full rounded-lg border border-gray-300 py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-primary-color-focus md:w-96"
               />
             </div>
           </div>
-          <ul className="grid grid-cols-1 max-h-96 overflow-y-auto p-3">
+          <ul className="grid max-h-96 grid-cols-1 overflow-y-auto p-3">
             {students
               ?.sort((a, b) => Number(a.number) - Number(b.number))
               .map((student, index) => {
@@ -264,12 +225,11 @@ function Index({ subjectData, code, error }: IndexProps) {
                     odd={odd}
                     student={student}
                     buttonText={subjectDataLanguage.buttonJoin(
-                      language.data ?? "en"
+                      language.data ?? "en",
                     )}
                     onClick={(data) => {
                       handleSignIn({
                         studentId: data.studentId,
-                        name: `${data.firstName} ${data.lastName}`,
                       });
                     }}
                   />

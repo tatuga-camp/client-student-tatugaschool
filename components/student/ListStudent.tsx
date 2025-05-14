@@ -10,19 +10,20 @@ type Props<T> = {
   odd: boolean;
   onClick: (student: T) => void;
   buttonText: string;
+  isPedding?: boolean;
 };
 function ListStudent<
-  T extends StudentOnSubject | (StudentOnSubject & { attendance: Attendance })
->({ student, odd, onClick, buttonText }: Props<T>) {
+  T extends StudentOnSubject | (StudentOnSubject & { attendance: Attendance }),
+>({ student, odd, onClick, buttonText, isPedding }: Props<T>) {
   return (
     <li
       key={student.id}
-      className={`flex justify-between py-2 hover:bg-gray-200/50  items-center ${
+      className={`flex items-center justify-between py-2 hover:bg-gray-200/50 ${
         odd && "bg-gray-200/20"
       } gap-2`}
     >
       <div className="flex gap-2">
-        <div className="w-10 h-10 relative rounded-md ring-1  overflow-hidden">
+        <div className="relative h-10 w-10 overflow-hidden rounded-md ring-1">
           <Image
             src={student.photo}
             alt={student.firstName}
@@ -30,7 +31,7 @@ function ListStudent<
             sizes="(max-width: 768px) 100vw, 33vw"
             placeholder="blur"
             blurDataURL={decodeBlurhashToCanvas(
-              student.blurHash ?? defaultBlurHash
+              student.blurHash ?? defaultBlurHash,
             )}
             className="object-cover"
           />
@@ -45,10 +46,17 @@ function ListStudent<
         </div>
       </div>
       <button
+        disabled={isPedding === true}
         onClick={() => onClick(student)}
         className="main-button flex items-center justify-center gap-1 px-4 py-1"
       >
-        {buttonText} <GoChevronRight />
+        {isPedding === true ? (
+          "Loading"
+        ) : (
+          <>
+            {buttonText} <GoChevronRight />
+          </>
+        )}
       </button>
     </li>
   );

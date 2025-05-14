@@ -46,7 +46,7 @@ const createAxiosInstance = () => {
 
       return config;
     },
-    (error) => Promise.reject(error)
+    (error) => Promise.reject(error),
   );
 
   instance.interceptors.response.use(
@@ -68,9 +68,8 @@ const createAxiosInstance = () => {
           });
 
           setAccessToken({ access_token: accessToken });
-          instance.defaults.headers.common[
-            "Authorization"
-          ] = `Bearer ${accessToken}`;
+          instance.defaults.headers.common["Authorization"] =
+            `Bearer ${accessToken}`;
           return instance(originalRequest);
         } catch (refreshError) {
           console.log("refreshError", refreshError);
@@ -82,7 +81,7 @@ const createAxiosInstance = () => {
         }
       }
       return Promise.reject(error);
-    }
+    },
   );
 
   return instance;
@@ -91,7 +90,6 @@ const createAxiosInstance = () => {
 const isTokenExpired = (token: string) => {
   try {
     if (!token) return true;
-    console.log("token", token);
     const [, payload] = token.split(".");
     const decodedPayload = JSON.parse(window.atob(payload));
     const exp = decodedPayload.exp;

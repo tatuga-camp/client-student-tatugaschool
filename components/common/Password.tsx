@@ -1,13 +1,6 @@
-import React, {
-  ChangeEventHandler,
-  HTMLAttributes,
-  HTMLInputAutoCompleteAttribute,
-  HTMLInputTypeAttribute,
-  LegacyRef,
-  Ref,
-} from "react";
 import { Password as PasswordPrimereact } from "primereact/password";
 import { classNames } from "primereact/utils";
+import { ChangeEventHandler, LegacyRef } from "react";
 
 type Props = {
   toggleMask?: boolean;
@@ -71,7 +64,7 @@ function Password(props: Props) {
                 "bg-orange-500": options?.state.meter?.strength == "medium",
                 "bg-green-500": options?.state.meter?.strength == "strong",
               },
-              { "pr-[2.5rem] ": options?.props.toggleMask }
+              { "pr-[2.5rem] ": options?.props.toggleMask },
             ),
           };
         },
@@ -79,7 +72,7 @@ function Password(props: Props) {
           return {
             className: classNames(
               "absolute top-1/2 -mt-2",
-              "right-3 text-gray-600 "
+              "right-3 text-gray-600 ",
             ),
           };
         },
@@ -87,7 +80,7 @@ function Password(props: Props) {
           return {
             className: classNames(
               "absolute top-1/2 -mt-2",
-              "right-3 text-gray-600 "
+              "right-3 text-gray-600 ",
             ),
           };
         },

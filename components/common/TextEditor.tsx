@@ -11,18 +11,15 @@ type Props = {
   value: string;
   onChange: (content: string) => void;
   menubar?: boolean;
-  toolbar?: boolean | string;
   schoolId: string;
+  toolbar?: string;
 };
 function TextEditor({
   value,
   onChange,
   schoolId,
   menubar = true,
-  toolbar = "undo redo | formatselect | blocks | " +
-    "bold italic backcolor | alignleft aligncenter " +
-    "alignright alignjustify | bullist numlist outdent indent | " +
-    "removeformat | image | link ",
+  toolbar = "undo redo | formatselect | blocks | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | image | link",
 }: Props) {
   const [isLoaded, setIsLoaded] = React.useState(false);
   return (
