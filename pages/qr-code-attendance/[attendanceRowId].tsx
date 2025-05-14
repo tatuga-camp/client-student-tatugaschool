@@ -29,7 +29,10 @@ import {
   getLocalStorage,
   setLocalStorage,
 } from "../../utils";
-import { requestDataLanguage } from "../../data/language";
+import {
+  qrcodeAttendanceLanguage,
+  requestDataLanguage,
+} from "../../data/language";
 import LanguageSelect from "../../components/LanguageSelect";
 import PopupLayout from "../../components/layouts/PopupLayout";
 import SignInStudentForm from "../../components/student/SignInStudentForm";
@@ -61,7 +64,7 @@ function Index({ id }: { id: string }) {
     return (
       <>
         <Head>
-          <title>Attendance QR Code</title>
+          <title>{qrcodeAttendanceLanguage.title(language.data ?? "en")}</title>
         </Head>
         <main className="gradient-bg flex min-h-screen w-screen flex-col items-center justify-center text-white">
           <LoadingSpinner />
@@ -217,7 +220,7 @@ function Index({ id }: { id: string }) {
     return (
       <>
         <Head>
-          <title>Attendance QR Code</title>
+          <title>{qrcodeAttendanceLanguage.title(language.data ?? "en")}</title>
         </Head>
 
         <main className="gradient-bg flex min-h-screen w-screen flex-col items-center justify-center gap-2 text-white">
@@ -232,13 +235,14 @@ function Index({ id }: { id: string }) {
               />
             </div>
             <div className="block text-lg font-bold uppercase text-icon-color md:text-base">
-              Attendance By QR Code
+              {qrcodeAttendanceLanguage.title(language.data ?? "en")}
             </div>
           </div>
 
           <div className="flex flex-col items-center justify-center gap-0">
             <span className="text-lg font-semibold">
-              Subject: {qrCode.data?.subject.title}
+              {qrcodeAttendanceLanguage.subject(language.data ?? "en")}:{" "}
+              {qrCode.data?.subject.title}
             </span>
             <span>{dateFormat}</span>
             <span className="text-sm">{time}</span>
@@ -262,7 +266,9 @@ function Index({ id }: { id: string }) {
                       }}
                       className="rounded-md bg-green-700 px-2 text-2xl text-green-100"
                     >
-                      click to continue
+                      {qrcodeAttendanceLanguage.click_continue(
+                        language.data ?? "en",
+                      )}
                     </button>
                   );
                 }
@@ -275,7 +281,9 @@ function Index({ id }: { id: string }) {
             />
             <div className="mt-5 h-[1px] w-full bg-white" />
             <span>
-              You will allow to update your attendance when it is the time!
+              {qrcodeAttendanceLanguage.warning_allow_scan(
+                language.data ?? "en",
+              )}
             </span>
           </div>
         </main>
@@ -286,7 +294,7 @@ function Index({ id }: { id: string }) {
   return (
     <>
       <Head>
-        <title>Attendance QR Code</title>
+        <title>{qrcodeAttendanceLanguage.title(language.data ?? "en")}</title>
       </Head>
       {triggerFormSignIn && (
         <PopupLayout
@@ -317,13 +325,14 @@ function Index({ id }: { id: string }) {
             />
           </div>
           <div className="block text-lg font-bold uppercase text-icon-color md:text-base">
-            Attendance By QR Code
+            {qrcodeAttendanceLanguage.title(language.data ?? "en")}
           </div>
         </div>
 
         <div className="flex flex-col items-center justify-center gap-0">
           <span className="text-lg font-semibold">
-            Subject: {qrCode.data?.subject.title}
+            {qrcodeAttendanceLanguage.subject(language.data ?? "en")}:{" "}
+            {qrCode.data?.subject.title}
           </span>
           <span>{dateFormat}</span>
           <span className="text-sm">{time}</span>
@@ -404,7 +413,7 @@ function Index({ id }: { id: string }) {
                         setSelectStatus(status);
                       }}
                       style={{ backgroundColor: status.color }}
-                      className={`w-40 rounded-md p-2 text-center ${selectStatus && selectStatus.id === status.id && "ring-2 ring-black"}`}
+                      className={`w-full rounded-md p-2 text-center ${selectStatus && selectStatus.id === status.id && "ring-2 ring-black"}`}
                     >
                       {status.title}
                     </button>
@@ -431,7 +440,7 @@ function Index({ id }: { id: string }) {
                 }}
                 className="main-button w-40"
               >
-                Create
+                {qrcodeAttendanceLanguage.create_button(language.data ?? "en")}
               </button>
             </div>
           </section>
@@ -456,7 +465,9 @@ function Index({ id }: { id: string }) {
 
         {qrCode.data?.attendanceRow.expireAt && (
           <div className="flex w-full flex-col items-center justify-center">
-            <h1 className="text-center">Expire In</h1>
+            <h1 className="text-center">
+              {qrcodeAttendanceLanguage.expired_at(language.data ?? "en")}
+            </h1>
             <Countdown
               date={qrCode.data?.attendanceRow.expireAt}
               renderer={(props) => {
@@ -468,7 +479,7 @@ function Index({ id }: { id: string }) {
                 ) {
                   return (
                     <div className="rounded-md bg-gradient-to-r from-rose-400 to-red-500 px-2 text-2xl text-white">
-                      Time's up!!
+                      {qrcodeAttendanceLanguage.time_up(language.data ?? "en")}
                     </div>
                   );
                 }
@@ -483,9 +494,8 @@ function Index({ id }: { id: string }) {
         )}
 
         <div className="mt-5 h-[1px] w-80 bg-white"></div>
-        <span className="text-center text-xs">
-          To protect privacy, results are not displayed publicly—only the
-          teacher can view them.
+        <span className="p-3 text-center text-xs">
+          {qrcodeAttendanceLanguage.privacy(language.data ?? "en")}
         </span>
       </main>
     </>

@@ -5,3 +5,4 @@ export * from "./request";
 export * from "./classworks";
 export * from "./classwork";
 export * from "./sidebar";
+export * from "./qr-code";
