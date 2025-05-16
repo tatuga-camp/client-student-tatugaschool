@@ -11,7 +11,11 @@ function PopupLayout({ children, onClose }: LayoutProps) {
     <section className="fixed bottom-0 left-0 right-0 top-0 z-50 m-auto flex h-screen w-screen items-center justify-center">
       {children}
       <footer
-        onClick={() => onClose()}
+        onClick={() => {
+          if (confirm("Do you want to close?")) {
+            onClose();
+          }
+        }}
         className="fixed bottom-0 left-0 right-0 top-0 -z-10 m-auto h-screen w-screen bg-black/30"
       ></footer>
     </section>

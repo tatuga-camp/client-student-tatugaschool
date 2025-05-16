@@ -10,16 +10,19 @@ import { Toast } from "primereact/toast";
 import { useCreateFileStudentAssignment } from "../../react-query";
 import { ProgressBar } from "primereact/progressbar";
 import { FcUpload } from "react-icons/fc";
+import { IoMdClose } from "react-icons/io";
 
 type Props = {
   studentOnAssignmentId: string;
   toast: React.RefObject<Toast>;
   schoolId: string;
+  onClose: () => void;
 };
 function AssignmentUploadFile({
   studentOnAssignmentId,
   toast,
   schoolId,
+  onClose,
 }: Props) {
   const [loading, setLoading] = React.useState(false);
   const createFile = useCreateFileStudentAssignment();
@@ -67,6 +70,7 @@ function AssignmentUploadFile({
         detail: "File uploaded successfully",
         life: 3000,
       });
+      onClose();
     } catch (error) {
       setLoading(false);
       let result = error as ErrorMessages;
@@ -81,7 +85,16 @@ function AssignmentUploadFile({
     }
   };
   return (
-    <form className="flex h-full w-full flex-col gap-2">
+    <form className="flex h-max w-96 flex-col gap-2 rounded-md bg-white p-5">
+      <div className="flex w-full justify-end">
+        <button
+          type="button"
+          onClick={() => onClose()}
+          className="flex h-6 w-6 items-center justify-center rounded text-lg font-semibold hover:bg-gray-300/50"
+        >
+          <IoMdClose />
+        </button>
+      </div>
       <h3 className="flex gap-2">
         Upload File <FcUpload />{" "}
       </h3>

@@ -13,11 +13,13 @@ type Props = {
   menubar?: boolean;
   schoolId: string;
   toolbar?: string | false;
+  disabled?: boolean;
 };
 function TextEditor({
   value,
   onChange,
   schoolId,
+  disabled = false,
   menubar = true,
   toolbar = "undo redo | formatselect | blocks | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | image | link",
 }: Props) {
@@ -34,6 +36,7 @@ function TextEditor({
         onEditorChange={(content) => {
           onChange(content);
         }}
+        disabled={disabled}
         init={{
           object_resizing: true,
           link_context_toolbar: true,
@@ -41,6 +44,7 @@ function TextEditor({
           width: "100%",
           menubar: menubar,
           toolbar: toolbar,
+
           image_title: true,
           automatic_uploads: true,
           paste_data_images: false,

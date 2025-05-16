@@ -35,6 +35,7 @@ import {
 } from "../../../../react-query";
 import { timeAgo, timeLeft } from "../../../../utils";
 import PopupLayout from "../../../../components/layouts/PopupLayout";
+import TextEditor from "../../../../components/common/TextEditor";
 
 const SummitWorkMenus = [
   {
@@ -456,6 +457,7 @@ function Index({
           )}
           {selectMenu.title === "Upload" && (
             <AssignmentUploadFile
+              onClose={() => setSelectMenu(null)}
               schoolId={studentOnAssignment.schoolId}
               toast={toast}
               studentOnAssignmentId={studentOnAssignment.id}
@@ -463,6 +465,7 @@ function Index({
           )}
           {selectMenu.title === "Link" && (
             <AssignmentLink
+              onClose={() => setSelectMenu(null)}
               toast={toast}
               studentOnAssignmentId={studentOnAssignment.id}
             />
@@ -484,7 +487,16 @@ function Index({
           <div className="w-full rounded-md bg-white p-3">
             <h1 className="border-b text-xl">{assignment.title}</h1>
 
-            <div className={`my-5`}>{parse(assignment.description)}</div>
+            <div className={`my-5 h-screen`}>
+              <TextEditor
+                disabled={true}
+                schoolId={assignment.schoolId}
+                value={assignment.description}
+                onChange={() => {}}
+                menubar={false}
+                toolbar={false}
+              />
+            </div>
             <ul className="grid w-full gap-2">
               {assignment.files?.map((file, index) => {
                 const isImage = file.type.includes("image");

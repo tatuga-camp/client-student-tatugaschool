@@ -4,12 +4,14 @@ import { ErrorMessages } from "../../interfaces";
 import Swal from "sweetalert2";
 import { ProgressSpinner } from "primereact/progressspinner";
 import { Toast } from "primereact/toast";
+import { IoMdClose } from "react-icons/io";
 
 type Props = {
   studentOnAssignmentId: string;
   toast: React.RefObject<Toast>;
+  onClose: () => void;
 };
-function AssignmentLink({ studentOnAssignmentId, toast }: Props) {
+function AssignmentLink({ studentOnAssignmentId, toast, onClose }: Props) {
   const createFile = useCreateFileStudentAssignment();
   const [link, setLink] = React.useState("");
   const handleSumit = async (e: React.FormEvent) => {
@@ -30,6 +32,7 @@ function AssignmentLink({ studentOnAssignmentId, toast }: Props) {
         detail: "Link added successfully",
         life: 3000,
       });
+      onClose();
     } catch (error) {
       let result = error as ErrorMessages;
       Swal.fire({
@@ -43,12 +46,24 @@ function AssignmentLink({ studentOnAssignmentId, toast }: Props) {
     }
   };
   return (
-    <form onSubmit={handleSumit} className="w-full h-full flex flex-col gap-2">
+    <form
+      onSubmit={handleSumit}
+      className="flex h-max w-96 flex-col gap-2 rounded-md bg-white p-5"
+    >
+      <div className="flex w-full justify-end">
+        <button
+          type="button"
+          onClick={() => onClose()}
+          className="flex h-6 w-6 items-center justify-center rounded text-lg font-semibold hover:bg-gray-300/50"
+        >
+          <IoMdClose />
+        </button>
+      </div>
       <h3>Add Link</h3>
       <input
         value={link}
         onChange={(e) => setLink(e.target.value)}
-        className="main-input w-full h-10"
+        className="main-input h-10 w-full"
         type="url"
       />
       <button
@@ -59,7 +74,7 @@ function AssignmentLink({ studentOnAssignmentId, toast }: Props) {
           <ProgressSpinner
             animationDuration="1s"
             style={{ width: "20px" }}
-            className="w-5 h-5"
+            className="h-5 w-5"
             strokeWidth="8"
           />
         ) : (
