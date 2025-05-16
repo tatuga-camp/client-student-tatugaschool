@@ -94,7 +94,7 @@ function AssignmentText({
   return (
     <form
       onSubmit={handleSave}
-      className="flex h-screen w-full flex-col gap-2 rounded-md bg-white p-2 md:h-5/6 md:w-8/12"
+      className="flex h-dvh w-full flex-col gap-2 rounded-md bg-white p-2 md:h-5/6 md:w-8/12"
     >
       <div className="mt-2 flex w-full justify-between gap-2">
         <input
