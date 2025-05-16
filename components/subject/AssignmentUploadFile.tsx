@@ -81,7 +81,7 @@ function AssignmentUploadFile({
     }
   };
   return (
-    <form className="w-full h-full flex flex-col gap-2">
+    <form className="flex h-full w-full flex-col gap-2">
       <h3 className="flex gap-2">
         Upload File <FcUpload />{" "}
       </h3>
@@ -89,7 +89,7 @@ function AssignmentUploadFile({
         <ProgressBar mode="indeterminate" style={{ height: "6px" }} />
       )}
       <label className="main-button cursor-pointer">
-        <div className="w-full flex items-center justify-center">upload</div>
+        <div className="flex w-full items-center justify-center">upload</div>
         <input
           disabled={loading}
           onChange={handleUploadFiles}

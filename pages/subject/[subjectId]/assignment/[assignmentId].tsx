@@ -1,7 +1,6 @@
 import parse from "html-react-parser";
 import { GetServerSideProps } from "next";
 import Head from "next/head";
-import { useRouter } from "next/router";
 import { Toast } from "primereact/toast";
 import React from "react";
 import { FaRegFile, FaRegFileImage, FaRegSadTear } from "react-icons/fa";
@@ -11,6 +10,7 @@ import { IoChevronDownSharp } from "react-icons/io5";
 import { MdOutlineDone, MdOutlineRemoveDone } from "react-icons/md";
 import { RiEmotionHappyFill } from "react-icons/ri";
 import Swal from "sweetalert2";
+import LoadingSpinner from "../../../../components/common/LoadingSpinner";
 import Layout from "../../../../components/layouts/Layout";
 import AssignmentLink from "../../../../components/subject/AssignmentLink";
 import AssignmentStatusCard from "../../../../components/subject/AssignmentStatus";
@@ -18,6 +18,7 @@ import AssignmentText from "../../../../components/subject/AssignmentText";
 import AssignmentUploadFile from "../../../../components/subject/AssignmentUploadFile";
 import CommentSection from "../../../../components/subject/CommentSection";
 import FileStudentAssignmentCard from "../../../../components/subject/FileStudentAssignmentCard";
+import { classworkDataLanguage } from "../../../../data/language";
 import useClickOutside from "../../../../hook/useClickOutside";
 import useAdjustPosition from "../../../../hook/useWindow";
 import {
@@ -33,8 +34,7 @@ import {
   useUpdateStudentOnAssignment,
 } from "../../../../react-query";
 import { timeAgo, timeLeft } from "../../../../utils";
-import LoadingSpinner from "../../../../components/common/LoadingSpinner";
-import { classworkDataLanguage } from "../../../../data/language";
+import PopupLayout from "../../../../components/layouts/PopupLayout";
 
 const SummitWorkMenus = [
   {
@@ -57,10 +57,7 @@ const menuSummitLists = [
   {
     title: "done",
     icon: (
-      <div
-        className="w-5 bg-green-200 text-green-600
-   h-5 overflow-hidden rounded-full flex items-center justify-center"
-      >
+      <div className="flex h-5 w-5 items-center justify-center overflow-hidden rounded-full bg-green-200 text-green-600">
         <MdOutlineDone />
       </div>
     ),
@@ -68,10 +65,7 @@ const menuSummitLists = [
   {
     title: "notdone",
     icon: (
-      <div
-        className="w-5 bg-red-200 text-red-600
-h-5 overflow-hidden rounded-full flex items-center justify-center"
-      >
+      <div className="flex h-5 w-5 items-center justify-center overflow-hidden rounded-full bg-red-200 text-red-600">
         <MdOutlineRemoveDone />
       </div>
     ),
@@ -97,7 +91,7 @@ function Index({
     file?: FileOnStudentOnAssignment;
   } | null>(null);
   const assignment = useGetAssignments({ subjectId }).data?.find(
-    (item) => item.id === assignmentId
+    (item) => item.id === assignmentId,
   );
 
   const studentFiles = useGetFileStudentAssignment({
@@ -122,22 +116,19 @@ function Index({
       return null;
     }
     return (
-      <div className="w-full bg-white  border p-2 rounded-md h-max">
+      <div className="h-max w-full rounded-md border bg-white p-2">
         <span className="text-lg">
           {classworkDataLanguage.attrachs(language.data ?? "en")}
         </span>
-        <div
-          className="w-full h-32 mt-3  pb-5  border-b  
-        gap-2 flex items-center justify-evenly rounded-md overflow-hidden"
-        >
+        <div className="mt-3 flex h-32 w-full items-center justify-evenly gap-2 overflow-hidden rounded-md border-b pb-5">
           {SummitWorkMenus.map((menu, index) => {
             return (
               <label
                 onClick={() => setSelectMenu({ title: menu.title })}
-                className="flex group flex-col cursor-pointer items-center justify-center gap-2"
+                className="group flex cursor-pointer flex-col items-center justify-center gap-2"
                 key={index}
               >
-                <div className="w-10 text-xl h-10 group-hover:bg-gray-200 transition group-hover:scale-110 rounded-full overflow-hidden flex items-center justify-center border">
+                <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border text-xl transition group-hover:scale-110 group-hover:bg-gray-200">
                   {menu.icon}
                 </div>
                 <span className="text-sm">
@@ -150,10 +141,10 @@ function Index({
           })}
         </div>
 
-        <h1 className="font-semibold flex w-full items-center justify-between text-xl p-2">
+        <h1 className="flex w-full items-center justify-between p-2 text-xl font-semibold">
           {classworkDataLanguage.yourWork(language.data ?? "en")}
         </h1>
-        <ul className="grid gap-2 w-full">
+        <ul className="grid w-full gap-2">
           {studentFiles.data?.map((file, index) => {
             return (
               <FileStudentAssignmentCard
@@ -203,19 +194,19 @@ function Index({
       return null;
     }
     return (
-      <div className="w-full bg-white  border p-2 rounded-md h-max">
-        <div className="font-semibold flex w-full items-center justify-between text-xl p-2">
+      <div className="h-max w-full rounded-md border bg-white p-2">
+        <div className="flex w-full items-center justify-between p-2 text-xl font-semibold">
           <div className="flex flex-col gap-0">
             {classworkDataLanguage.summitWorkTitle(language.data ?? "en")}
             <span className="text-xs font-normal text-gray-500">
               {classworkDataLanguage.summitWorkDescription(
-                language.data ?? "en"
+                language.data ?? "en",
               )}
             </span>
           </div>{" "}
           <IoIosInformationCircle />
         </div>
-        <div className="flex relative  items-center">
+        <div className="relative flex items-center">
           {studentOnAssignment.status === "PENDDING" && (
             <button
               onClick={() => {
@@ -223,21 +214,16 @@ function Index({
               }}
               disabled={updateWork.isPending}
               type="submit"
-              className="w-52 p-2 h-10 opacity-85 hover:opacity-100 
-            font-medium rounded-r-none rounded-md text-base text-white
-     gradient-bg flex items-center gap-2 justify-center"
+              className="gradient-bg flex h-10 w-52 items-center justify-center gap-2 rounded-md rounded-r-none p-2 text-base font-medium text-white opacity-85 hover:opacity-100"
             >
               {updateWork.isPending ? (
                 <LoadingSpinner />
               ) : (
                 classworkDataLanguage.menuSummitLists.done(
-                  language.data ?? "en"
+                  language.data ?? "en",
                 )
               )}
-              <div
-                className="w-5 bg-green-200 text-green-600
-             h-5 overflow-hidden rounded-full flex items-center justify-center"
-              >
+              <div className="flex h-5 w-5 items-center justify-center overflow-hidden rounded-full bg-green-200 text-green-600">
                 <MdOutlineDone />
               </div>
             </button>
@@ -249,22 +235,17 @@ function Index({
               }}
               disabled={updateWork.isPending}
               type="submit"
-              className="w-52 p-2 h-10 opacity-85 hover:opacity-100 
-            font-medium rounded-r-none rounded-md text-base text-white
-    bg-gray-400 flex items-center gap-2 justify-center"
+              className="flex h-10 w-52 items-center justify-center gap-2 rounded-md rounded-r-none bg-gray-400 p-2 text-base font-medium text-white opacity-85 hover:opacity-100"
             >
               {updateWork.isPending ? (
                 <LoadingSpinner />
               ) : (
                 classworkDataLanguage.menuSummitLists.notdone(
-                  language.data ?? "en"
+                  language.data ?? "en",
                 )
               )}
 
-              <div
-                className="w-5 bg-red-200 text-red-600
-h-5 overflow-hidden rounded-full flex items-center justify-center"
-              >
+              <div className="flex h-5 w-5 items-center justify-center overflow-hidden rounded-full bg-red-200 text-red-600">
                 <MdOutlineRemoveDone />
               </div>
             </button>
@@ -274,20 +255,17 @@ h-5 overflow-hidden rounded-full flex items-center justify-center"
             <button
               disabled={true}
               type="submit"
-              className="w-52 p-2 h-10 opacity-85 hover:opacity-100 
-              font-medium rounded-r-none rounded-md text-base text-white
-       gradient-bg flex items-center gap-2 justify-center"
+              className="gradient-bg flex h-10 w-52 items-center justify-center gap-2 rounded-md rounded-r-none p-2 text-base font-medium text-white opacity-85 hover:opacity-100"
             >
               {classworkDataLanguage.menuSummitLists.review(
-                language.data ?? "en"
+                language.data ?? "en",
               )}
             </button>
           )}
           <button
             onClick={() => setTriggerSummitDropDown((prev) => !prev)}
             type="button"
-            className="w-max p-2 h-10  font-medium rounded-l-none rounded-md text-base text-white
-     gradient-bg"
+            className="gradient-bg h-10 w-max rounded-md rounded-l-none p-2 text-base font-medium text-white"
           >
             <IoChevronDownSharp />
           </button>
@@ -299,7 +277,7 @@ h-5 overflow-hidden rounded-full flex items-center justify-center"
               }}
               ref={divRef}
             >
-              <div className="w-60 h-max z-40 p-1 absolute top-8 rounded-md bg-white drop-shadow border">
+              <div className="absolute top-8 z-40 h-max w-60 rounded-md border bg-white p-1 drop-shadow">
                 {menuSummitLists.map((menu, index) => {
                   return (
                     <button
@@ -313,11 +291,7 @@ h-5 overflow-hidden rounded-full flex items-center justify-center"
                         }
                       }}
                       key={index}
-                      className={`w-full p-2 flex gap-10 items-center justify-start text-base
-             font-medium 
-             text-gray-500 hover:bg-primary-color hover:text-white
-             
-             `}
+                      className={`flex w-full items-center justify-start gap-10 p-2 text-base font-medium text-gray-500 hover:bg-primary-color hover:text-white`}
                     >
                       {menu.icon}
                       {classworkDataLanguage.menuSummitLists[
@@ -332,10 +306,10 @@ h-5 overflow-hidden rounded-full flex items-center justify-center"
         </div>
         <span>
           {assignment.studentOnAssignment.completedAt && (
-            <div className="text-sm break-words text-green-500 font-medium mt-2">
+            <div className="mt-2 break-words text-sm font-medium text-green-500">
               Marked as done at{" "}
               {new Date(
-                assignment.studentOnAssignment.completedAt
+                assignment.studentOnAssignment.completedAt,
               ).toLocaleDateString(undefined, {
                 minute: "numeric",
                 hour: "numeric",
@@ -353,25 +327,26 @@ h-5 overflow-hidden rounded-full flex items-center justify-center"
       return null;
     }
     return (
-      <div className="w-full bg-white  border p-2 rounded-md h-max">
-        <div className="font-semibold flex w-full items-center justify-between text-xl p-2">
+      <div className="h-max w-full rounded-md border bg-white p-2">
+        <div className="flex w-full items-center justify-between p-2 text-xl font-semibold">
           Assignment <IoIosInformationCircle />
         </div>
-        <ul className="mt-2 grid w-full ">
-          <li className="flex gap-1 h-max border-b items-center p-2 justify-start">
-            <div className="w-40  font-semibold">Status:</div>
+        <ul className="mt-2 grid w-full">
+          <li className="flex h-max items-center justify-start gap-1 border-b p-2">
+            <div className="w-40 font-semibold">Status:</div>
             <div className="w-max max-w-40">
               <AssignmentStatusCard
                 status={assignment.studentOnAssignment.status}
               />
             </div>
           </li>
-          <li className="flex gap-1 h-max border-b items-center p-2 justify-start">
-            <div className="w-40  font-semibold">Score :</div>
-            <div className="w-max max-w-40 font-semibold text-2xl">
+          <li className="flex h-max items-center justify-start gap-1 border-b p-2">
+            <div className="w-40 font-semibold">Score :</div>
+            <div className="w-max max-w-40 text-2xl font-semibold">
               {assignment.studentOnAssignment.score ? (
                 <span>
-                  {assignment.studentOnAssignment.score} / {assignment.maxScore}{" "}
+                  {assignment.studentOnAssignment.score} /{" "}
+                  {assignment.maxScore}{" "}
                 </span>
               ) : (
                 "Not Graded"
@@ -380,12 +355,12 @@ h-5 overflow-hidden rounded-full flex items-center justify-center"
           </li>
 
           {assignment.studentOnAssignment.completedAt && (
-            <li className="flex gap-1 h-max border-b items-center p-2 justify-start">
+            <li className="flex h-max items-center justify-start gap-1 border-b p-2">
               <div className="w-40 font-semibold">Summit Work At:</div>
-              <div className="flex flex-col gap-1 items-start">
-                <span className="text-blue-600 font-semibold">
+              <div className="flex flex-col items-start gap-1">
+                <span className="font-semibold text-blue-600">
                   {new Date(
-                    assignment.studentOnAssignment.completedAt
+                    assignment.studentOnAssignment.completedAt,
                   ).toLocaleDateString(undefined, {
                     day: "numeric",
                     month: "long",
@@ -393,7 +368,7 @@ h-5 overflow-hidden rounded-full flex items-center justify-center"
                 </span>
                 <span className="text-xs">
                   {new Date(
-                    assignment.studentOnAssignment.completedAt
+                    assignment.studentOnAssignment.completedAt,
                   ).toLocaleDateString(undefined, {
                     minute: "numeric",
                     hour: "numeric",
@@ -403,12 +378,12 @@ h-5 overflow-hidden rounded-full flex items-center justify-center"
             </li>
           )}
           {assignment.studentOnAssignment.reviewdAt && (
-            <li className="flex gap-1 h-max border-b items-center p-2 justify-start">
+            <li className="flex h-max items-center justify-start gap-1 border-b p-2">
               <div className="w-40 font-semibold">Review Work At:</div>
-              <div className="flex flex-col gap-1 items-start">
-                <span className="text-green-600 font-semibold">
+              <div className="flex flex-col items-start gap-1">
+                <span className="font-semibold text-green-600">
                   {new Date(
-                    assignment.studentOnAssignment.reviewdAt
+                    assignment.studentOnAssignment.reviewdAt,
                   ).toLocaleDateString(undefined, {
                     day: "numeric",
                     month: "long",
@@ -416,7 +391,7 @@ h-5 overflow-hidden rounded-full flex items-center justify-center"
                 </span>
                 <span className="text-xs">
                   {new Date(
-                    assignment.studentOnAssignment.reviewdAt
+                    assignment.studentOnAssignment.reviewdAt,
                   ).toLocaleDateString(undefined, {
                     minute: "numeric",
                     hour: "numeric",
@@ -426,19 +401,19 @@ h-5 overflow-hidden rounded-full flex items-center justify-center"
             </li>
           )}
           {assignment.dueDate && (
-            <li className="flex gap-1 h-max border-b items-center p-2 justify-start">
+            <li className="flex h-max items-center justify-start gap-1 border-b p-2">
               <div className="w-40 font-semibold">Deadline:</div>
               <div>
                 {new Date(assignment.dueDate).getTime() <=
                 new Date().getTime() ? (
-                  <span className="text-red-600 flex items-center gap-1 font-semibold">
+                  <span className="flex items-center gap-1 font-semibold text-red-600">
                     {timeAgo({
                       pastTime: new Date(assignment.dueDate).toISOString(),
                     })}{" "}
                     ago <FaRegSadTear />
                   </span>
                 ) : (
-                  <span className="text-green-600 flex font-semibold  items-center gap-1">
+                  <span className="flex items-center gap-1 font-semibold text-green-600">
                     {timeLeft({
                       targetTime: new Date(assignment.dueDate).toISOString(),
                     })}{" "}
@@ -468,47 +443,31 @@ h-5 overflow-hidden rounded-full flex items-center justify-center"
       </Head>
       <Toast ref={toast} />
       {selectMenu !== null && (
-        <div className="w-screen h-screen flex items-center justify-center fixed z-50 top-0 right-0 bottom-0 left-0 m-auto">
-          <div
-            className="w-full md:w-10/12 lg:w-[35rem] relative 
-          h-max p-3 bg-white rounded-md"
-          >
-            <div className="w-full flex justify-end">
-              <button
-                onClick={() => setSelectMenu(null)}
-                className="text-lg  hover:bg-gray-300/50 w-6 h-6 rounded flex items-center justify-center font-semibold"
-              >
-                <IoMdClose />
-              </button>
-            </div>
-            {selectMenu.title === "Create" && (
-              <AssignmentText
-                schoolId={studentOnAssignment.schoolId}
-                onClose={() => setSelectMenu(null)}
-                text={selectMenu.file}
-                studentOnAssignmentId={studentOnAssignment.id}
-                toast={toast}
-              />
-            )}
-            {selectMenu.title === "Upload" && (
-              <AssignmentUploadFile
-                schoolId={studentOnAssignment.schoolId}
-                toast={toast}
-                studentOnAssignmentId={studentOnAssignment.id}
-              />
-            )}
-            {selectMenu.title === "Link" && (
-              <AssignmentLink
-                toast={toast}
-                studentOnAssignmentId={studentOnAssignment.id}
-              />
-            )}
-          </div>
-          <footer
-            className="w-screen h-screen bg-black/50 fixed
-          -z-10 top-0 right-0 bottom-0 left-0 m-auto"
-          ></footer>
-        </div>
+        <PopupLayout onClose={() => setSelectMenu(null)}>
+          {selectMenu.title === "Create" && (
+            <AssignmentText
+              assignment={assignment}
+              schoolId={studentOnAssignment.schoolId}
+              onClose={() => setSelectMenu(null)}
+              text={selectMenu.file}
+              studentOnAssignmentId={studentOnAssignment.id}
+              toast={toast}
+            />
+          )}
+          {selectMenu.title === "Upload" && (
+            <AssignmentUploadFile
+              schoolId={studentOnAssignment.schoolId}
+              toast={toast}
+              studentOnAssignmentId={studentOnAssignment.id}
+            />
+          )}
+          {selectMenu.title === "Link" && (
+            <AssignmentLink
+              toast={toast}
+              studentOnAssignmentId={studentOnAssignment.id}
+            />
+          )}
+        </PopupLayout>
       )}
 
       <Layout
@@ -521,12 +480,12 @@ h-5 overflow-hidden rounded-full flex items-center justify-center"
           </>
         }
       >
-        <main className="w-full xl:w-7/12  h-max flex flex-col gap-5">
-          <div className="w-full bg-white p-3 rounded-md">
-            <h1 className="text-xl border-b">{assignment.title}</h1>
+        <main className="flex h-max w-full flex-col gap-5 xl:w-7/12">
+          <div className="w-full rounded-md bg-white p-3">
+            <h1 className="border-b text-xl">{assignment.title}</h1>
 
-            <div className={` my-5`}>{parse(assignment.description)}</div>
-            <ul className="grid  gap-2 w-full">
+            <div className={`my-5`}>{parse(assignment.description)}</div>
+            <ul className="grid w-full gap-2">
               {assignment.files?.map((file, index) => {
                 const isImage = file.type.includes("image");
                 const fileName = file.url.split("/").pop();
@@ -534,14 +493,10 @@ h-5 overflow-hidden rounded-full flex items-center justify-center"
                   <li
                     onClick={() => window.open(file.url, "_blank")}
                     key={index}
-                    className="w-full hover:cursor-pointer h-14 hover:bg-gray-100 transition
-                             flex overflow-hidden rounded-md items-center justify-between  bg-white border"
+                    className="flex h-14 w-full items-center justify-between overflow-hidden rounded-md border bg-white transition hover:cursor-pointer hover:bg-gray-100"
                   >
-                    <div className="w-full h-full flex items-center justify-start gap-2">
-                      <div
-                        className="w-16 gradient-bg text-white text-lg flex items-center justify-center
-                       border-r h-full"
-                      >
+                    <div className="flex h-full w-full items-center justify-start gap-2">
+                      <div className="gradient-bg flex h-full w-16 items-center justify-center border-r text-lg text-white">
                         {isImage ? <FaRegFileImage /> : <FaRegFile />}
                       </div>
                       <div className="flex items-center gap-2">

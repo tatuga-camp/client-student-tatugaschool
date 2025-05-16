@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { IoMdClose } from "react-icons/io";
 
 type LayoutProps = {
   children: ReactNode;
@@ -7,15 +8,11 @@ type LayoutProps = {
 
 function PopupLayout({ children, onClose }: LayoutProps) {
   return (
-    <section
-      className="w-screen h-screen
-      flex items-center justify-center fixed z-50 top-0 right-0 left-0 bottom-0 m-auto"
-    >
+    <section className="fixed bottom-0 left-0 right-0 top-0 z-50 m-auto flex h-screen w-screen items-center justify-center">
       {children}
       <footer
         onClick={() => onClose()}
-        className="w-screen h-screen
-   fixed -z-10 bg-black/30 top-0 right-0 left-0 bottom-0 m-auto"
+        className="fixed bottom-0 left-0 right-0 top-0 -z-10 m-auto h-screen w-screen bg-black/30"
       ></footer>
     </section>
   );
