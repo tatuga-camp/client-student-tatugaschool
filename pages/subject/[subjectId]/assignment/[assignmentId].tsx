@@ -208,7 +208,8 @@ function Index({
           <IoIosInformationCircle />
         </div>
         <div className="relative flex items-center">
-          {studentOnAssignment.status === "PENDDING" && (
+          {(studentOnAssignment.status === "PENDDING" ||
+            studentOnAssignment.status === "IMPROVED") && (
             <button
               onClick={() => {
                 handleUpdateWork("SUBMITTED");

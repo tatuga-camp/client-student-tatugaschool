@@ -101,4 +101,14 @@ export const classworkCardDataLanguage = {
         return "Reviewed";
     }
   },
+  Improve: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "Need Improvement";
+      case "th":
+        return "ต้องการปรับปรุง";
+      default:
+        return "Need Improvement";
+    }
+  },
 } as const;
