@@ -192,6 +192,9 @@ function Index({ id }: { id: string }) {
         qrCode.data?.attendanceRow.id as string,
       );
       setSelectStudent(null);
+      setSelectStatus(null);
+      setSelectMenu("status");
+      setNote("");
       Swal.fire({
         title: "You have update attendance",
         icon: "success",
