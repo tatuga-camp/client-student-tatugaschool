@@ -40,18 +40,17 @@ function TextCard({ file, onShowText }: Props) {
     }
   };
   return (
-    <li className="w-full h-14 flex overflow-hidden rounded-md items-center justify-between  bg-white border">
-      <div className="w-full h-full flex items-center justify-start gap-2">
+    <li className="flex h-14 w-full items-center justify-between overflow-hidden rounded-md border bg-white">
+      <div className="flex h-full w-full items-center justify-start gap-2">
         <button
           onClick={() => onShowText?.(file)}
-          className="w-16 bg-gradient-to-r from-green-200 to-green-600 text-white text-lg flex items-center justify-center
-               border-r h-full"
+          className="flex h-full w-16 items-center justify-center border-r bg-gradient-to-r from-green-200 to-green-600 text-lg text-white"
         >
           <MdNoteAlt />
         </button>
         <button
           onClick={() => onShowText?.(file)}
-          className="flex max-w-40 truncate items-center gap-2"
+          className="flex max-w-40 items-center gap-2 truncate"
         >
           <span>{file.name}</span>
         </button>
@@ -61,15 +60,13 @@ function TextCard({ file, onShowText }: Props) {
         type="button"
         onClick={handleDeleteFile}
         disabled={deleteFile.isPending}
-        className="text-xl  hover:bg-red-300/50 p-2 
-        flex items-center justify-center
-        rounded-full active:scale-105 text-red-500"
+        className="flex items-center justify-center rounded-full p-2 text-xl text-red-500 hover:bg-red-300/50 active:scale-105"
       >
         {deleteFile.isPending ? (
           <ProgressSpinner
             animationDuration="1s"
             style={{ width: "20px" }}
-            className="w-5 h-5"
+            className="h-5 w-5"
             strokeWidth="8"
           />
         ) : (
@@ -104,12 +101,11 @@ function FileCard({ file }: Props) {
     }
   };
   return (
-    <li className="w-full h-14 flex overflow-hidden rounded-md items-center justify-between  bg-white border">
-      <div className="w-full h-full flex items-center justify-start gap-2">
+    <li className="flex h-14 w-full items-center justify-between overflow-hidden rounded-md border bg-white">
+      <div className="flex h-full w-full items-center justify-start gap-2">
         <button
           onClick={() => window.open(file.body, "_blank")}
-          className="w-16 gradient-bg text-white text-lg flex items-center justify-center
-               border-r h-full"
+          className="gradient-bg flex h-full w-16 items-center justify-center border-r text-lg text-white"
         >
           {isImage ? (
             <FaRegFileImage />
@@ -121,7 +117,7 @@ function FileCard({ file }: Props) {
         </button>
         <button
           onClick={() => window.open(file.body, "_blank")}
-          className="flex w-60  items-center gap-2"
+          className="flex w-60 items-center gap-2"
         >
           <div className="max-w-52 overflow-x-auto text-sm">
             <span className="w-max text-nowrap">{fileName}</span>
@@ -133,15 +129,13 @@ function FileCard({ file }: Props) {
         type="button"
         onClick={handleDeleteFile}
         disabled={deleteFile.isPending}
-        className="text-xl  hover:bg-red-300/50 p-2 
-        flex items-center justify-center
-        rounded-full active:scale-105 text-red-500"
+        className="flex items-center justify-center rounded-full p-2 text-xl text-red-500 hover:bg-red-300/50 active:scale-105"
       >
         {deleteFile.isPending ? (
           <ProgressSpinner
             animationDuration="1s"
             style={{ width: "20px" }}
-            className="w-5 h-5"
+            className="h-5 w-5"
             strokeWidth="8"
           />
         ) : (

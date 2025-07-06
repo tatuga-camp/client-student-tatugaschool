@@ -54,8 +54,8 @@ function Index(subjectId: { subjectId: string }) {
   if (student.error || !student.data) {
     return (
       <Layout>
-        <main className="w-7/12 flex flex-col">
-          <div className="w-full flex justify-center items-center gap-5">
+        <main className="flex w-7/12 flex-col">
+          <div className="flex w-full items-center justify-center gap-5">
             <h1 className="text-2xl font-bold">Student not found</h1>
           </div>
         </main>
@@ -156,9 +156,9 @@ function Index(subjectId: { subjectId: string }) {
       <Layout subjectId={subjectId.subjectId}>
         <form
           onSubmit={handleSubmit}
-          className="w-full lg:w-7/12 h-max bg-white flex flex-col rounded-lg p-5 relative md:-top-10 border"
+          className="relative mt-20 flex h-max w-full flex-col rounded-lg border bg-white p-5 md:-top-10 lg:w-7/12"
         >
-          <h1 className="text-lg py-5 font-medium">Student Information</h1>
+          <h1 className="py-5 text-lg font-medium">Student Information</h1>
           <div className="flex flex-col gap-5">
             <InputWithIcon
               required
@@ -173,7 +173,7 @@ function Index(subjectId: { subjectId: string }) {
               }}
               icon={<MdOutlineSubtitles />}
             />
-            <div className="flex gap-1 md:flex-row flex-col w-full">
+            <div className="flex w-full flex-col gap-1 md:flex-row">
               <InputWithIcon
                 value={data?.firstName}
                 required
@@ -202,17 +202,15 @@ function Index(subjectId: { subjectId: string }) {
               />
             </div>
           </div>
-          <div className="text-sm mt-10 mb-2">
+          <div className="mb-2 mt-10 text-sm">
             Upload Student Image (Optional)
           </div>
           <label
             htmlFor="dropzone-file"
-            className={`flex flex-col relative items-center justify-center w-full h-64 border-2
-                 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50
-                `}
+            className={`relative flex h-64 w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50`}
           >
             {data.photo ? (
-              <div className="w-full h-full relative">
+              <div className="relative h-full w-full">
                 <Image
                   src={data.photo}
                   alt="student"
@@ -222,9 +220,9 @@ function Index(subjectId: { subjectId: string }) {
                 />
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center pt-5 pb-6">
+              <div className="flex flex-col items-center justify-center pb-6 pt-5">
                 <svg
-                  className="w-8 h-8 mb-4 text-gray-500 "
+                  className="mb-4 h-8 w-8 text-gray-500"
                   aria-hidden="true"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
@@ -238,11 +236,11 @@ function Index(subjectId: { subjectId: string }) {
                     d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"
                   />
                 </svg>
-                <p className="mb-2 text-sm text-gray-500 ">
+                <p className="mb-2 text-sm text-gray-500">
                   <span className="font-semibold">Click to upload</span> or drag
                   and drop
                 </p>
-                <p className="text-xs text-gray-500 ">
+                <p className="text-xs text-gray-500">
                   PNG, JPG or GIF (MAX. 800x400px)
                 </p>
               </div>
@@ -258,7 +256,7 @@ function Index(subjectId: { subjectId: string }) {
           </label>
           {loading && <LoadingBar />}
 
-          <h1 className="text-lg font-medium mt-5">Update Password</h1>
+          <h1 className="mt-5 text-lg font-medium">Update Password</h1>
           <span className="text-sm text-gray-500">
             Leave it blank if you don&apos;t want to update your password
           </span>
@@ -295,7 +293,7 @@ function Index(subjectId: { subjectId: string }) {
           <button
             disabled={update.isPending}
             type="submit"
-            className="main-button flex items-center justify-center w-40 mt-5 text-white py-2 rounded-md"
+            className="main-button mt-5 flex w-40 items-center justify-center rounded-md py-2 text-white"
           >
             {update.isPending ? <LoadingSpinner /> : "Update"}
           </button>

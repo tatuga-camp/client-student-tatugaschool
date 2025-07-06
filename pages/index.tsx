@@ -5,13 +5,14 @@ import { useRouter } from "next/router";
 import { Password as PasswordPrimereact } from "primereact/password";
 import React, { useEffect, useRef } from "react";
 import { FaSearch } from "react-icons/fa";
-import { IoMdClose } from "react-icons/io";
 import Swal from "sweetalert2";
-import Password from "../components/common/Password";
-import SpinLoading from "../components/common/SpinLoading";
+import Footer from "../components/Footer";
 import HomepageLayout from "../components/layouts/HomepageLayout";
+import PopupLayout from "../components/layouts/PopupLayout";
 import ListStudent from "../components/student/ListStudent";
+import SignInStudentForm from "../components/student/SignInStudentForm";
 import { defaultCanvas } from "../data";
+import { requestDataLanguage, subjectDataLanguage } from "../data/language";
 import { ErrorMessages, StudentOnSubject, SubjectQuery } from "../interfaces";
 import { useGetLanguage, useGetSubjectByCode, useSignIn } from "../react-query";
 import {
@@ -19,10 +20,6 @@ import {
   ResponseGetSubjectByCodeService,
 } from "../services";
 import { setLocalStorage } from "../utils";
-import Footer from "../components/Footer";
-import { requestDataLanguage, subjectDataLanguage } from "../data/language";
-import PopupLayout from "../components/layouts/PopupLayout";
-import SignInStudentForm from "../components/student/SignInStudentForm";
 
 type IndexProps = {
   subjectData: ResponseGetSubjectByCodeService;
@@ -191,7 +188,7 @@ function Index({ subjectData, code, error }: IndexProps) {
       )}
 
       <HomepageLayout subject={subject}>
-        <main className="h-max min-h-96 w-full rounded-md bg-gray-50 p-3 py-4 md:w-8/12">
+        <main className="h-max min-h-96 w-full rounded-md bg-white p-3 py-4 md:w-8/12">
           <div className="flex flex-col justify-between border-b pb-2 md:flex-row">
             <div>
               <h2 className="text-xl font-semibold leading-4">

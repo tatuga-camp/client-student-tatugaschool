@@ -12,34 +12,34 @@ type Props = {
 function TeacherList({ teachers }: Props) {
   const language = useGetLanguage();
   return (
-    <div className="w-full bg-white  md:border p-2 rounded-none md:rounded-md h-max">
-      <h2 className="font-semibold text-xl p-2">
+    <div className="h-max w-full rounded-none p-2 md:rounded-md md:border">
+      <h2 className="p-2 text-xl font-semibold text-primary-color">
         {subjectDataLanguage.teacher(language.data ?? "en")}
       </h2>
-      <ul className="gap-2 grid max-h-60 overflow-y-auto">
+      <ul className="grid max-h-60 gap-2 overflow-y-auto p-2">
         {teachers.map((teacher) => {
           return (
             <li
               key={teacher.id}
-              className="flex items-center gap-2 p-2 bg-white rounded-md"
+              className="flex items-center gap-2 rounded-md bg-white p-2 ring-1"
             >
-              <div className="w-10 h-10 relative rounded-full overflow-hidden ring-1 ring-white">
+              <div className="relative h-10 w-10 overflow-hidden rounded-full ring-1 ring-white">
                 <Image
                   src={teacher.photo}
                   alt="user avatar"
                   fill
                   placeholder="blur"
                   blurDataURL={decodeBlurhashToCanvas(
-                    teacher.blurHash ?? defaultBlurHash
+                    teacher.blurHash ?? defaultBlurHash,
                   )}
                   className="object-cover"
                 />
               </div>
               <div className="flex flex-col gap-0 leading-3">
-                <h3 className="font-semibold text-lg">
+                <h3 className="text-lg font-semibold">
                   {teacher.firstName} {teacher.lastName}
                 </h3>
-                <p className="text-sm text-gray-500">{teacher.email}</p>
+                <p className="text-sm text-primary-color">{teacher.email}</p>
               </div>
             </li>
           );

@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 import type { ReactNode } from "react";
 import React, { useEffect } from "react";
-import { FaBookOpen, FaUser } from "react-icons/fa";
+import { FaBookOpen, FaHome, FaUser } from "react-icons/fa";
 import { IoMenu } from "react-icons/io5";
 import useClickOutside from "../../hook/useClickOutside";
 import { useGetStudent, useGetSubjectById } from "../../react-query";
@@ -10,6 +10,12 @@ import Sidebar from "../Sidebar";
 
 import Header from "../subject/Header";
 import TeacherList from "../subject/TeacherList";
+import Footbar from "../Footbar";
+import { PiStudent } from "react-icons/pi";
+import { MdHome } from "react-icons/md";
+import Image from "next/image";
+import { decodeBlurhashToCanvas } from "../../utils";
+import { defaultBlurHash } from "../../data";
 
 type LayoutProps = {
   children: ReactNode;
@@ -35,60 +41,71 @@ function Layout({ children, listData, subjectId }: LayoutProps) {
     }
   }, [subject.data]);
   return (
-    <div className="flex h-screen  flex-col">
-      <div ref={sidebarRef}>
+    <div className="relative flex min-h-dvh flex-col">
+      <div className="absolute top-3 z-50 w-full px-3">
         <Navbar
           subject={subject}
           student={student.data}
           trigger={trigger}
           setTrigger={setTrigger}
         />
-        <div className="h-full">
-          {student.data && subject.data && (
-            <Sidebar
-              menuList={[
-                {
-                  title: "Profile",
-                  icon: <FaUser />,
-                  url: `/student/${student.data.id}?subject_id=${subject.data.id}`,
-                },
-
-                {
-                  title: "Subject",
-                  icon: <FaBookOpen />,
-                  url: `/subject/${subject.data.id}`,
-                },
-
-                {
-                  title: "Homepage",
-                  icon: <IoMenu />,
-                  url: `/?subject_code=${subject_code}`,
-                },
-              ]}
-              active={trigger}
-            />
-          )}
-        </div>
       </div>
-      <div className="flex h-full ">
-        <div className="w-full flex flex-col">
-          <main className="w-full h-1 grow bg-gray-100  overflow-y-auto">
-            <div className="w-full hidden md:block bg-sky-100 h-40"></div>
-            {subject.data && !router.pathname.startsWith("/student/") && (
-              <Header subject={subject.data} />
-            )}
-            <section className="w-full px-0 md:px-40 xl:flex-row flex-col-reverse justify-center gap-5 pb-20 flex">
-              {children}
-              {subject.data && !router.pathname.startsWith("/student/") && (
-                <div className="w-full xl:w-4/12 bg flex flex-col gap-2">
-                  <TeacherList teachers={subject.data?.teacherOnSubjects} />
-                  {listData}
+      {student.data && subject.data && (
+        <Footbar
+          onClick={(item) => {
+            if (item.url) {
+              router.push(item.url);
+            }
+          }}
+          menuList={[
+            {
+              title: "Student",
+              icon: (
+                <div className="relative h-7 w-7 overflow-hidden rounded-full ring-1 ring-orange-400">
+                  <Image
+                    alt={`profile picture of ${student.data.firstName}`}
+                    src={student.data.photo}
+                    fill
+                    className="object-cover"
+                    blurDataURL={decodeBlurhashToCanvas(
+                      student.data.blurHash ?? defaultBlurHash,
+                    )}
+                    placeholder="blur"
+                  />
                 </div>
-              )}
-            </section>
-          </main>
-        </div>
-      </div>
+              ),
+              url: `/student/${student.data.id}?subject_id=${subject.data.id}`,
+            },
+
+            {
+              title: "Subject",
+              icon: <FaBookOpen />,
+              url: `/subject/${subject.data.id}`,
+            },
+
+            {
+              title: "Home",
+              icon: <FaHome />,
+              url: `/`,
+            },
+          ]}
+        />
+      )}
+      <main className="flex w-full flex-col items-center bg-orange-50 font-Anuphan">
+        <div className="hidden h-40 w-full bg-sky-100 md:block"></div>
+        {subject.data && !router.pathname.startsWith("/student/") && (
+          <Header subject={subject.data} />
+        )}
+        <section className="flex w-11/12 flex-col-reverse justify-center gap-5 px-0 pb-40 md:px-40 xl:flex-row">
+          {children}
+          {subject.data && !router.pathname.startsWith("/student/") && (
+            <div className="bg flex w-full flex-col gap-2 xl:w-4/12">
+              <TeacherList teachers={subject.data?.teacherOnSubjects} />
+              {listData}
+            </div>
+          )}
+        </section>
+      </main>
     </div>
   );
 }

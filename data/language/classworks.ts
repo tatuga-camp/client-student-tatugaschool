@@ -31,6 +31,16 @@ export const classworkCardDataLanguage = {
         return "Max Score";
     }
   },
+  pubishAt: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "Posted at";
+      case "th":
+        return "มอบหมายงานเมื่อ";
+      default:
+        return "Posted at";
+    }
+  },
   view: (language: Language) => {
     switch (language) {
       case "en":

@@ -512,8 +512,8 @@ function Index({
                       <div className="gradient-bg flex h-full w-16 items-center justify-center border-r text-lg text-white">
                         {isImage ? <FaRegFileImage /> : <FaRegFile />}
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span>{fileName}</span>
+                      <div className="w-60 text-wrap break-words text-sm">
+                        {fileName}
                       </div>
                     </div>
                   </li>

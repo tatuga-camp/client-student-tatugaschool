@@ -12,15 +12,14 @@ type Props = {
 function Header({ subject }: Props) {
   const language = useGetLanguage();
   return (
-    <header className="w-full relative md:-top-20 flex items-center h-max justify-center">
+    <header className="relative flex h-max w-full items-center justify-center md:-top-20">
       <section
-        className={`w-12/12 md:w-8/12 z-30 overflow-hidden ring-4 ring-white
-                     h-60 relative flex justify-between  p-5 shadow-inner ${
-                       subject.backgroundImage ? "" : "gradient-bg"
-                     } rounded-none   md:rounded-md`}
+        className={`w-12/12 relative z-30 flex h-60 justify-between overflow-hidden p-5 shadow-inner md:w-8/12 md:ring-4 md:ring-white ${
+          subject.backgroundImage ? "" : "gradient-bg"
+        } rounded-none md:rounded-md`}
       >
         {subject.backgroundImage && (
-          <div className="gradient-shadow  -z-10  absolute w-full h-full top-0 bottom-0 right-0 left-0 m-auto"></div>
+          <div className="gradient-shadow absolute bottom-0 left-0 right-0 top-0 -z-10 m-auto h-full w-full"></div>
         )}{" "}
         {subject.backgroundImage && (
           <Image
@@ -28,28 +27,28 @@ function Header({ subject }: Props) {
             fill
             placeholder="blur"
             blurDataURL={decodeBlurhashToCanvas(
-              subject.blurHash ?? defaultBlurHash
+              subject.blurHash ?? defaultBlurHash,
             )}
             alt="backgroud"
-            className="object-cover -z-20 "
+            className="-z-20 object-cover"
           />
         )}
-        <div className="flex h-full justify-end flex-col gap-1">
-          <h1 className="text-lg font-semibold w-8/12 min-w-96 line-clamp-2 text-white">
+        <div className="flex h-full flex-col justify-end gap-1">
+          <h1 className="line-clamp-2 w-8/12 min-w-96 text-lg font-semibold text-white">
             {subject.title}
           </h1>
-          <p className="text-lg w-11/12 min-w-96 line-clamp-2 text-white">
+          <p className="line-clamp-2 w-11/12 min-w-96 text-lg text-white">
             {subject.description}
           </p>
           <div className="flex gap-2">
-            <div className="bg-white w-max px-2 py-1 rounded-md">
-              <h2 className="text-xs text-primary-color">
+            <div className="w-max rounded-md bg-orange-400 px-2 py-1">
+              <h2 className="text-xs text-white">
                 {subjectDataLanguage.educationYear(language.data ?? "en")}:{" "}
                 {subject.educationYear}
               </h2>
             </div>
-            <div className="bg-white w-max px-2 py-1 rounded-md">
-              <h2 className="text-xs text-primary-color">
+            <div className="w-max rounded-md bg-yellow-300 px-2 py-1">
+              <h2 className="text-xs text-black">
                 {subjectDataLanguage.code(language.data ?? "en")}:{" "}
                 {subject.code}
               </h2>
