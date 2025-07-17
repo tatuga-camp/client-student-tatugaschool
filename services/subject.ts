@@ -14,7 +14,7 @@ export type ResponseGetSubjectByCodeService = Subject & {
 };
 
 export async function GetSubjectByCodeService(
-  input: RequestGetSubjectByCodeService
+  input: RequestGetSubjectByCodeService,
 ): Promise<ResponseGetSubjectByCodeService> {
   try {
     const response = await axios({
@@ -40,7 +40,7 @@ type RequestGetSubjectFromStudentService = {
 type ResponseGetSubjectFromStudentService = Subject[];
 
 export async function GetSubjectFromStudentService(
-  input: RequestGetSubjectFromStudentService
+  input: RequestGetSubjectFromStudentService,
 ): Promise<ResponseGetSubjectFromStudentService> {
   try {
     const response = await axiosInstance({
@@ -62,12 +62,12 @@ export type RequestGetSubjectByIdService = {
 type ResponseGetSubjectByIdService = ResponseGetSubjectByCodeService;
 
 export async function GetSubjectByIdService(
-  input: RequestGetSubjectByIdService
+  input: RequestGetSubjectByIdService,
 ): Promise<ResponseGetSubjectByIdService> {
   try {
     const response = await axiosInstance({
       method: "GET",
-      url: `v1/subjects/student/${input.subjectId}`,
+      url: `v1/subjects/student/subject/${input.subjectId}`,
     });
     return response.data;
   } catch (error: any) {

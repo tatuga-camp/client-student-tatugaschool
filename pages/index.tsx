@@ -188,7 +188,7 @@ function Index({ subjectData, code, error }: IndexProps) {
       )}
 
       <HomepageLayout subject={subject}>
-        <main className="h-max min-h-96 w-full rounded-md bg-white p-3 py-4 md:w-8/12">
+        <main className="h-max min-h-96 w-full rounded-md bg-white p-3 py-4 xl:w-8/12">
           <div className="flex flex-col justify-between border-b pb-2 md:flex-row">
             <div>
               <h2 className="text-xl font-semibold leading-4">

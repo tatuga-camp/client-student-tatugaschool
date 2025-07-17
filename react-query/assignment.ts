@@ -4,8 +4,10 @@ import {
   DeleteFileOnStudentAssignmentService,
   GetAssignmentsService,
   GetFileOnStudentAssignmentService,
+  GetOverviewAssignmentService,
   RequestCreateFileOnStudentAssignmentService,
   RequestGetAssignmentsService,
+  RequestGetOverviewAssignmentService,
   RequestUpdateFileOnStudentAssignmentService,
   RequestUpdateWorkService,
   ResponseGetAssignmentsService,
@@ -18,6 +20,15 @@ export function useGetAssignments(input: RequestGetAssignmentsService) {
   return useQuery({
     queryKey: ["assignments", { subjectId: input.subjectId }],
     queryFn: () => GetAssignmentsService(input),
+  });
+}
+
+export function useGetOverviewScore(
+  input: RequestGetOverviewAssignmentService,
+) {
+  return useQuery({
+    queryKey: ["overview-score", { subjectId: input.subjectId }],
+    queryFn: () => GetOverviewAssignmentService(input),
   });
 }
 
@@ -51,7 +62,7 @@ export function useUpdateStudentOnAssignment() {
             }
             return assignment;
           });
-        }
+        },
       );
     },
   });
@@ -71,7 +82,7 @@ export function useCreateFileStudentAssignment() {
         ],
         (prevData: ResponseGetFileOnStudentAssignmentService) => {
           return [...prevData, data];
-        }
+        },
       );
     },
   });
@@ -91,10 +102,10 @@ export function useUpdateFileStudentAssignment() {
         ],
         (prevData: ResponseGetFileOnStudentAssignmentService) => {
           const filterDuplicate = prevData.filter(
-            (item) => item.id !== data.id
+            (item) => item.id !== data.id,
           );
           return [...filterDuplicate, data];
-        }
+        },
       );
     },
   });
@@ -114,7 +125,7 @@ export function useDeleteFileStudentAssignment() {
         ],
         (prevData: ResponseGetFileOnStudentAssignmentService) => {
           return prevData.filter((item) => item.id !== data.id);
-        }
+        },
       );
     },
   });

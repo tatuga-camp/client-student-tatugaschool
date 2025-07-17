@@ -2,6 +2,9 @@ import {
   Assignment,
   FileOnAssignment,
   FileOnStudentOnAssignment,
+  Grade,
+  ScoreOnStudent,
+  ScoreOnSubject,
   StudentAssignmentContentType,
   StudentAssignmentStatus,
   StudentOnAssignment,
@@ -19,7 +22,7 @@ export type ResponseGetAssignmentsService = (Assignment & {
   studentOnAssignment: StudentOnAssignment;
 })[];
 export async function GetAssignmentsService(
-  input: RequestGetAssignmentsService
+  input: RequestGetAssignmentsService,
 ): Promise<ResponseGetAssignmentsService> {
   try {
     const response = await axiosInstance({
@@ -43,9 +46,40 @@ export type RequestUpdateWorkService = {
   };
 };
 
+export type RequestGetOverviewAssignmentService = {
+  subjectId: string;
+  studentId: string;
+};
+export type ResponseGetOverviewAssignmentService = {
+  grade: Grade | null;
+  assignments: {
+    assignment: Assignment;
+    studentOnAssignment: StudentOnAssignment;
+  }[];
+  scoreOnSubjects: {
+    scoreOnSubject: ScoreOnSubject;
+    students: ScoreOnStudent[];
+  }[];
+};
+
+export async function GetOverviewAssignmentService(
+  input: RequestGetOverviewAssignmentService,
+): Promise<ResponseGetOverviewAssignmentService> {
+  try {
+    const response = await axiosInstance({
+      method: "GET",
+      url: `/v1/assignments/subject/${input.subjectId}/student/${input.studentId}/overview`,
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error("Get Assignments request failed:", error.response.data);
+    throw error?.response?.data;
+  }
+}
+
 type ResponseUpdateWorkService = StudentOnAssignment;
 export async function UpdateWorkService(
-  input: RequestUpdateWorkService
+  input: RequestUpdateWorkService,
 ): Promise<ResponseUpdateWorkService> {
   try {
     const response = await axiosInstance({
@@ -67,7 +101,7 @@ type RequestGetFileOnStudentAssignmentService = {
 export type ResponseGetFileOnStudentAssignmentService =
   FileOnStudentOnAssignment[];
 export async function GetFileOnStudentAssignmentService(
-  input: RequestGetFileOnStudentAssignmentService
+  input: RequestGetFileOnStudentAssignmentService,
 ): Promise<ResponseGetFileOnStudentAssignmentService> {
   try {
     const response = await axiosInstance({
@@ -78,7 +112,7 @@ export async function GetFileOnStudentAssignmentService(
   } catch (error: any) {
     console.error(
       "GetFileOnStudentAssignment request failed:",
-      error.response.data
+      error.response.data,
     );
     throw error?.response?.data;
   }
@@ -96,7 +130,7 @@ export type RequestCreateFileOnStudentAssignmentService = {
 
 type ResponseCreateFileOnStudentAssignmentService = FileOnStudentOnAssignment;
 export async function CreateFileOnStudentAssignmentService(
-  input: RequestCreateFileOnStudentAssignmentService
+  input: RequestCreateFileOnStudentAssignmentService,
 ): Promise<ResponseCreateFileOnStudentAssignmentService> {
   try {
     const response = await axiosInstance({
@@ -108,7 +142,7 @@ export async function CreateFileOnStudentAssignmentService(
   } catch (error: any) {
     console.error(
       "CreateFileOnStudentAssignment request failed:",
-      error.response.data
+      error.response.data,
     );
     throw error?.response?.data;
   }
@@ -126,7 +160,7 @@ export type RequestUpdateFileOnStudentAssignmentService = {
 
 type ResponseUpdateFileOnStudentAssignmentService = FileOnStudentOnAssignment;
 export async function UpdateFileOnStudentAssignmentService(
-  input: RequestUpdateFileOnStudentAssignmentService
+  input: RequestUpdateFileOnStudentAssignmentService,
 ): Promise<ResponseUpdateFileOnStudentAssignmentService> {
   try {
     const response = await axiosInstance({
@@ -138,7 +172,7 @@ export async function UpdateFileOnStudentAssignmentService(
   } catch (error: any) {
     console.error(
       "CreateFileOnStudentAssignment request failed:",
-      error.response.data
+      error.response.data,
     );
     throw error?.response?.data;
   }
@@ -150,7 +184,7 @@ type RequestDeleteFileOnStudentAssignmentService = {
 
 type ResponseDeleteFileOnStudentAssignmentService = FileOnStudentOnAssignment;
 export async function DeleteFileOnStudentAssignmentService(
-  input: RequestDeleteFileOnStudentAssignmentService
+  input: RequestDeleteFileOnStudentAssignmentService,
 ): Promise<ResponseDeleteFileOnStudentAssignmentService> {
   try {
     const response = await axiosInstance({
@@ -162,7 +196,7 @@ export async function DeleteFileOnStudentAssignmentService(
   } catch (error: any) {
     console.error(
       "DeleteFileOnStudentAssignment request failed:",
-      error.response.data
+      error.response.data,
     );
     throw error?.response?.data;
   }

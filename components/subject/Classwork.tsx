@@ -1,18 +1,14 @@
-import React, { useState } from "react";
+import { useRouter } from "next/router";
 import { useGetAssignments } from "../../react-query";
-import ClassworkCard from "./ClassworkCard";
-import { Assignment } from "../../interfaces";
 import LoadingBar from "../common/LoadingBar";
+import ClassworkCard from "./ClassworkCard";
 
 type Props = {
   subjectId: string;
 };
 function Classwork({ subjectId }: Props) {
+  const router = useRouter();
   const assignments = useGetAssignments({ subjectId });
-
-  const [selectAssignment, setSelectAssignment] = useState<Assignment | null>(
-    null,
-  );
   return (
     <>
       {assignments.isLoading && <LoadingBar />}
@@ -22,15 +18,11 @@ function Classwork({ subjectId }: Props) {
           .map((classwork, index) => {
             return (
               <ClassworkCard
+                onSelect={(a) => {
+                  router.push(`/subject/${subjectId}/assignment/${a.id}`);
+                }}
                 key={index}
                 classwork={classwork}
-                selectClasswork={selectAssignment}
-                onSelect={(assignment) =>
-                  setSelectAssignment((prev) => {
-                    if (prev?.id === assignment.id) return null;
-                    return assignment;
-                  })
-                }
                 subjectId={subjectId}
               />
             );

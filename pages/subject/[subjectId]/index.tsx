@@ -40,8 +40,8 @@ function Index({ subjectId }: { subjectId: string }) {
   if (student.error) {
     return (
       <Layout>
-        <main className="w-7/12 flex flex-col">
-          <div className="w-full flex justify-center items-center gap-5">
+        <main className="flex w-7/12 flex-col">
+          <div className="flex w-full items-center justify-center gap-5">
             <h1 className="text-2xl font-bold">Student not found</h1>
           </div>
         </main>
@@ -57,9 +57,9 @@ function Index({ subjectId }: { subjectId: string }) {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Layout subjectId={subjectId}>
-        <main className="w-full xl:w-7/12  flex flex-col">
+        <main className="flex w-full flex-col xl:w-7/12">
           {subject.data && (
-            <ul className="w-full flex-wrap p-5 flex justify-start items-center gap-2">
+            <ul className="flex w-full flex-wrap items-center justify-start gap-2 p-5">
               {menuLists
                 .filter((m) => {
                   if (
@@ -84,14 +84,11 @@ function Index({ subjectId }: { subjectId: string }) {
                         setSelectMenu(menu.title);
                       }}
                       key={index}
-                      className={`
-                    ${
-                      menu.title === selectMenu
-                        ? "gradient-bg text-white"
-                        : "bg-white text-black"
-                    }
-                    flex items-center w-max justify-start gap-2 p-2 rounded-md border 
-                   hover:bg-primary-color  h-10 active:gradient-bg hover:text-white`}
+                      className={` ${
+                        menu.title === selectMenu
+                          ? "gradient-bg text-white"
+                          : "bg-white text-black"
+                      } active:gradient-bg flex h-10 w-max items-center justify-start gap-2 rounded-md border p-2 hover:bg-primary-color hover:text-white`}
                     >
                       {menu.icon}
                       <span>
@@ -108,7 +105,9 @@ function Index({ subjectId }: { subjectId: string }) {
           {selectMenu === "Attendance" && student.data && (
             <Attendance subjectId={subjectId} studentId={student.data.id} />
           )}
-          {selectMenu === "Grade" && <Grade subjectId={subjectId} />}
+          {selectMenu === "Grade" && student.data && (
+            <Grade subjectId={subjectId} studentId={student.data.id} />
+          )}
         </main>
       </Layout>
     </>

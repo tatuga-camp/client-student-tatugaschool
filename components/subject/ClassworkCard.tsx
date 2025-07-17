@@ -15,29 +15,32 @@ import { LuLink } from "react-icons/lu";
 
 type PropsClassworkCard = {
   classwork: Assignment & {
-    files: FileOnAssignment[];
+    files: FileOnAssignment[] | [];
     studentOnAssignment: StudentOnAssignment;
   };
-  selectClasswork: Assignment | null;
   subjectId: string;
   onSelect: (classwork: Assignment) => void;
 };
-function ClassworkCard(props: PropsClassworkCard) {
+function ClassworkCard({ classwork, subjectId, onSelect }: PropsClassworkCard) {
   return (
     <>
-      {props.classwork.type === "Assignment" && (
+      {classwork.type === "Assignment" && (
         <AssignmentCard
-          {...props}
-          assignemnt={props.classwork}
-          selectAssignment={props.selectClasswork}
+          subjectId={subjectId}
+          onSelect={(a) => {
+            onSelect(a);
+          }}
+          assignment={classwork}
         />
       )}
 
-      {props.classwork.type === "Material" && (
+      {classwork.type === "Material" && (
         <MaterialCard
-          {...props}
-          material={props.classwork}
-          selectMaterial={props.selectClasswork}
+          subjectId={subjectId}
+          material={classwork}
+          onSelect={(a) => {
+            onSelect(a);
+          }}
         />
       )}
     </>
@@ -47,19 +50,17 @@ function ClassworkCard(props: PropsClassworkCard) {
 export default ClassworkCard;
 
 type PropsAssignmentCard = {
-  assignemnt: Assignment & {
+  assignment: Assignment & {
     files: FileOnAssignment[];
     studentOnAssignment: StudentOnAssignment;
   };
   subjectId: string;
-  selectAssignment: Assignment | null;
-  onSelect: (assignment: Assignment) => void;
+  onSelect: (classwork: Assignment) => void;
 };
 function AssignmentCard({
-  assignemnt,
-  selectAssignment,
-  onSelect,
+  assignment,
   subjectId,
+  onSelect,
 }: PropsAssignmentCard) {
   const language = useGetLanguage();
   const handleColor = (status: StudentAssignmentStatus) => {
@@ -73,13 +74,20 @@ function AssignmentCard({
       return "yellow";
     }
   };
-  const color = handleColor(assignemnt.studentOnAssignment.status);
+  const color = handleColor(assignment.studentOnAssignment.status);
+  let score = assignment.studentOnAssignment.score ?? 0;
+  if (assignment.weight !== null) {
+    const originalScore = score / assignment.maxScore;
+    score = originalScore * assignment.weight;
+  }
 
   return (
-    <Link
-      href={`/subject/${subjectId}/assignment/${assignemnt.id}`}
+    <button
+      onClick={() => {
+        onSelect(assignment);
+      }}
       className={`h-max min-h-40 w-full rounded-xl bg-white p-5 ring-1 ring-${color}-200`}
-      key={assignemnt.id}
+      key={assignment.id}
     >
       <section className="flex w-full justify-between">
         <div
@@ -90,45 +98,43 @@ function AssignmentCard({
 
         <div className="w-max">
           <AssignmentStatusCard
-            status={assignemnt.studentOnAssignment.status}
+            status={assignment.studentOnAssignment.status}
           />
         </div>
       </section>
-      <h1 className="text-lg font-medium">{assignemnt.title}</h1>
+      <h1 className="text-lg font-medium">{assignment.title}</h1>
       <span className="text-sm text-gray-400">
         {classworkCardDataLanguage.pubishAt(language.data ?? "en")} :{" "}
-        {new Date(assignemnt.beginDate).toLocaleDateString(undefined)}
+        {new Date(assignment.beginDate).toLocaleDateString(undefined)}
       </span>
       <section className="flex w-full items-end justify-between">
         <div>
-          <span className="text-4xl font-bold text-blue-700">
-            {assignemnt.studentOnAssignment.score}
-          </span>
+          <span className="text-4xl font-bold text-blue-700">{score}</span>
           <span className="text-base font-medium text-gray-400">
-            / {assignemnt.maxScore}{" "}
+            / {assignment.weight ? assignment.weight : assignment.maxScore}{" "}
             {classworkCardDataLanguage.yourscore(language.data ?? "en")}
           </span>
         </div>
-        {assignemnt.weight && (
+        {assignment.weight && (
           <span className={`text-${color}-400`}>
             {" "}
-            {assignemnt.weight}%{" "}
+            {assignment.weight}%{" "}
             {classworkCardDataLanguage.weight(language.data ?? "en")}
           </span>
         )}
       </section>
-      {assignemnt.dueDate && (
+      {assignment.dueDate && (
         <section className="mt-5">
           <div className="rounded-full bg-red-100 p-2 text-red-700">
             {classworkCardDataLanguage.Deadline(language.data ?? "en")} :{" "}
-            {new Date(assignemnt.beginDate).toLocaleDateString(undefined, {
+            {new Date(assignment.beginDate).toLocaleDateString(undefined, {
               minute: "numeric",
               hour: "numeric",
             })}
           </div>
         </section>
       )}
-    </Link>
+    </button>
   );
 }
 
@@ -138,19 +144,13 @@ type PropsMaterialCard = {
     studentOnAssignment: StudentOnAssignment;
   };
   subjectId: string;
-  selectMaterial: Assignment | null;
   onSelect: (material: Assignment) => void;
 };
-function MaterialCard({
-  material,
-  subjectId,
-  selectMaterial,
-  onSelect,
-}: PropsMaterialCard) {
+function MaterialCard({ material, subjectId, onSelect }: PropsMaterialCard) {
   const language = useGetLanguage();
   return (
-    <Link
-      href={`/subject/${subjectId}/assignment/${material.id}`}
+    <button
+      onClick={() => onSelect(material)}
       className="h-max min-h-40 w-full rounded-xl bg-white p-5 ring-1 ring-blue-200"
       key={material.id}
     >
@@ -194,6 +194,6 @@ function MaterialCard({
           })}
         </ul>
       </section>
-    </Link>
+    </button>
   );
 }
