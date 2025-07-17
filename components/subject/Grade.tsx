@@ -121,6 +121,7 @@ function Grade({ subjectId, studentId }: Props) {
           {overview.data?.assignments.map((a) => {
             return (
               <ClassworkCard
+                key={a.assignment.id}
                 subjectId={subjectId}
                 onSelect={() => {}}
                 classwork={{
@@ -150,7 +151,10 @@ function Grade({ subjectId, studentId }: Props) {
             }
 
             return (
-              <section className="flex h-20 w-full items-center justify-between rounded-xl border bg-white p-3">
+              <section
+                key={a.scoreOnSubject.id}
+                className="flex h-20 w-full items-center justify-between rounded-xl border bg-white p-3"
+              >
                 <div className="flex items-center justify-center gap-2">
                   <div className="relative h-10 w-10">
                     <Image
