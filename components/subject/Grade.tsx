@@ -73,7 +73,7 @@ function Grade({ subjectId, studentId }: Props) {
 
   return (
     <div className="flex w-full flex-col items-center gap-5 pt-5 font-Anuphan">
-      <header className="flex h-40 w-96 items-center justify-between rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 p-3">
+      <header className="flex h-40 w-80 items-center justify-between rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 p-3">
         <section className="flex flex-col items-start justify-center">
           <span className="text-lg text-white/80">Total Points</span>
           <span className="text-5xl font-bold text-white">{totalScore}</span>
