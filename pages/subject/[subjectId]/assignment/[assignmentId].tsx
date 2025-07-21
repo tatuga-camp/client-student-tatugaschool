@@ -490,7 +490,7 @@ function Index({
 
             <div className={`my-5 h-screen`}>
               <TextEditor
-                disabled={true}
+                disabled={false}
                 schoolId={assignment.schoolId}
                 value={assignment.description}
                 onChange={() => {}}
