@@ -127,7 +127,7 @@ function AssignmentCard({
         <section className="mt-5">
           <div className="rounded-full bg-red-100 p-2 text-red-700">
             {classworkCardDataLanguage.Deadline(language.data ?? "en")} :{" "}
-            {new Date(assignment.beginDate).toLocaleDateString(undefined, {
+            {new Date(assignment.dueDate).toLocaleDateString(undefined, {
               minute: "numeric",
               hour: "numeric",
             })}
