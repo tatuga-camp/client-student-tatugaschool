@@ -36,7 +36,7 @@ function MyApp({ Component, pageProps }: AppProps) {
             },
           },
         },
-      })
+      }),
   );
 
   return (
@@ -116,7 +116,7 @@ function MyApp({ Component, pageProps }: AppProps) {
                 className: classNames("w-96", "opacity-90"),
               },
               message: (option: any) => ({
-                className: classNames("my-4 rounded-md w-full", {
+                className: classNames("my-4 rounded-2xl w-full", {
                   "bg-blue-100 border-solid border-0 border-l-4 border-blue-500 text-blue-700":
                     option?.state.messages[option?.index] &&
                     option?.state.messages[option?.index].message.severity ==
@@ -157,7 +157,7 @@ function MyApp({ Component, pageProps }: AppProps) {
                     "w-8 h-8 rounded-full bg-transparent transition duration-200 ease-in-out",
                     "ml-auto overflow-hidden relative",
                     "flex items-center justify-center",
-                    "hover:bg-white/30"
+                    "hover:bg-white/30",
                   ),
                 };
               },
@@ -175,7 +175,7 @@ function MyApp({ Component, pageProps }: AppProps) {
               root: {
                 className: classNames(
                   "overflow-hidden relative",
-                  "border-0 h-6 bg-gray-200 rounded-md "
+                  "border-0 h-6 bg-gray-200 rounded-2xl ",
                 ),
               },
               value: (option) => ({
@@ -194,7 +194,7 @@ function MyApp({ Component, pageProps }: AppProps) {
               root: {
                 className: classNames(
                   "relative mx-auto w-28 h-28 inline-block",
-                  "before:block before:pt-full"
+                  "before:block before:pt-full",
                 ),
               },
               spinner: {

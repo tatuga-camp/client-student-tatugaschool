@@ -88,7 +88,7 @@ function Index({ subjectId }: { subjectId: string }) {
                         menu.title === selectMenu
                           ? "gradient-bg text-white"
                           : "bg-white text-black"
-                      } active:gradient-bg flex h-10 w-max items-center justify-start gap-2 rounded-md border p-2 hover:bg-primary-color hover:text-white`}
+                      } active:gradient-bg flex h-10 w-max items-center justify-start gap-2 rounded-2xl border p-2 hover:bg-primary-color hover:text-white`}
                     >
                       {menu.icon}
                       <span>

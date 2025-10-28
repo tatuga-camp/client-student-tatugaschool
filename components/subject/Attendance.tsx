@@ -40,7 +40,7 @@ function Attendance({ subjectId, studentId }: Props) {
             setSelectNote(null);
           }}
         >
-          <div className="flex h-96 w-80 flex-col rounded-md bg-white p-3">
+          <div className="rounded-2xl80 flex-col rounded-2xl bg-white p-3">
             <div className="flex w-full justify-end">
               <button
                 onClick={() => {
@@ -74,7 +74,7 @@ function Attendance({ subjectId, studentId }: Props) {
               <li
                 onClick={() => setSelectTable(table)}
                 key={table.id}
-                className={`w-max min-w-40 shrink-0 cursor-pointer rounded-md p-3 ${
+                className={`rounded-2xl40 shrink-0 cursor-pointer rounded-2xl p-3 ${
                   table.id === selectTable?.id
                     ? "gradient-bg -primary-color text-white"
                     : "bg-white text-black"
@@ -95,7 +95,7 @@ function Attendance({ subjectId, studentId }: Props) {
           )}
         </ul>
       </div>
-      <div className="mt-5 overflow-hidden rounded-md bg-white">
+      <div className="rounded-2xlw-hidden rounded-2xl bg-white">
         <table className="w-full">
           <thead className="">
             <tr className="bg-gray-200">
@@ -148,12 +148,12 @@ function Attendance({ subjectId, studentId }: Props) {
                                 (s) => s.title === attendance?.status,
                               )?.color ?? "#94a3b8",
                           }}
-                          className="relative flex flex-col items-center justify-center rounded-lg px-4 py-2 ring-black transition"
+                          className="relative flex flex-col items-center justify-center rounded-2xl px-4 py-2 ring-black transition"
                         >
                           {attendance?.status}
                         </div>
                       ) : (
-                        <div className="relative flex flex-col items-center justify-center rounded-lg px-4 py-2 ring-black transition">
+                        <div className="relative flex flex-col items-center justify-center rounded-2xl px-4 py-2 ring-black transition">
                           NO DATA
                         </div>
                       )}

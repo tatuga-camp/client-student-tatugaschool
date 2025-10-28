@@ -47,7 +47,7 @@ function Password(props: Props) {
           },
         },
         panel: {
-          className: "p-5 bg-white  text-gray-700  shadow-md rounded-md",
+          className: "p-5 bg-white  text-gray-700  shadow-md rounded-2xl",
         },
         input: {
           className: "main-input w-full",

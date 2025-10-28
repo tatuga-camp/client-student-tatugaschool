@@ -117,11 +117,11 @@ function Index({
       return null;
     }
     return (
-      <div className="h-max w-full rounded-md border bg-white p-2">
+      <div className="h-max w-full rounded-2xl border bg-white p-2">
         <span className="text-lg">
           {classworkDataLanguage.attrachs(language.data ?? "en")}
         </span>
-        <div className="mt-3 flex h-32 w-full items-center justify-evenly gap-2 overflow-hidden rounded-md border-b pb-5">
+        <div className="mt-3 flex h-32 w-full items-center justify-evenly gap-2 overflow-hidden rounded-2xl border-b pb-5">
           {SummitWorkMenus.map((menu, index) => {
             return (
               <label
@@ -195,7 +195,7 @@ function Index({
       return null;
     }
     return (
-      <div className="h-max w-full rounded-md border bg-white p-2">
+      <div className="h-max w-full rounded-2xl border bg-white p-2">
         <div className="flex w-full items-center justify-between p-2 text-xl font-semibold">
           <div className="flex flex-col gap-0">
             {classworkDataLanguage.summitWorkTitle(language.data ?? "en")}
@@ -216,7 +216,7 @@ function Index({
               }}
               disabled={updateWork.isPending}
               type="submit"
-              className="gradient-bg flex h-10 w-52 items-center justify-center gap-2 rounded-md rounded-r-none p-2 text-base font-medium text-white opacity-85 hover:opacity-100"
+              className="gradient-bg flex h-10 w-52 items-center justify-center gap-2 rounded-2xl rounded-r-none p-2 text-base font-medium text-white opacity-85 hover:opacity-100"
             >
               {updateWork.isPending ? (
                 <LoadingSpinner />
@@ -237,7 +237,7 @@ function Index({
               }}
               disabled={updateWork.isPending}
               type="submit"
-              className="flex h-10 w-52 items-center justify-center gap-2 rounded-md rounded-r-none bg-gray-400 p-2 text-base font-medium text-white opacity-85 hover:opacity-100"
+              className="flex h-10 w-52 items-center justify-center gap-2 rounded-2xl rounded-r-none bg-gray-400 p-2 text-base font-medium text-white opacity-85 hover:opacity-100"
             >
               {updateWork.isPending ? (
                 <LoadingSpinner />
@@ -257,7 +257,7 @@ function Index({
             <button
               disabled={true}
               type="submit"
-              className="gradient-bg flex h-10 w-52 items-center justify-center gap-2 rounded-md rounded-r-none p-2 text-base font-medium text-white opacity-85 hover:opacity-100"
+              className="gradient-bg flex h-10 w-52 items-center justify-center gap-2 rounded-2xl rounded-r-none p-2 text-base font-medium text-white opacity-85 hover:opacity-100"
             >
               {classworkDataLanguage.menuSummitLists.review(
                 language.data ?? "en",
@@ -267,7 +267,7 @@ function Index({
           <button
             onClick={() => setTriggerSummitDropDown((prev) => !prev)}
             type="button"
-            className="gradient-bg h-10 w-max rounded-md rounded-l-none p-2 text-base font-medium text-white"
+            className="gradient-bg h-10 w-max rounded-2xl rounded-l-none p-2 text-base font-medium text-white"
           >
             <IoChevronDownSharp />
           </button>
@@ -279,7 +279,7 @@ function Index({
               }}
               ref={divRef}
             >
-              <div className="absolute top-8 z-40 h-max w-60 rounded-md border bg-white p-1 drop-shadow">
+              <div className="absolute top-8 z-40 h-max w-60 rounded-2xl border bg-white p-1 drop-shadow">
                 {menuSummitLists.map((menu, index) => {
                   return (
                     <button
@@ -329,7 +329,7 @@ function Index({
       return null;
     }
     return (
-      <div className="h-max w-full rounded-md border bg-white p-2">
+      <div className="h-max w-full rounded-2xl border bg-white p-2">
         <div className="flex w-full items-center justify-between p-2 text-xl font-semibold">
           Assignment <IoIosInformationCircle />
         </div>
@@ -485,7 +485,7 @@ function Index({
         }
       >
         <main className="flex h-max w-full flex-col gap-5 xl:w-7/12">
-          <div className="w-full rounded-md bg-white p-3">
+          <div className="w-full rounded-2xl bg-white p-3">
             <h1 className="border-b text-xl">{assignment.title}</h1>
 
             <div className={`my-5 h-screen`}>
@@ -506,7 +506,7 @@ function Index({
                   <li
                     onClick={() => window.open(file.url, "_blank")}
                     key={index}
-                    className="flex h-14 w-full items-center justify-between overflow-hidden rounded-md border bg-white transition hover:cursor-pointer hover:bg-gray-100"
+                    className="flex h-14 w-full items-center justify-between overflow-hidden rounded-2xl border bg-white transition hover:cursor-pointer hover:bg-gray-100"
                   >
                     <div className="flex h-full w-full items-center justify-start gap-2">
                       <div className="gradient-bg flex h-full w-16 items-center justify-center border-r text-lg text-white">

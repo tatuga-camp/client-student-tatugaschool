@@ -1,21 +1,17 @@
 import { useRouter } from "next/router";
 import type { ReactNode } from "react";
 import React, { useEffect } from "react";
-import { FaBookOpen, FaHome, FaUser } from "react-icons/fa";
-import { IoMenu } from "react-icons/io5";
+import { FaBookOpen, FaHome } from "react-icons/fa";
 import useClickOutside from "../../hook/useClickOutside";
 import { useGetStudent, useGetSubjectById } from "../../react-query";
 import Navbar from "../Navbar";
-import Sidebar from "../Sidebar";
 
+import Image from "next/image";
+import { defaultBlurHash } from "../../data";
+import { decodeBlurhashToCanvas } from "../../utils";
+import Footbar from "../Footbar";
 import Header from "../subject/Header";
 import TeacherList from "../subject/TeacherList";
-import Footbar from "../Footbar";
-import { PiStudent } from "react-icons/pi";
-import { MdHome } from "react-icons/md";
-import Image from "next/image";
-import { decodeBlurhashToCanvas } from "../../utils";
-import { defaultBlurHash } from "../../data";
 
 type LayoutProps = {
   children: ReactNode;

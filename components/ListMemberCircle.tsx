@@ -25,7 +25,7 @@ type Props = {
 };
 function ListMemberCircle({ members, setTrigger }: Props) {
   return (
-    <div className="w-max flex items-end justify-center">
+    <div className="flex w-max items-end justify-center">
       {members.map((teacher, index) => {
         const odd = index % 2 === 0;
         ``;
@@ -33,7 +33,7 @@ function ListMemberCircle({ members, setTrigger }: Props) {
         return (
           <div
             style={{ left: `-${index * 5}px` }}
-            className={`w-6 h-6 ring-1  ring-white bg-slate-700 relative rounded-full overflow-hidden`}
+            className={`relative h-6 w-6 overflow-hidden rounded-full bg-slate-700 ring-1 ring-white`}
             key={teacher.id}
           >
             <Image
@@ -42,9 +42,9 @@ function ListMemberCircle({ members, setTrigger }: Props) {
               fill
               placeholder="blur"
               blurDataURL={decodeBlurhashToCanvas(
-                teacher.blurHash ?? defaultBlurHash
+                teacher.blurHash ?? defaultBlurHash,
               )}
-              className=" object-cover cursor-pointer"
+              className="cursor-pointer object-cover"
             />
           </div>
         );
@@ -53,8 +53,7 @@ function ListMemberCircle({ members, setTrigger }: Props) {
         <button
           onClick={() => setTrigger(true)}
           aria-label="invite teacher to subject"
-          className="flex items-center text-xs active:scale-110 justify-center gap-1 hover:bg-primary-color hover:text-white
-               text-primary-color bg-white w-max px-2 py-1 rounded-md"
+          className="flex w-max items-center justify-center gap-1 rounded-2xl bg-white px-2 py-1 text-xs text-primary-color hover:bg-primary-color hover:text-white active:scale-110"
         >
           invite
           <IoIosSend />

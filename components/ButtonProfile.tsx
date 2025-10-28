@@ -25,12 +25,12 @@ function ButtonProfile({ student, subjectId }: Props) {
     router.push("/welcome");
   };
   return (
-    <div className="flex h-12 flex-1 items-center justify-end rounded-md">
-      <div className="flex w-max items-center justify-end gap-4 rounded-md py-2 transition-width">
+    <div className="flex h-12 flex-1 items-center justify-end rounded-2xl">
+      <div className="flex w-max items-center justify-end gap-4 rounded-2xl py-2 transition-width">
         <button
           disabled={loading}
           onClick={handleLogout}
-          className="flex h-10 w-32 items-center justify-center gap-2 rounded-md bg-red-500 px-3 py-1 text-lg font-normal text-white transition duration-150 hover:bg-red-600 hover:drop-shadow-md active:scale-105"
+          className="flex h-10 w-32 items-center justify-center gap-2 rounded-2xl bg-red-500 px-3 py-1 text-lg font-normal text-white transition duration-150 hover:bg-red-600 hover:drop-shadow-md active:scale-105"
         >
           <AiOutlineLogout />
           <span className="">Logout</span>

@@ -230,7 +230,7 @@ function Index({ id }: { id: string }) {
             <LanguageSelect />
           </div>
           <div className="flex items-center justify-center gap-1 rounded-full bg-white px-3 py-1 md:gap-2">
-            <div className="relative h-6 w-6 overflow-hidden rounded-md ring-1 ring-white transition duration-150 hover:scale-105 active:scale-110">
+            <div className="relative h-6 w-6 overflow-hidden rounded-2xl ring-1 ring-white transition duration-150 hover:scale-105 active:scale-110">
               <Image
                 src="/favicon.ico"
                 placeholder="blur"
@@ -269,7 +269,7 @@ function Index({ id }: { id: string }) {
                       onClick={() => {
                         window.location.reload();
                       }}
-                      className="rounded-md bg-green-700 px-2 text-2xl text-green-100"
+                      className="rounded-2xl bg-green-700 px-2 text-2xl text-green-100"
                     >
                       {qrcodeAttendanceLanguage.click_continue(
                         language.data ?? "en",
@@ -278,7 +278,7 @@ function Index({ id }: { id: string }) {
                   );
                 }
                 return (
-                  <div className="rounded-md bg-gradient-to-r from-green-400 to-green-500 px-2 text-2xl text-white">
+                  <div className="rounded-2xl bg-gradient-to-r from-green-400 to-green-500 px-2 text-2xl text-white">
                     {props.days}:{props.hours}:{props.minutes}:{props.seconds}
                   </div>
                 );
@@ -321,7 +321,7 @@ function Index({ id }: { id: string }) {
           <LanguageSelect />
         </div>
         <div className="flex items-center justify-center gap-1 rounded-full bg-white px-3 py-1 md:gap-2">
-          <div className="relative h-6 w-6 overflow-hidden rounded-md ring-1 ring-white transition duration-150 hover:scale-105 active:scale-110">
+          <div className="relative h-6 w-6 overflow-hidden rounded-2xl ring-1 ring-white transition duration-150 hover:scale-105 active:scale-110">
             <Image
               src="/favicon.ico"
               placeholder="blur"
@@ -353,7 +353,7 @@ function Index({ id }: { id: string }) {
         </span>
 
         {selectStudent ? (
-          <section className="relative flex h-[30rem] w-11/12 flex-col items-center justify-between gap-5 rounded-md bg-white p-2 pt-5 text-black md:w-96">
+          <section className="relative flex h-[30rem] w-11/12 flex-col items-center justify-between gap-5 rounded-2xl bg-white p-2 pt-5 text-black md:w-96">
             <button
               type="button"
               onClick={() => {
@@ -369,7 +369,7 @@ function Index({ id }: { id: string }) {
             {update.isPending && <LoadingBar />}
             <div className="flex h-32 w-full flex-col items-center justify-center gap-2 border-b">
               <div className="flex gap-2">
-                <div className="relative h-10 w-10 overflow-hidden rounded-md ring-1">
+                <div className="relative h-10 w-10 overflow-hidden rounded-2xl ring-1">
                   <Image
                     src={selectStudent.photo}
                     alt={selectStudent.firstName}
@@ -420,7 +420,7 @@ function Index({ id }: { id: string }) {
                         setSelectStatus(status);
                       }}
                       style={{ backgroundColor: status.color }}
-                      className={`w-full rounded-md p-2 text-center ${selectStatus && selectStatus.id === status.id && "ring-2 ring-black"}`}
+                      className={`w-full rounded-2xl p-2 text-center ${selectStatus && selectStatus.id === status.id && "ring-2 ring-black"}`}
                     >
                       {status.title}
                     </button>
@@ -452,7 +452,7 @@ function Index({ id }: { id: string }) {
             </div>
           </section>
         ) : (
-          <section className="flex h-96 w-11/12 flex-col overflow-auto rounded-md bg-white p-5 text-black md:w-96">
+          <section className="flex h-96 w-11/12 flex-col overflow-auto rounded-2xl bg-white p-5 text-black md:w-96">
             {qrCode.data?.students.map((student, index) => {
               const odd = index % 2 === 0;
               return (
@@ -485,13 +485,13 @@ function Index({ id }: { id: string }) {
                     new Date().getTime()
                 ) {
                   return (
-                    <div className="rounded-md bg-gradient-to-r from-rose-400 to-red-500 px-2 text-2xl text-white">
+                    <div className="rounded-2xl bg-gradient-to-r from-rose-400 to-red-500 px-2 text-2xl text-white">
                       {qrcodeAttendanceLanguage.time_up(language.data ?? "en")}
                     </div>
                   );
                 }
                 return (
-                  <div className="rounded-md bg-gradient-to-r from-rose-400 to-red-500 px-2 text-2xl text-white">
+                  <div className="rounded-2xl bg-gradient-to-r from-rose-400 to-red-500 px-2 text-2xl text-white">
                     {props.days}:{props.hours}:{props.minutes}:{props.seconds}
                   </div>
                 );

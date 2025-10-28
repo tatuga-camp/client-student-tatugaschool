@@ -26,24 +26,24 @@ function LanguageSelect() {
       title: "English",
       flag: "/svg/flags/1x1/gb.svg",
       value: "en",
-    }
+    },
   );
 
   useEffect(() => {
     if (language.data) {
       setCurrentLanguage(
-        () => languages.find((l) => l.value === language.data) ?? languages[0]
+        () => languages.find((l) => l.value === language.data) ?? languages[0],
       );
     }
   }, [language.data]);
 
   return (
-    <div className="w-40 h-12 overflow-hidden rounded-md font-Anuphan">
+    <div className="h-12 w-40 overflow-hidden rounded-2xl font-Anuphan">
       <Dropdown<CurrentLanguage>
         onChange={async (e) => {
           await update.mutateAsync(e.value);
           setCurrentLanguage(
-            languages.find((l) => l.value === e.value) ?? languages[0]
+            languages.find((l) => l.value === e.value) ?? languages[0],
           );
         }}
         value={currentLanguage.value}
@@ -55,7 +55,7 @@ function LanguageSelect() {
           }
           return (
             <div className="flex items-center justify-start gap-2">
-              <div className="w-5 h-5 relative">
+              <div className="relative h-5 w-5">
                 <Image
                   className="object-contain"
                   fill
@@ -71,7 +71,7 @@ function LanguageSelect() {
         itemTemplate={(item) => {
           return (
             <div className="flex items-center justify-start gap-2">
-              <div className="w-5 h-5 relative">
+              <div className="relative h-5 w-5">
                 <Image
                   className="object-contain"
                   fill

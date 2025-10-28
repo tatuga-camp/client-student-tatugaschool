@@ -12,7 +12,7 @@ type Props = {
 function TeacherList({ teachers }: Props) {
   const language = useGetLanguage();
   return (
-    <div className="h-max w-full rounded-none p-2 md:rounded-md md:border">
+    <div className="h-max w-full rounded-none p-2 md:rounded-2xl md:border">
       <h2 className="p-2 text-xl font-semibold text-primary-color">
         {subjectDataLanguage.teacher(language.data ?? "en")}
       </h2>
@@ -21,7 +21,7 @@ function TeacherList({ teachers }: Props) {
           return (
             <li
               key={teacher.id}
-              className="flex items-center gap-2 rounded-md bg-white p-2 ring-1"
+              className="flex items-center gap-2 rounded-2xl bg-white p-2 ring-1"
             >
               <div className="relative h-10 w-10 overflow-hidden rounded-full ring-1 ring-white">
                 <Image

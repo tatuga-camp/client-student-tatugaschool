@@ -21,7 +21,7 @@ function SignInStudentForm({
   return (
     <form
       onSubmit={onSubmit}
-      className="relative flex h-max w-96 flex-col items-center justify-center gap-2 rounded-md border bg-white p-3 py-10"
+      className="relative flex h-max w-96 flex-col items-center justify-center gap-2 rounded-2xl border bg-white p-3 py-10"
     >
       <button
         type="button"

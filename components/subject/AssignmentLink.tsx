@@ -48,7 +48,7 @@ function AssignmentLink({ studentOnAssignmentId, toast, onClose }: Props) {
   return (
     <form
       onSubmit={handleSumit}
-      className="flex h-max w-96 flex-col gap-2 rounded-md bg-white p-5"
+      className="flex h-max w-96 flex-col gap-2 rounded-2xl bg-white p-5"
     >
       <div className="flex w-full justify-end">
         <button

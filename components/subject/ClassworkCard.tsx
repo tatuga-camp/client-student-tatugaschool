@@ -176,7 +176,7 @@ function MaterialCard({ material, subjectId, onSelect }: PropsMaterialCard) {
             const fileName = f.url.split("/")[f.url.split("/").length - 1];
             return (
               <li
-                className="flex h-max items-center gap-3 rounded-lg bg-gray-50 p-2"
+                className="flex h-max items-center gap-3 rounded-2xl bg-gray-50 p-2"
                 key={f.id}
               >
                 <div className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-100 text-blue-500">

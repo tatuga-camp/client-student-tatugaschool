@@ -156,7 +156,7 @@ function Index(subjectId: { subjectId: string }) {
       <Layout subjectId={subjectId.subjectId}>
         <form
           onSubmit={handleSubmit}
-          className="relative mt-20 flex h-max w-full flex-col rounded-lg border bg-white p-5 md:-top-10 lg:w-7/12"
+          className="relative mt-20 flex h-max w-full flex-col rounded-2xl border bg-white p-5 md:-top-10 lg:w-7/12"
         >
           <h1 className="py-5 text-lg font-medium">Student Information</h1>
           <div className="flex flex-col gap-5">
@@ -207,7 +207,7 @@ function Index(subjectId: { subjectId: string }) {
           </div>
           <label
             htmlFor="dropzone-file"
-            className={`relative flex h-64 w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50`}
+            className={`relative flex h-64 w-full cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50`}
           >
             {data.photo ? (
               <div className="relative h-full w-full">
@@ -293,7 +293,7 @@ function Index(subjectId: { subjectId: string }) {
           <button
             disabled={update.isPending}
             type="submit"
-            className="main-button mt-5 flex w-40 items-center justify-center rounded-md py-2 text-white"
+            className="main-button mt-5 flex w-40 items-center justify-center rounded-2xl py-2 text-white"
           >
             {update.isPending ? <LoadingSpinner /> : "Update"}
           </button>

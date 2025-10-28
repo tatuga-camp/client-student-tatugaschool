@@ -23,7 +23,7 @@ function ListStudent<
       } gap-2`}
     >
       <div className="flex gap-2">
-        <div className="relative h-10 w-10 overflow-hidden rounded-md ring-1">
+        <div className="relative h-10 w-10 overflow-hidden rounded-2xl ring-1">
           <Image
             src={student.photo}
             alt={student.firstName}

@@ -50,15 +50,12 @@ function Welcome() {
         <meta property="twitter:image" content="/icon.svg" />
         <meta name="twitter:card" content="summary" />
       </Head>
-      <main className="w-screen relative font-Anuphan h-screen flex flex-col gap-5 items-center gradient-bg  justify-center">
-        <div className="absolute top-2 right-2">
+      <main className="gradient-bg relative flex h-screen w-screen flex-col items-center justify-center gap-5 font-Anuphan">
+        <div className="absolute right-2 top-2">
           <LanguageSelect />
         </div>
-        <div className="flex items-center justify-center bg-white px-3 rounded-full py-1 gap-1 md:gap-2">
-          <div
-            className="w-6 h-6 rounded-md overflow-hidden ring-1 ring-white
-         relative hover:scale-105 active:scale-110 transition duration-150"
-          >
+        <div className="flex items-center justify-center gap-1 rounded-full bg-white px-3 py-1 md:gap-2">
+          <div className="relative h-6 w-6 overflow-hidden rounded-2xl ring-1 ring-white transition duration-150 hover:scale-105 active:scale-110">
             <Image
               src="/favicon.ico"
               placeholder="blur"
@@ -67,14 +64,13 @@ function Welcome() {
               alt="logo tatuga school"
             />
           </div>
-          <div className="font-bold uppercase  block text-lg md:text-base text-icon-color">
+          <div className="block text-lg font-bold uppercase text-icon-color md:text-base">
             Tatuga School
           </div>
         </div>
         <form
           onSubmit={handleSummit}
-          className="w-80 md:w-96  bg-white rounded-lg p-5 drop-shadow-md
-         border flex items-center justify-center flex-col gap-2"
+          className="flex w-80 flex-col items-center justify-center gap-2 rounded-2xl border bg-white p-5 drop-shadow-md md:w-96"
         >
           <InputMask
             required
@@ -82,7 +78,7 @@ function Welcome() {
             onChange={(e) => setCode(e.target.value as string)}
             mask="******"
             placeholder={welcomeDataLanguage.placeholder(language.data ?? "en")}
-            className="text-xl text-center w-full"
+            className="w-full text-center text-xl"
           />
           <button className="main-button w-full">
             {welcomeDataLanguage.button(language.data ?? "en")}

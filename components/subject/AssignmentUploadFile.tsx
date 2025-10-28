@@ -85,7 +85,7 @@ function AssignmentUploadFile({
     }
   };
   return (
-    <form className="flex h-max w-96 flex-col gap-2 rounded-md bg-white p-5">
+    <form className="flex h-max w-96 flex-col gap-2 rounded-2xl bg-white p-5">
       <div className="flex w-full justify-end">
         <button
           type="button"
