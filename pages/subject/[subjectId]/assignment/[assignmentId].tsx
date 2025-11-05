@@ -1,17 +1,18 @@
-import parse from "html-react-parser";
 import { GetServerSideProps } from "next";
 import Head from "next/head";
 import { Toast } from "primereact/toast";
 import React from "react";
 import { FaRegFile, FaRegFileImage, FaRegSadTear } from "react-icons/fa";
 import { FcLink, FcPlus, FcUpload } from "react-icons/fc";
-import { IoIosInformationCircle, IoMdClose } from "react-icons/io";
+import { IoIosInformationCircle } from "react-icons/io";
 import { IoChevronDownSharp } from "react-icons/io5";
 import { MdOutlineDone, MdOutlineRemoveDone } from "react-icons/md";
 import { RiEmotionHappyFill } from "react-icons/ri";
 import Swal from "sweetalert2";
 import LoadingSpinner from "../../../../components/common/LoadingSpinner";
+import TextEditor from "../../../../components/common/TextEditor";
 import Layout from "../../../../components/layouts/Layout";
+import PopupLayout from "../../../../components/layouts/PopupLayout";
 import AssignmentLink from "../../../../components/subject/AssignmentLink";
 import AssignmentStatusCard from "../../../../components/subject/AssignmentStatus";
 import AssignmentText from "../../../../components/subject/AssignmentText";
@@ -34,8 +35,6 @@ import {
   useUpdateStudentOnAssignment,
 } from "../../../../react-query";
 import { timeAgo, timeLeft } from "../../../../utils";
-import PopupLayout from "../../../../components/layouts/PopupLayout";
-import TextEditor from "../../../../components/common/TextEditor";
 
 const SummitWorkMenus = [
   {
@@ -535,27 +534,18 @@ function Index({
 export default Index;
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
-  try {
-    const params = ctx.params;
+  const params = ctx.params;
 
-    if (!params?.subjectId || !params?.assignmentId) {
-      return {
-        notFound: true,
-      };
-    }
-
+  if (!params?.subjectId || !params?.assignmentId) {
     return {
-      props: {
-        subjectId: params.subjectId,
-        assignmentId: params.assignmentId,
-      },
-    };
-  } catch (error) {
-    return {
-      redirect: {
-        destination: "/auth/sign-in",
-        permanent: false,
-      },
+      notFound: true,
     };
   }
+
+  return {
+    props: {
+      subjectId: params.subjectId,
+      assignmentId: params.assignmentId,
+    },
+  };
 };

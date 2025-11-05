@@ -117,27 +117,17 @@ function Index({ subjectId }: { subjectId: string }) {
 export default Index;
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
-  try {
-    const params = ctx.params;
+  const params = ctx.params;
 
-    if (!params?.subjectId) {
-      return {
-        notFound: true,
-      };
-    }
-
+  if (!params?.subjectId) {
     return {
-      props: {
-        subjectId: params.subjectId,
-      },
-    };
-  } catch (error) {
-    console.log(error);
-    return {
-      redirect: {
-        destination: "/welcome",
-        permanent: false,
-      },
+      notFound: true,
     };
   }
+
+  return {
+    props: {
+      subjectId: params.subjectId,
+    },
+  };
 };
