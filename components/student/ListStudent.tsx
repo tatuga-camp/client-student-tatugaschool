@@ -30,6 +30,7 @@ function ListStudent<
             fill
             sizes="(max-width: 768px) 100vw, 33vw"
             placeholder="blur"
+            quality={50}
             blurDataURL={decodeBlurhashToCanvas(
               student.blurHash ?? defaultBlurHash,
             )}
