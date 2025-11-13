@@ -453,20 +453,22 @@ function Index({ id }: { id: string }) {
           </section>
         ) : (
           <section className="flex h-96 w-11/12 flex-col overflow-auto rounded-2xl bg-white p-5 text-black md:w-96">
-            {qrCode.data?.students.map((student, index) => {
-              const odd = index % 2 === 0;
-              return (
-                <ListStudent<StudentOnSubject & { attendance: Attendance }>
-                  student={student}
-                  odd={odd}
-                  key={index}
-                  onClick={(data) => {
-                    handleSignIn(data);
-                  }}
-                  buttonText="Go"
-                />
-              );
-            })}
+            {qrCode.data?.students
+              .sort((a, b) => Number(a.number) - Number(b.number))
+              .map((student, index) => {
+                const odd = index % 2 === 0;
+                return (
+                  <ListStudent<StudentOnSubject & { attendance: Attendance }>
+                    student={student}
+                    odd={odd}
+                    key={index}
+                    onClick={(data) => {
+                      handleSignIn(data);
+                    }}
+                    buttonText="Go"
+                  />
+                );
+              })}
           </section>
         )}
 
