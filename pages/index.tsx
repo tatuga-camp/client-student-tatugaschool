@@ -134,7 +134,7 @@ function Index({ subjectData, code, error }: IndexProps) {
     return (
       <main className="flex h-screen w-screen flex-col items-center justify-center gap-5 bg-gradient-to-r from-rose-400 to-red-500 font-Anuphan">
         <div className="flex items-center justify-center gap-1 rounded-full bg-white px-3 py-1 md:gap-2">
-          <div className="w-6 overflow-hidden rounded-2xl ring-1 ring-white transition duration-150 hover:scale-105 active:scale-110">
+          <div className="relative h-6 w-6 overflow-hidden rounded-2xl ring-1 ring-white transition duration-150 hover:scale-105 active:scale-110">
             <Image
               src="/favicon.ico"
               placeholder="blur"
