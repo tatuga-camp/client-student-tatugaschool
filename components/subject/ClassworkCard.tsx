@@ -109,7 +109,7 @@ function AssignmentCard({
       </section>
       <h1 className="text-lg font-medium">{assignment.title}</h1>
 
-      <p className="my-2 line-clamp-2 text-sm text-gray-500">
+      <p className="my-2 line-clamp-4 text-sm text-gray-500">
         {stripHtml(assignment.description)}
       </p>
       <span className="text-sm text-gray-400">
@@ -174,7 +174,7 @@ function MaterialCard({ material, subjectId, onSelect }: PropsMaterialCard) {
       </section>
       <h1 className="text-lg font-medium">{material.title}</h1>
 
-      <p className="my-2 line-clamp-2 text-sm text-gray-500">
+      <p className="my-2 line-clamp-4 text-sm text-gray-500">
         {stripHtml(material.description)}
       </p>
       <span className="text-sm text-gray-400">
