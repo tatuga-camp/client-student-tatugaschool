@@ -47,6 +47,11 @@ function ClassworkCard({ classwork, subjectId, onSelect }: PropsClassworkCard) {
   );
 }
 
+function stripHtml(html: string) {
+  if (!html) return "";
+  return html.replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ");
+}
+
 export default ClassworkCard;
 
 type PropsAssignmentCard = {
@@ -103,6 +108,10 @@ function AssignmentCard({
         </div>
       </section>
       <h1 className="text-lg font-medium">{assignment.title}</h1>
+
+      <p className="my-2 line-clamp-2 text-sm text-gray-500">
+        {stripHtml(assignment.description)}
+      </p>
       <span className="text-sm text-gray-400">
         {classworkCardDataLanguage.pubishAt(language.data ?? "en")} :{" "}
         {new Date(assignment.beginDate).toLocaleDateString(undefined)}
@@ -164,6 +173,10 @@ function MaterialCard({ material, subjectId, onSelect }: PropsMaterialCard) {
         </div>
       </section>
       <h1 className="text-lg font-medium">{material.title}</h1>
+
+      <p className="my-2 line-clamp-2 text-sm text-gray-500">
+        {stripHtml(material.description)}
+      </p>
       <span className="text-sm text-gray-400">
         {classworkCardDataLanguage.pubishAt(language.data ?? "en")} :{" "}
         {new Date(material.beginDate).toLocaleDateString(undefined)}
