@@ -120,10 +120,7 @@ function FileCard({ file }: Props) {
           className="flex w-40 items-center gap-2"
         >
           <div className="max-w-52 overflow-x-auto text-sm">
-            <span className="w-max text-nowrap">
-              {fileName}
-              qwejqwejwqelqwewqlkewqklejwqlkejqwlqweqw;ekqwejqwlkewqlkejqwlkewqlkejqwljelkqeqwkejwqlk
-            </span>
+            <span className="w-max text-nowrap">{fileName}</span>
           </div>
         </button>
       </div>
