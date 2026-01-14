@@ -6,7 +6,7 @@ import { FaRegFile, FaRegFileImage, FaRegSadTear } from "react-icons/fa";
 import { FcLink, FcPlus, FcUpload } from "react-icons/fc";
 import { IoIosInformationCircle } from "react-icons/io";
 import { IoChevronDownSharp } from "react-icons/io5";
-import { MdOutlineDone, MdOutlineRemoveDone } from "react-icons/md";
+import { MdLink, MdOutlineDone, MdOutlineRemoveDone } from "react-icons/md";
 import { RiEmotionHappyFill } from "react-icons/ri";
 import Swal from "sweetalert2";
 import LoadingSpinner from "../../../../components/common/LoadingSpinner";
@@ -501,6 +501,7 @@ function Index({
               {assignment.files?.map((file, index) => {
                 const isImage = file.type.includes("image");
                 const fileName = file.url.split("/").pop();
+                const isLink = file.type === "LINK";
                 return (
                   <li
                     onClick={() => window.open(file.url, "_blank")}
@@ -509,10 +510,16 @@ function Index({
                   >
                     <div className="flex h-full w-full items-center justify-start gap-2">
                       <div className="gradient-bg flex h-full w-16 items-center justify-center border-r text-lg text-white">
-                        {isImage ? <FaRegFileImage /> : <FaRegFile />}
+                        {isLink ? (
+                          <MdLink />
+                        ) : isImage ? (
+                          <FaRegFileImage />
+                        ) : (
+                          <FaRegFile />
+                        )}
                       </div>
                       <div className="w-60 text-wrap break-words text-sm">
-                        {fileName}
+                        {isLink ? file.url : fileName}
                       </div>
                     </div>
                   </li>
