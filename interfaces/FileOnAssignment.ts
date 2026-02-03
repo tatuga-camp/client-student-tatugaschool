@@ -7,5 +7,6 @@ export interface FileOnAssignment {
   size: number;
   subjectId: string;
   schoolId: string;
+  preventFastForward?: boolean;
   assignmentId: string;
 }

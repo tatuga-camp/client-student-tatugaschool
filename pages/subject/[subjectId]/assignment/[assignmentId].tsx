@@ -2,7 +2,12 @@ import { GetServerSideProps } from "next";
 import Head from "next/head";
 import { Toast } from "primereact/toast";
 import React from "react";
-import { FaRegFile, FaRegFileImage, FaRegSadTear } from "react-icons/fa";
+import {
+  FaRegFile,
+  FaRegFileImage,
+  FaRegFileVideo,
+  FaRegSadTear,
+} from "react-icons/fa";
 import { FcLink, FcPlus, FcUpload } from "react-icons/fc";
 import { IoIosInformationCircle } from "react-icons/io";
 import { IoChevronDownSharp } from "react-icons/io5";
@@ -10,6 +15,7 @@ import { MdLink, MdOutlineDone, MdOutlineRemoveDone } from "react-icons/md";
 import { RiEmotionHappyFill } from "react-icons/ri";
 import Swal from "sweetalert2";
 import LoadingSpinner from "../../../../components/common/LoadingSpinner";
+import StudentVideoPlayer from "../../../../components/common/StudentVideoPlayer";
 import TextEditor from "../../../../components/common/TextEditor";
 import Layout from "../../../../components/layouts/Layout";
 import PopupLayout from "../../../../components/layouts/PopupLayout";
@@ -24,6 +30,7 @@ import useClickOutside from "../../../../hook/useClickOutside";
 import useAdjustPosition from "../../../../hook/useWindow";
 import {
   ErrorMessages,
+  FileOnAssignment,
   FileOnStudentOnAssignment,
   StudentAssignmentStatus,
   StudentOnAssignment,
@@ -90,6 +97,11 @@ function Index({
     title: SummitWorkMenu;
     file?: FileOnStudentOnAssignment;
   } | null>(null);
+  const [activeVideo, setActiveVideo] = React.useState<{
+    url: string;
+    fileOnAssignment: FileOnAssignment;
+  } | null>(null);
+
   const assignment = useGetAssignments({ subjectId }).data?.find(
     (item) => item.id === assignmentId,
   );
@@ -443,6 +455,17 @@ function Index({
         <title>Assignment: {assignment.title} </title>
       </Head>
       <Toast ref={toast} />
+      {activeVideo && (
+        <StudentVideoPlayer
+          src={activeVideo.url}
+          config={{
+            preventFastForward:
+              activeVideo.fileOnAssignment.preventFastForward ?? false,
+            questions: [],
+          }}
+          onClose={() => setActiveVideo(null)}
+        />
+      )}
       {selectMenu !== null && (
         <PopupLayout onClose={() => setSelectMenu(null)}>
           {selectMenu.title === "Create" && (
@@ -500,11 +523,21 @@ function Index({
             <ul className="grid w-full gap-2">
               {assignment.files?.map((file, index) => {
                 const isImage = file.type.includes("image");
+                const isVideo = file.type.includes("video");
                 const fileName = file.url.split("/").pop();
                 const isLink = file.type === "LINK";
                 return (
                   <li
-                    onClick={() => window.open(file.url, "_blank")}
+                    onClick={() => {
+                      if (isVideo) {
+                        setActiveVideo({
+                          url: file.url,
+                          fileOnAssignment: file,
+                        });
+                      } else {
+                        window.open(file.url, "_blank");
+                      }
+                    }}
                     key={index}
                     className="flex h-14 w-full items-center justify-between overflow-hidden rounded-2xl border bg-white transition hover:cursor-pointer hover:bg-gray-100"
                   >
@@ -514,6 +547,8 @@ function Index({
                           <MdLink />
                         ) : isImage ? (
                           <FaRegFileImage />
+                        ) : isVideo ? (
+                          <FaRegFileVideo />
                         ) : (
                           <FaRegFile />
                         )}
