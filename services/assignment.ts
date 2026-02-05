@@ -3,6 +3,7 @@ import {
   FileOnAssignment,
   FileOnStudentOnAssignment,
   Grade,
+  QuestionOnVideo,
   ScoreOnStudent,
   ScoreOnSubject,
   StudentAssignmentContentType,
@@ -20,6 +21,7 @@ export type RequestGetAssignmentsService = {
 export type ResponseGetAssignmentsService = (Assignment & {
   files: FileOnAssignment[];
   studentOnAssignment: StudentOnAssignment;
+  questions: QuestionOnVideo[];
 })[];
 export async function GetAssignmentsService(
   input: RequestGetAssignmentsService,
@@ -43,6 +45,7 @@ export type RequestUpdateWorkService = {
   body: {
     body?: string;
     status?: StudentAssignmentStatus;
+    score?: number;
   };
 };
 

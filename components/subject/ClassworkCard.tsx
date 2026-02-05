@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { BiBook } from "react-icons/bi";
-import { MdAssignment } from "react-icons/md";
+import { MdAssignment, MdVideoLibrary } from "react-icons/md";
 import { classworkCardDataLanguage } from "../../data/language";
 import {
   Assignment,
@@ -38,6 +38,16 @@ function ClassworkCard({ classwork, subjectId, onSelect }: PropsClassworkCard) {
         <MaterialCard
           subjectId={subjectId}
           material={classwork}
+          onSelect={(a) => {
+            onSelect(a);
+          }}
+        />
+      )}
+
+      {classwork.type === "VideoQuiz" && (
+        <AssignmentVideoCard
+          subjectId={subjectId}
+          assignment={classwork}
           onSelect={(a) => {
             onSelect(a);
           }}
@@ -118,7 +128,9 @@ function AssignmentCard({
       </span>
       <section className="flex w-full items-end justify-between">
         <div>
-          <span className="text-4xl font-bold text-blue-700">{score}</span>
+          <span className="text-4xl font-bold text-blue-700">
+            {score.toFixed(2)}
+          </span>
           <span className="text-base font-medium text-gray-400">
             / {assignment.weight ? assignment.weight : assignment.maxScore}{" "}
             {classworkCardDataLanguage.yourscore(language.data ?? "en")}
@@ -207,6 +219,96 @@ function MaterialCard({ material, subjectId, onSelect }: PropsMaterialCard) {
           })}
         </ul>
       </section>
+    </button>
+  );
+}
+
+type PropsAssignmentVideoCard = {
+  assignment: Assignment & {
+    studentOnAssignment: StudentOnAssignment;
+  };
+  subjectId: string;
+  onSelect: (classwork: Assignment) => void;
+};
+function AssignmentVideoCard({
+  assignment,
+  subjectId,
+  onSelect,
+}: PropsAssignmentVideoCard) {
+  const language = useGetLanguage();
+  const handleColor = (status: StudentAssignmentStatus) => {
+    if (status === "IMPROVED") {
+      return "orange";
+    } else if (status === "PENDDING") {
+      return "gray";
+    } else if (status === "REVIEWD") {
+      return "green";
+    } else {
+      return "yellow";
+    }
+  };
+  const color = handleColor(assignment.studentOnAssignment.status);
+  let score = assignment.studentOnAssignment.score ?? 0;
+  if (assignment.weight !== null) {
+    const originalScore = score / assignment.maxScore;
+    score = originalScore * assignment.weight;
+  }
+
+  return (
+    <button
+      onClick={() => {
+        onSelect(assignment);
+      }}
+      className={`h-max min-h-40 w-full rounded-xl bg-white p-5 ring-1 ring-${color}-200`}
+      key={assignment.id}
+    >
+      <section className="flex w-full justify-between">
+        <div
+          className={`flex h-14 w-14 items-center justify-center rounded-full bg-${color}-100 text-2xl text-${color}-500`}
+        >
+          <MdVideoLibrary />
+        </div>
+
+        <div className="w-max">
+          <AssignmentStatusCard
+            status={assignment.studentOnAssignment.status}
+          />
+        </div>
+      </section>
+      <h1 className="text-lg font-medium">{assignment.title}</h1>
+      <span className="text-sm text-gray-400">
+        {classworkCardDataLanguage.pubishAt(language.data ?? "en")} :{" "}
+        {new Date(assignment.beginDate).toLocaleDateString(undefined)}
+      </span>
+      <section className="flex w-full items-end justify-between">
+        <div>
+          <span className="text-4xl font-bold text-blue-700">
+            {score.toFixed(2)}
+          </span>
+          <span className="text-base font-medium text-gray-400">
+            / {assignment.weight ? assignment.weight : assignment.maxScore}{" "}
+            {classworkCardDataLanguage.yourscore(language.data ?? "en")}
+          </span>
+        </div>
+        {assignment.weight && (
+          <span className={`text-${color}-400`}>
+            {" "}
+            {assignment.weight}%{" "}
+            {classworkCardDataLanguage.weight(language.data ?? "en")}
+          </span>
+        )}
+      </section>
+      {assignment.dueDate && (
+        <section className="mt-5">
+          <div className="rounded-full bg-red-100 p-2 text-red-700">
+            {classworkCardDataLanguage.Deadline(language.data ?? "en")} :{" "}
+            {new Date(assignment.dueDate).toLocaleDateString(undefined, {
+              minute: "numeric",
+              hour: "numeric",
+            })}
+          </div>
+        </section>
+      )}
     </button>
   );
 }

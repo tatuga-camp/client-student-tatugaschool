@@ -51,20 +51,9 @@ export function useUpdateStudentOnAssignment() {
     mutationKey: ["update-student-on-assignment"],
     mutationFn: (input: RequestUpdateWorkService) => UpdateWorkService(input),
     onSuccess(studentOnAssignment, variables, context) {
-      queryClient.setQueryData(
-        ["assignments", { subjectId: studentOnAssignment.subjectId }],
-        (prevData: ResponseGetAssignmentsService) => {
-          return prevData.map((assignment) => {
-            if (assignment.id === studentOnAssignment.assignmentId) {
-              return {
-                ...assignment,
-                studentOnAssignment: studentOnAssignment,
-              };
-            }
-            return assignment;
-          });
-        },
-      );
+      queryClient.refetchQueries({
+        queryKey: ["assignments", { subjectId: studentOnAssignment.subjectId }],
+      });
     },
   });
 }

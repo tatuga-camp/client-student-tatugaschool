@@ -13,7 +13,9 @@ export interface Assignment {
   schoolId: string;
   status: AssignmentStatus;
   type: AssignmentType;
+  preventFastForward?: boolean;
+  videoURL?: string;
 }
 
 export type AssignmentStatus = "Published" | "Draft";
-export type AssignmentType = "Assignment" | "Material";
+export type AssignmentType = "Assignment" | "Material" | "VideoQuiz";

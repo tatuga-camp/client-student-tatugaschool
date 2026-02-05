@@ -42,6 +42,7 @@ import {
   useUpdateStudentOnAssignment,
 } from "../../../../react-query";
 import { timeAgo, timeLeft } from "../../../../utils";
+import FileAssignmentVideoPlayer from "../../../../components/common/FileAssignmentVideoPlayer";
 
 const SummitWorkMenus = [
   {
@@ -356,9 +357,9 @@ function Index({
           <li className="flex h-max items-center justify-start gap-1 border-b p-2">
             <div className="w-40 font-semibold">Score :</div>
             <div className="w-max max-w-40 text-2xl font-semibold">
-              {assignment.studentOnAssignment.score ? (
+              {assignment.studentOnAssignment.score !== null ? (
                 <span>
-                  {assignment.studentOnAssignment.score} /{" "}
+                  {assignment.studentOnAssignment.score.toFixed(2)} /{" "}
                   {assignment.maxScore}{" "}
                 </span>
               ) : (
@@ -454,18 +455,17 @@ function Index({
       <Head>
         <title>Assignment: {assignment.title} </title>
       </Head>
-      <Toast ref={toast} />
       {activeVideo && (
-        <StudentVideoPlayer
+        <FileAssignmentVideoPlayer
           src={activeVideo.url}
           config={{
             preventFastForward:
               activeVideo.fileOnAssignment.preventFastForward ?? false,
-            questions: [],
           }}
           onClose={() => setActiveVideo(null)}
         />
       )}
+      <Toast ref={toast} />
       {selectMenu !== null && (
         <PopupLayout onClose={() => setSelectMenu(null)}>
           {selectMenu.title === "Create" && (
@@ -508,18 +508,62 @@ function Index({
       >
         <main className="flex h-max w-full flex-col gap-5 xl:w-7/12">
           <div className="w-full rounded-2xl bg-white p-3">
-            <h1 className="border-b text-xl">{assignment.title}</h1>
+            <h1 className="mb-5 border-b text-xl">{assignment.title}</h1>
+            {assignment.type === "Assignment" ||
+              (assignment.type === "Material" && (
+                <div className={`my-5 h-screen`}>
+                  <TextEditor
+                    disabled={false}
+                    schoolId={assignment.schoolId}
+                    value={assignment.description}
+                    onChange={() => {}}
+                    menubar={false}
+                    toolbar={false}
+                  />
+                </div>
+              ))}
+            {assignment.type === "VideoQuiz" && assignment.videoURL && (
+              <>
+                <StudentVideoPlayer
+                  src={assignment.videoURL}
+                  config={{
+                    preventFastForward: assignment.preventFastForward ?? false,
+                    questions: assignment.questions,
+                  }}
+                  cannotSummit={studentOnAssignment.status === "REVIEWD"}
+                  onSubmit={
+                    studentOnAssignment.status === "REVIEWD"
+                      ? undefined
+                      : (score, total) => {
+                          const scorePerQuestions =
+                            assignment.maxScore / assignment.questions.length;
 
-            <div className={`my-5 h-screen`}>
-              <TextEditor
-                disabled={false}
-                schoolId={assignment.schoolId}
-                value={assignment.description}
-                onChange={() => {}}
-                menubar={false}
-                toolbar={false}
-              />
-            </div>
+                          updateWork.mutate({
+                            query: {
+                              studentOnAssignmentId: studentOnAssignment.id,
+                            },
+                            body: {
+                              status: "REVIEWD",
+                              score: Number(
+                                (scorePerQuestions * score).toFixed(2),
+                              ),
+                            },
+                          });
+                        }
+                  }
+                />
+                {studentOnAssignment.status === "REVIEWD" && (
+                  <div className="mt-4 flex animate-pulse items-center justify-center gap-3 rounded-2xl border-2 border-yellow-200 bg-yellow-50 p-4 text-center font-medium text-yellow-800 shadow-sm transition-all hover:bg-yellow-100">
+                    <span className="text-2xl">👀</span>
+                    <span>
+                      {language.data === "th"
+                        ? "คุณสามารถดูวิดีโอได้ แต่ไม่สามารถส่งงานได้อีกต่อไปเนื่องจากได้รับการตรวจแล้ว"
+                        : "You can watch the video, but you cannot submit anymore as it has been reviewed."}
+                    </span>
+                  </div>
+                )}
+              </>
+            )}
             <ul className="grid w-full gap-2">
               {assignment.files?.map((file, index) => {
                 const isImage = file.type.includes("image");
