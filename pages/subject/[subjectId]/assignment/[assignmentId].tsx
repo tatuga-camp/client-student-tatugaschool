@@ -509,19 +509,19 @@ function Index({
         <main className="flex h-max w-full flex-col gap-5 xl:w-7/12">
           <div className="w-full rounded-2xl bg-white p-3">
             <h1 className="mb-5 border-b text-xl">{assignment.title}</h1>
-            {assignment.type === "Assignment" ||
-              (assignment.type === "Material" && (
-                <div className={`my-5 h-screen`}>
-                  <TextEditor
-                    disabled={false}
-                    schoolId={assignment.schoolId}
-                    value={assignment.description}
-                    onChange={() => {}}
-                    menubar={false}
-                    toolbar={false}
-                  />
-                </div>
-              ))}
+            {(assignment.type === "Assignment" ||
+              assignment.type === "Material") && (
+              <div className={`my-5 h-screen`}>
+                <TextEditor
+                  disabled={false}
+                  schoolId={assignment.schoolId}
+                  value={assignment.description}
+                  onChange={() => {}}
+                  menubar={false}
+                  toolbar={false}
+                />
+              </div>
+            )}
             {assignment.type === "VideoQuiz" && assignment.videoURL && (
               <>
                 <StudentVideoPlayer
