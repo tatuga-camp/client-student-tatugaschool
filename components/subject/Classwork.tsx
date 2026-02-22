@@ -5,8 +5,9 @@ import ClassworkCard from "./ClassworkCard";
 
 type Props = {
   subjectId: string;
+  allowStudentViewScoreOnAssignment: boolean;
 };
-function Classwork({ subjectId }: Props) {
+function Classwork({ subjectId, allowStudentViewScoreOnAssignment }: Props) {
   const router = useRouter();
   const assignments = useGetAssignments({ subjectId });
   return (
@@ -18,6 +19,9 @@ function Classwork({ subjectId }: Props) {
           .map((classwork, index) => {
             return (
               <ClassworkCard
+                allowStudentViewScoreOnAssignment={
+                  allowStudentViewScoreOnAssignment
+                }
                 onSelect={(a) => {
                   router.push(`/subject/${subjectId}/assignment/${a.id}`);
                 }}

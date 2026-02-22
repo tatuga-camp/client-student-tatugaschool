@@ -20,12 +20,19 @@ type PropsClassworkCard = {
   };
   subjectId: string;
   onSelect: (classwork: Assignment) => void;
+  allowStudentViewScoreOnAssignment: boolean;
 };
-function ClassworkCard({ classwork, subjectId, onSelect }: PropsClassworkCard) {
+function ClassworkCard({
+  classwork,
+  subjectId,
+  onSelect,
+  allowStudentViewScoreOnAssignment,
+}: PropsClassworkCard) {
   return (
     <>
       {classwork.type === "Assignment" && (
         <AssignmentCard
+          allowStudentViewScoreOnAssignment={allowStudentViewScoreOnAssignment}
           subjectId={subjectId}
           onSelect={(a) => {
             onSelect(a);
@@ -46,6 +53,7 @@ function ClassworkCard({ classwork, subjectId, onSelect }: PropsClassworkCard) {
 
       {classwork.type === "VideoQuiz" && (
         <AssignmentVideoCard
+          allowStudentViewScoreOnAssignment={allowStudentViewScoreOnAssignment}
           subjectId={subjectId}
           assignment={classwork}
           onSelect={(a) => {
@@ -71,11 +79,13 @@ type PropsAssignmentCard = {
   };
   subjectId: string;
   onSelect: (classwork: Assignment) => void;
+  allowStudentViewScoreOnAssignment: boolean;
 };
 function AssignmentCard({
   assignment,
   subjectId,
   onSelect,
+  allowStudentViewScoreOnAssignment,
 }: PropsAssignmentCard) {
   const language = useGetLanguage();
   const handleColor = (status: StudentAssignmentStatus) => {
@@ -126,24 +136,26 @@ function AssignmentCard({
         {classworkCardDataLanguage.pubishAt(language.data ?? "en")} :{" "}
         {new Date(assignment.beginDate).toLocaleDateString(undefined)}
       </span>
-      <section className="flex w-full items-end justify-between">
-        <div>
-          <span className="text-4xl font-bold text-blue-700">
-            {score.toFixed(2)}
-          </span>
-          <span className="text-base font-medium text-gray-400">
-            / {assignment.weight ? assignment.weight : assignment.maxScore}{" "}
-            {classworkCardDataLanguage.yourscore(language.data ?? "en")}
-          </span>
-        </div>
-        {assignment.weight && (
-          <span className={`text-${color}-400`}>
-            {" "}
-            {assignment.weight}%{" "}
-            {classworkCardDataLanguage.weight(language.data ?? "en")}
-          </span>
-        )}
-      </section>
+      {allowStudentViewScoreOnAssignment && (
+        <section className="flex w-full items-end justify-between">
+          <div>
+            <span className="text-4xl font-bold text-blue-700">
+              {score.toFixed(2)}
+            </span>
+            <span className="text-base font-medium text-gray-400">
+              / {assignment.weight ? assignment.weight : assignment.maxScore}{" "}
+              {classworkCardDataLanguage.yourscore(language.data ?? "en")}
+            </span>
+          </div>
+          {assignment.weight && (
+            <span className={`text-${color}-400`}>
+              {" "}
+              {assignment.weight}%{" "}
+              {classworkCardDataLanguage.weight(language.data ?? "en")}
+            </span>
+          )}
+        </section>
+      )}
       {assignment.dueDate && (
         <section className="mt-5">
           <div className="rounded-full bg-red-100 p-2 text-red-700">
@@ -229,11 +241,13 @@ type PropsAssignmentVideoCard = {
   };
   subjectId: string;
   onSelect: (classwork: Assignment) => void;
+  allowStudentViewScoreOnAssignment: boolean;
 };
 function AssignmentVideoCard({
   assignment,
   subjectId,
   onSelect,
+  allowStudentViewScoreOnAssignment,
 }: PropsAssignmentVideoCard) {
   const language = useGetLanguage();
   const handleColor = (status: StudentAssignmentStatus) => {
@@ -280,24 +294,26 @@ function AssignmentVideoCard({
         {classworkCardDataLanguage.pubishAt(language.data ?? "en")} :{" "}
         {new Date(assignment.beginDate).toLocaleDateString(undefined)}
       </span>
-      <section className="flex w-full items-end justify-between">
-        <div>
-          <span className="text-4xl font-bold text-blue-700">
-            {score.toFixed(2)}
-          </span>
-          <span className="text-base font-medium text-gray-400">
-            / {assignment.weight ? assignment.weight : assignment.maxScore}{" "}
-            {classworkCardDataLanguage.yourscore(language.data ?? "en")}
-          </span>
-        </div>
-        {assignment.weight && (
-          <span className={`text-${color}-400`}>
-            {" "}
-            {assignment.weight}%{" "}
-            {classworkCardDataLanguage.weight(language.data ?? "en")}
-          </span>
-        )}
-      </section>
+      {allowStudentViewScoreOnAssignment && (
+        <section className="flex w-full items-end justify-between">
+          <div>
+            <span className="text-4xl font-bold text-blue-700">
+              {score.toFixed(2)}
+            </span>
+            <span className="text-base font-medium text-gray-400">
+              / {assignment.weight ? assignment.weight : assignment.maxScore}{" "}
+              {classworkCardDataLanguage.yourscore(language.data ?? "en")}
+            </span>
+          </div>
+          {assignment.weight && (
+            <span className={`text-${color}-400`}>
+              {" "}
+              {assignment.weight}%{" "}
+              {classworkCardDataLanguage.weight(language.data ?? "en")}
+            </span>
+          )}
+        </section>
+      )}
       {assignment.dueDate && (
         <section className="mt-5">
           <div className="rounded-full bg-red-100 p-2 text-red-700">

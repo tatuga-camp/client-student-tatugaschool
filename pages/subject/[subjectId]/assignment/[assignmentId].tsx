@@ -39,6 +39,7 @@ import {
   useGetAssignments,
   useGetFileStudentAssignment,
   useGetLanguage,
+  useGetSubjectById,
   useUpdateStudentOnAssignment,
 } from "../../../../react-query";
 import { timeAgo, timeLeft } from "../../../../utils";
@@ -102,6 +103,7 @@ function Index({
     url: string;
     fileOnAssignment: FileOnAssignment;
   } | null>(null);
+  const subject = useGetSubjectById({ id: subjectId });
 
   const assignment = useGetAssignments({ subjectId }).data?.find(
     (item) => item.id === assignmentId,
@@ -354,19 +356,21 @@ function Index({
               />
             </div>
           </li>
-          <li className="flex h-max items-center justify-start gap-1 border-b p-2">
-            <div className="w-40 font-semibold">Score :</div>
-            <div className="w-max max-w-40 text-2xl font-semibold">
-              {assignment.studentOnAssignment.score !== null ? (
-                <span>
-                  {assignment.studentOnAssignment.score.toFixed(2)} /{" "}
-                  {assignment.maxScore}{" "}
-                </span>
-              ) : (
-                "Not Graded"
-              )}
-            </div>
-          </li>
+          {(subject.data?.allowStudentViewScoreOnAssignment ?? true) && (
+            <li className="flex h-max items-center justify-start gap-1 border-b p-2">
+              <div className="w-40 font-semibold">Score :</div>
+              <div className="w-max max-w-40 text-2xl font-semibold">
+                {assignment.studentOnAssignment.score !== null ? (
+                  <span>
+                    {assignment.studentOnAssignment.score.toFixed(2)} /{" "}
+                    {assignment.maxScore}{" "}
+                  </span>
+                ) : (
+                  "Not Graded"
+                )}
+              </div>
+            </li>
+          )}
 
           {assignment.studentOnAssignment.completedAt && (
             <li className="flex h-max items-center justify-start gap-1 border-b p-2">

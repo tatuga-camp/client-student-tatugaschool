@@ -101,7 +101,14 @@ function Index({ subjectId }: { subjectId: string }) {
                 })}
             </ul>
           )}
-          {selectMenu === "Classwork" && <Classwork subjectId={subjectId} />}
+          {selectMenu === "Classwork" && (
+            <Classwork
+              allowStudentViewScoreOnAssignment={
+                subject.data?.allowStudentViewScoreOnAssignment ?? true
+              }
+              subjectId={subjectId}
+            />
+          )}
           {selectMenu === "Attendance" && student.data && (
             <Attendance subjectId={subjectId} studentId={student.data.id} />
           )}
