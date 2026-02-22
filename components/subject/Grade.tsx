@@ -121,6 +121,7 @@ function Grade({ subjectId, studentId }: Props) {
           {overview.data?.assignments.map((a) => {
             return (
               <ClassworkCard
+                allowStudentViewScoreOnAssignment={true}
                 key={a.assignment.id}
                 subjectId={subjectId}
                 onSelect={() => {}}
