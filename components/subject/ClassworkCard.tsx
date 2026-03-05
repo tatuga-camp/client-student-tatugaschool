@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BiBook } from "react-icons/bi";
+import { BiBook, BiLock } from "react-icons/bi";
 import { MdAssignment, MdVideoLibrary } from "react-icons/md";
 import { classworkCardDataLanguage } from "../../data/language";
 import {
@@ -21,17 +21,20 @@ type PropsClassworkCard = {
   subjectId: string;
   onSelect: (classwork: Assignment) => void;
   allowStudentViewScoreOnAssignment: boolean;
+  locked?: boolean;
 };
 function ClassworkCard({
   classwork,
   subjectId,
   onSelect,
   allowStudentViewScoreOnAssignment,
+  locked,
 }: PropsClassworkCard) {
   return (
     <>
       {classwork.type === "Assignment" && (
         <AssignmentCard
+          locked={locked}
           allowStudentViewScoreOnAssignment={allowStudentViewScoreOnAssignment}
           subjectId={subjectId}
           onSelect={(a) => {
@@ -43,6 +46,7 @@ function ClassworkCard({
 
       {classwork.type === "Material" && (
         <MaterialCard
+          locked={locked}
           subjectId={subjectId}
           material={classwork}
           onSelect={(a) => {
@@ -53,6 +57,7 @@ function ClassworkCard({
 
       {classwork.type === "VideoQuiz" && (
         <AssignmentVideoCard
+          locked={locked}
           allowStudentViewScoreOnAssignment={allowStudentViewScoreOnAssignment}
           subjectId={subjectId}
           assignment={classwork}
@@ -80,12 +85,14 @@ type PropsAssignmentCard = {
   subjectId: string;
   onSelect: (classwork: Assignment) => void;
   allowStudentViewScoreOnAssignment: boolean;
+  locked?: boolean;
 };
 function AssignmentCard({
   assignment,
   subjectId,
   onSelect,
   allowStudentViewScoreOnAssignment,
+  locked,
 }: PropsAssignmentCard) {
   const language = useGetLanguage();
   const handleColor = (status: StudentAssignmentStatus) => {
@@ -108,12 +115,20 @@ function AssignmentCard({
 
   return (
     <button
+      disabled={locked}
       onClick={() => {
         onSelect(assignment);
       }}
-      className={`h-max min-h-40 w-full rounded-xl bg-white p-5 ring-1 ring-${color}-200`}
+      className={`relative h-max min-h-40 w-full rounded-xl bg-white p-5 ring-1 ring-${color}-200 ${
+        locked ? "cursor-not-allowed opacity-50" : ""
+      }`}
       key={assignment.id}
     >
+      {locked && (
+        <div className="absolute right-5 top-5 text-2xl text-gray-500">
+          <BiLock />
+        </div>
+      )}
       <section className="flex w-full justify-between">
         <div
           className={`flex h-14 w-14 items-center justify-center rounded-full bg-${color}-100 text-2xl text-${color}-500`}
@@ -178,15 +193,29 @@ type PropsMaterialCard = {
   };
   subjectId: string;
   onSelect: (material: Assignment) => void;
+  locked?: boolean;
 };
-function MaterialCard({ material, subjectId, onSelect }: PropsMaterialCard) {
+function MaterialCard({
+  material,
+  subjectId,
+  onSelect,
+  locked,
+}: PropsMaterialCard) {
   const language = useGetLanguage();
   return (
     <button
+      disabled={locked}
       onClick={() => onSelect(material)}
-      className="h-max min-h-40 w-full rounded-xl bg-white p-5 ring-1 ring-blue-200"
+      className={`relative h-max min-h-40 w-full rounded-xl bg-white p-5 ring-1 ring-blue-200 ${
+        locked ? "cursor-not-allowed opacity-50" : ""
+      }`}
       key={material.id}
     >
+      {locked && (
+        <div className="absolute right-5 top-5 text-2xl text-gray-500">
+          <BiLock />
+        </div>
+      )}
       <section className="flex w-full justify-between">
         <div className="flex h-14 w-14 items-center justify-center rounded-full bg-blue-100 text-2xl text-blue-500">
           <BiBook />
@@ -242,12 +271,14 @@ type PropsAssignmentVideoCard = {
   subjectId: string;
   onSelect: (classwork: Assignment) => void;
   allowStudentViewScoreOnAssignment: boolean;
+  locked?: boolean;
 };
 function AssignmentVideoCard({
   assignment,
   subjectId,
   onSelect,
   allowStudentViewScoreOnAssignment,
+  locked,
 }: PropsAssignmentVideoCard) {
   const language = useGetLanguage();
   const handleColor = (status: StudentAssignmentStatus) => {
@@ -270,12 +301,20 @@ function AssignmentVideoCard({
 
   return (
     <button
+      disabled={locked}
       onClick={() => {
         onSelect(assignment);
       }}
-      className={`h-max min-h-40 w-full rounded-xl bg-white p-5 ring-1 ring-${color}-200`}
+      className={`relative h-max min-h-40 w-full rounded-xl bg-white p-5 ring-1 ring-${color}-200 ${
+        locked ? "cursor-not-allowed opacity-50" : ""
+      }`}
       key={assignment.id}
     >
+      {locked && (
+        <div className="absolute right-5 top-5 text-2xl text-gray-500">
+          <BiLock />
+        </div>
+      )}
       <section className="flex w-full justify-between">
         <div
           className={`flex h-14 w-14 items-center justify-center rounded-full bg-${color}-100 text-2xl text-${color}-500`}
