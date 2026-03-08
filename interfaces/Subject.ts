@@ -21,3 +21,4 @@ export interface Subject {
   allowStudentDoneAssignmentInOrder?: boolean;
   isLocked: boolean;
 }
+export type EducationYear = `${string}/${string}`;

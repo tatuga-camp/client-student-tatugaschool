@@ -33,7 +33,7 @@ import {
   qrcodeAttendanceLanguage,
   qrcodeMenuBarLanguage,
   requestDataLanguage,
-} from "../../data/language";
+} from "../../data/languages";
 import LanguageSelect from "../../components/LanguageSelect";
 import PopupLayout from "../../components/layouts/PopupLayout";
 import SignInStudentForm from "../../components/student/SignInStudentForm";

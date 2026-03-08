@@ -8,7 +8,7 @@ import Footer from "../components/Footer";
 import LanguageSelect from "../components/LanguageSelect";
 import { defaultCanvas } from "../data";
 import { useGetLanguage } from "../react-query";
-import { welcomeDataLanguage } from "../data/language";
+import { welcomeDataLanguage } from "../data/languages";
 
 function Welcome() {
   const [code, setCode] = React.useState("");

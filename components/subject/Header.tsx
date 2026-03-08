@@ -4,7 +4,7 @@ import Image from "next/image";
 import { decodeBlurhashToCanvas } from "../../utils";
 import { defaultBlurHash } from "../../data";
 import { useGetLanguage } from "../../react-query";
-import { subjectDataLanguage } from "../../data/language";
+import { subjectDataLanguage } from "../../data/languages";
 
 type Props = {
   subject: Subject;

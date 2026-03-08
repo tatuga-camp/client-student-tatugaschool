@@ -9,7 +9,7 @@ import {
   useGetSubjectByCode,
 } from "../react-query";
 import Link from "next/link";
-import { sidebarDataLanguage } from "../data/language";
+import { sidebarDataLanguage } from "../data/languages";
 
 type Props = {
   active: boolean;

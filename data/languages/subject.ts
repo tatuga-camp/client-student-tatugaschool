@@ -101,6 +101,66 @@ export const subjectDataLanguage = {
         return "If you forget your password, please contact your teacher.";
     }
   },
+  whoAreYou: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "Who are you?";
+      case "th":
+        return "คุณคือใคร?";
+      default:
+        return "Who are you?";
+    }
+  },
+  typeYourName: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "Type your name or number above to find yourself!";
+      case "th":
+        return "พิมพ์ชื่อหรือเลขที่ของคุณด้านบนเพื่อค้นหา!";
+      default:
+        return "Type your name or number above to find yourself!";
+    }
+  },
+  keepTyping: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "Keep typing...";
+      case "th":
+        return "พิมพ์ต่อไป...";
+      default:
+        return "Keep typing...";
+    }
+  },
+  typeMoreThan3: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "Please type more than 3 characters to search!";
+      case "th":
+        return "กรุณาพิมพ์มากกว่า 3 ตัวอักษรเพื่อค้นหา!";
+      default:
+        return "Please type more than 3 characters to search!";
+    }
+  },
+  noStudentsFound: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "No students found";
+      case "th":
+        return "ไม่พบรายชื่อนักเรียน";
+      default:
+        return "No students found";
+    }
+  },
+  checkSpelling: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "Try checking your spelling!";
+      case "th":
+        return "ลองตรวจสอบการสะกดคำของคุณดูนะ!";
+      default:
+        return "Try checking your spelling!";
+    }
+  },
 } as const;
 
 export const menuSubjectDataLanguage = {

@@ -1,13 +1,5 @@
-import Image from "next/image";
-import Link from "next/link";
-import React from "react";
-import { IoMenu } from "react-icons/io5";
-import { defaultCanvas } from "../data";
-import { useGetSubjectByCode, useGetSubjectById } from "../react-query";
-import Sidebar from "./Sidebar";
-import useClickOutside from "../hook/useClickOutside";
-import { useRouter } from "next/router";
 import { UseQueryResult } from "@tanstack/react-query";
+import React from "react";
 import { Student, Subject } from "../interfaces";
 import ButtonProfile from "./ButtonProfile";
 import LanguageSelect from "./LanguageSelect";

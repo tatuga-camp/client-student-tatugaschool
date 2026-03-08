@@ -1,27 +1,33 @@
 import { GetServerSideProps } from "next";
 import Head from "next/head";
 import React, { useEffect } from "react";
-import { useGetStudent, useUpdateStudent } from "../../react-query";
-import Layout from "../../components/layouts/Layout";
-import InputWithIcon from "../../components/common/InputWithIcon";
+import {
+  useGetLanguage,
+  useGetStudent,
+  useUpdateStudent,
+} from "../../../react-query";
+import Layout from "../../../components/layouts/Layout";
+import InputWithIcon from "../../../components/common/InputWithIcon";
 import { MdFamilyRestroom, MdOutlineSubtitles } from "react-icons/md";
 import { IoPerson } from "react-icons/io5";
 import Image from "next/image";
-import Password from "../../components/common/Password";
+import Password from "../../../components/common/Password";
 import Swal from "sweetalert2";
-import { ErrorMessages } from "../../interfaces";
+import { ErrorMessages } from "../../../interfaces";
 import {
   getSignedURLStudentService,
   UploadSignURLService,
-} from "../../services";
-import LoadingBar from "../../components/common/LoadingBar";
-import { generateBlurHash } from "../../utils";
-import LoadingSpinner from "../../components/common/LoadingSpinner";
+} from "../../../services";
+import LoadingBar from "../../../components/common/LoadingBar";
+import { generateBlurHash } from "../../../utils";
+import LoadingSpinner from "../../../components/common/LoadingSpinner";
 import { Toast } from "primereact/toast";
+import { studentDataLanguage } from "../../../data/languages";
 
 function Index(subjectId: { subjectId: string }) {
   const student = useGetStudent();
   const update = useUpdateStudent();
+  const language = useGetLanguage();
   const toast = React.useRef<Toast>(null);
   const [loading, setLoading] = React.useState(false);
   const [data, setData] = React.useState<{
@@ -56,7 +62,9 @@ function Index(subjectId: { subjectId: string }) {
       <Layout>
         <main className="flex w-7/12 flex-col">
           <div className="flex w-full items-center justify-center gap-5">
-            <h1 className="text-2xl font-bold">Student not found</h1>
+            <h1 className="text-2xl font-bold">
+              {studentDataLanguage.studentNotFound(language.data ?? "en")}
+            </h1>
           </div>
         </main>
       </Layout>
@@ -91,7 +99,9 @@ function Index(subjectId: { subjectId: string }) {
       let result = error as ErrorMessages;
       console.error(error);
       Swal.fire({
-        title: result?.error ? result?.error : "Something Went Wrong",
+        title: result?.error
+          ? result?.error
+          : studentDataLanguage.somethingWentWrong(language.data ?? "en"),
         text: result?.message?.toString(),
         footer: result?.statusCode
           ? "Code Error: " + result?.statusCode?.toString()
@@ -105,7 +115,9 @@ function Index(subjectId: { subjectId: string }) {
     try {
       e.preventDefault();
       if (data.password !== data.confirmPassword) {
-        throw new Error("Password and Confirm Password not match");
+        throw new Error(
+          studentDataLanguage.passwordNotMatch(language.data ?? "en"),
+        );
       }
 
       if (data.photo === student.data.photo) {
@@ -127,15 +139,17 @@ function Index(subjectId: { subjectId: string }) {
 
       toast.current?.show({
         severity: "success",
-        summary: "Success",
-        detail: "Student Updated",
+        summary: studentDataLanguage.success(language.data ?? "en"),
+        detail: studentDataLanguage.studentUpdated(language.data ?? "en"),
         life: 3000,
       });
     } catch (error) {
       let result = error as ErrorMessages;
       console.error(error);
       Swal.fire({
-        title: result?.error ? result?.error : "Something Went Wrong",
+        title: result?.error
+          ? result?.error
+          : studentDataLanguage.somethingWentWrong(language.data ?? "en"),
         text: result?.message?.toString(),
         footer: result?.statusCode
           ? "Code Error: " + result?.statusCode?.toString()
@@ -158,14 +172,16 @@ function Index(subjectId: { subjectId: string }) {
           onSubmit={handleSubmit}
           className="relative mt-20 flex h-max w-full flex-col rounded-2xl border bg-white p-5 md:-top-10 lg:w-7/12"
         >
-          <h1 className="py-5 text-lg font-medium">Student Information</h1>
+          <h1 className="py-5 text-lg font-medium">
+            {studentDataLanguage.studentInformation(language.data ?? "en")}
+          </h1>
           <div className="flex flex-col gap-5">
             <InputWithIcon
               required
               value={data?.title}
-              title="Title"
+              title={studentDataLanguage.title(language.data ?? "en")}
               minLength={1}
-              placeholder="Title"
+              placeholder={studentDataLanguage.title(language.data ?? "en")}
               onChange={(value) => {
                 setData((prev) => {
                   return { ...prev, title: value };
@@ -177,9 +193,11 @@ function Index(subjectId: { subjectId: string }) {
               <InputWithIcon
                 value={data?.firstName}
                 required
-                title="First Name"
+                title={studentDataLanguage.firstName(language.data ?? "en")}
                 minLength={1}
-                placeholder="First Name"
+                placeholder={studentDataLanguage.firstName(
+                  language.data ?? "en",
+                )}
                 onChange={(value) => {
                   setData((prev) => {
                     return { ...prev, firstName: value };
@@ -190,9 +208,11 @@ function Index(subjectId: { subjectId: string }) {
               <InputWithIcon
                 value={data?.lastName}
                 required
-                title="Last Name"
+                title={studentDataLanguage.lastName(language.data ?? "en")}
                 minLength={1}
-                placeholder="Last Name"
+                placeholder={studentDataLanguage.lastName(
+                  language.data ?? "en",
+                )}
                 onChange={(value) => {
                   setData((prev) => {
                     return { ...prev, lastName: value };
@@ -203,7 +223,7 @@ function Index(subjectId: { subjectId: string }) {
             </div>
           </div>
           <div className="mb-2 mt-10 text-sm">
-            Upload Student Image (Optional)
+            {studentDataLanguage.uploadImage(language.data ?? "en")}
           </div>
           <label
             htmlFor="dropzone-file"
@@ -237,11 +257,13 @@ function Index(subjectId: { subjectId: string }) {
                   />
                 </svg>
                 <p className="mb-2 text-sm text-gray-500">
-                  <span className="font-semibold">Click to upload</span> or drag
-                  and drop
+                  <span className="font-semibold">
+                    {studentDataLanguage.clickToUpload(language.data ?? "en")}
+                  </span>{" "}
+                  {studentDataLanguage.orDragAndDrop(language.data ?? "en")}
                 </p>
                 <p className="text-xs text-gray-500">
-                  PNG, JPG or GIF (MAX. 800x400px)
+                  {studentDataLanguage.imageFormat(language.data ?? "en")}
                 </p>
               </div>
             )}
@@ -256,16 +278,20 @@ function Index(subjectId: { subjectId: string }) {
           </label>
           {loading && <LoadingBar />}
 
-          <h1 className="mt-5 text-lg font-medium">Update Password</h1>
+          <h1 className="mt-5 text-lg font-medium">
+            {studentDataLanguage.updatePassword(language.data ?? "en")}
+          </h1>
           <span className="text-sm text-gray-500">
-            Leave it blank if you don&apos;t want to update your password
+            {studentDataLanguage.leaveBlank(language.data ?? "en")}
           </span>
 
-          <label className="flex flex-col gap-1">
-            <span>Enter New Password</span>
+          <label className="mt-10 flex flex-col gap-1">
+            <span>
+              {studentDataLanguage.enterNewPassword(language.data ?? "en")}
+            </span>
             <Password
               required={!!data.confirmPassword}
-              placeholder="Password"
+              placeholder={studentDataLanguage.password(language.data ?? "en")}
               toggleMask={true}
               value={data.password}
               onChange={(value) => {
@@ -276,10 +302,14 @@ function Index(subjectId: { subjectId: string }) {
             />
           </label>
           <label className="flex flex-col gap-1">
-            <span>Enter New Confirm Password</span>
+            <span>
+              {studentDataLanguage.enterConfirmPassword(language.data ?? "en")}
+            </span>
             <Password
               required={!!data.password}
-              placeholder="Confirm Password"
+              placeholder={studentDataLanguage.confirmPassword(
+                language.data ?? "en",
+              )}
               toggleMask={true}
               value={data.confirmPassword}
               onChange={(value) => {
@@ -295,7 +325,11 @@ function Index(subjectId: { subjectId: string }) {
             type="submit"
             className="main-button mt-5 flex w-40 items-center justify-center rounded-2xl py-2 text-white"
           >
-            {update.isPending ? <LoadingSpinner /> : "Update"}
+            {update.isPending ? (
+              <LoadingSpinner />
+            ) : (
+              studentDataLanguage.update(language.data ?? "en")
+            )}
           </button>
         </form>
       </Layout>

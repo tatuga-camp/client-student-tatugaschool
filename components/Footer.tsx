@@ -1,20 +1,20 @@
 import React from "react";
-import { footerDataLanguage } from "../data/language";
+import { footerDataLanguage } from "../data/languages";
 import { useGetLanguage } from "../react-query";
 
 function Footer() {
   const language = useGetLanguage();
   return (
-    <section className="flex mt-5 items-center flex-col">
-      <span className="text-white font-medium text-sm">
+    <section className="mt-5 flex flex-col items-center">
+      <span className="text-sm font-medium text-white">
         {footerDataLanguage.title(language.data ?? "en")}
       </span>
-      <p className="text-white text-center font-light text-sm">
+      <p className="text-center text-sm font-light text-white">
         {footerDataLanguage.description(language.data ?? "en")}
       </p>
       <a
         href="https://tatugacamp.com"
-        className="text-white font-light text-sm"
+        className="text-sm font-light text-white"
       >
         {footerDataLanguage.coppyright(language.data ?? "en")}
       </a>

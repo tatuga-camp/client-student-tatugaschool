@@ -7,7 +7,7 @@ import Layout from "../../../components/layouts/Layout";
 import Attendance from "../../../components/subject/Attendance";
 import Classwork from "../../../components/subject/Classwork";
 import Grade from "../../../components/subject/Grade";
-import { menuSubjectDataLanguage } from "../../../data/language";
+import { menuSubjectDataLanguage } from "../../../data/languages";
 import {
   useGetLanguage,
   useGetStudent,

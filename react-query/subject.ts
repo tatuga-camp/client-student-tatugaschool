@@ -2,7 +2,9 @@ import { useQuery } from "@tanstack/react-query";
 import {
   GetSubjectByCodeService,
   GetSubjectByIdService,
+  GetSubjectFromStudentService,
   RequestGetSubjectByIdService,
+  RequestGetSubjectFromStudentService,
   ResponseGetSubjectByCodeService,
 } from "../services";
 
@@ -11,7 +13,7 @@ export function useGetSubjectByCode(
   option?: {
     initialData?: ResponseGetSubjectByCodeService | undefined;
     enable?: boolean | undefined;
-  }
+  },
 ) {
   return useQuery({
     queryKey: ["subject", code],
@@ -28,5 +30,14 @@ export function useGetSubjectById({ id }: { id: string }) {
       GetSubjectByIdService({
         subjectId: id,
       }),
+  });
+}
+
+export function useGetSubjectByStudent(
+  request: RequestGetSubjectFromStudentService,
+) {
+  return useQuery({
+    queryKey: ["subjects", request],
+    queryFn: () => GetSubjectFromStudentService(request),
   });
 }

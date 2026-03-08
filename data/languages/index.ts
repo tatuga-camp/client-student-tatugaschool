@@ -6,3 +6,4 @@ export * from "./classworks";
 export * from "./classwork";
 export * from "./sidebar";
 export * from "./qr-code";
+export * from "./student";

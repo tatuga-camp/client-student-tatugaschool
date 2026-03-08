@@ -32,7 +32,7 @@ export async function GetSubjectByCodeService(
   }
 }
 
-type RequestGetSubjectFromStudentService = {
+export type RequestGetSubjectFromStudentService = {
   studentId: string;
   educationYear: string;
 };

@@ -1,6 +1,6 @@
 import React, { LegacyRef } from "react";
 import { IoMdClose } from "react-icons/io";
-import { subjectDataLanguage } from "../../data/language";
+import { subjectDataLanguage } from "../../data/languages";
 import { useGetLanguage } from "../../react-query";
 import Password from "../common/Password";
 import SpinLoading from "../common/SpinLoading";

@@ -38,7 +38,7 @@ function ListStudent<
           />
         </div>
         <div>
-          <h1 className="max-w-32 truncate text-sm font-semibold md:max-w-max">
+          <h1 className="max-w-28 truncate text-sm font-semibold md:max-w-max">
             {student.firstName} {student.lastName}{" "}
           </h1>
           <p className="text-xs text-gray-500">

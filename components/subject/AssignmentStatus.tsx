@@ -1,7 +1,7 @@
 import React from "react";
 import { StudentAssignmentStatus } from "../../interfaces";
 import { useGetLanguage } from "../../react-query";
-import { classworkCardDataLanguage } from "../../data/language";
+import { classworkCardDataLanguage } from "../../data/languages";
 
 type Props = {
   status: StudentAssignmentStatus;

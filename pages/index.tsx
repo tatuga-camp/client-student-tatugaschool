@@ -12,7 +12,7 @@ import PopupLayout from "../components/layouts/PopupLayout";
 import ListStudent from "../components/student/ListStudent";
 import SignInStudentForm from "../components/student/SignInStudentForm";
 import { defaultCanvas } from "../data";
-import { requestDataLanguage, subjectDataLanguage } from "../data/language";
+import { requestDataLanguage, subjectDataLanguage } from "../data/languages";
 import { ErrorMessages, StudentOnSubject, SubjectQuery } from "../interfaces";
 import { useGetLanguage, useGetSubjectByCode, useSignIn } from "../react-query";
 import {
@@ -75,7 +75,7 @@ function Index({ subjectData, code, error }: IndexProps) {
 
   useEffect(() => {
     if (subject.data) {
-      setStudents(subject.data.studentOnSubjects);
+      setStudents([]);
       setLocalStorage("subject_id", subject.data.id);
     }
   }, [subject.status]);
@@ -83,18 +83,22 @@ function Index({ subjectData, code, error }: IndexProps) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
     if (subject.data) {
-      setStudents(
-        subject.data.studentOnSubjects.filter(
-          (student) =>
-            student.firstName
-              .toLowerCase()
-              .includes(e.target.value.toLowerCase()) ||
-            student.lastName
-              .toLowerCase()
-              .includes(e.target.value.toLowerCase()) ||
-            student.number.toString().includes(e.target.value),
-        ),
-      );
+      if (e.target.value.trim().length <= 3) {
+        setStudents([]);
+      } else {
+        setStudents(
+          subject.data.studentOnSubjects.filter(
+            (student) =>
+              student.firstName
+                .toLowerCase()
+                .includes(e.target.value.toLowerCase()) ||
+              student.lastName
+                .toLowerCase()
+                .includes(e.target.value.toLowerCase()) ||
+              student.number.toString().includes(e.target.value),
+          ),
+        );
+      }
     }
   };
 
@@ -188,18 +192,20 @@ function Index({ subjectData, code, error }: IndexProps) {
       )}
 
       <HomepageLayout subject={subject}>
-        <main className="rounded-2xl96 w-full rounded-2xl bg-white p-3 py-4 xl:w-8/12">
-          <div className="flex flex-col justify-between border-b pb-2 md:flex-row">
-            <div>
-              <h2 className="text-xl font-semibold leading-4">
-                {subjectDataLanguage.choose(language.data ?? "en")}
-              </h2>
-              <span className="text-sm text-gray-500">
-                {subjectDataLanguage.joinDescription(language.data ?? "en")}
-              </span>
-            </div>
-            <div className="relative px-6">
-              <FaSearch className="absolute left-9 top-3 text-gray-400" />
+        <main className="w-full max-w-3xl overflow-hidden rounded-3xl border-2 border-pink-100 bg-white shadow-xl xl:w-8/12">
+          <div className="bg-gradient-to-r from-pink-400 via-purple-400 to-indigo-400 p-6 text-white shadow-sm">
+            <h2 className="flex items-center gap-2 text-2xl font-bold tracking-wide">
+              ✨ {subjectDataLanguage.choose(language.data ?? "en")}
+            </h2>
+            <p className="mt-1 text-white/90">
+              {subjectDataLanguage.joinDescription(language.data ?? "en")}
+            </p>
+          </div>
+          <div className="p-4 md:p-6">
+            <div className="relative mb-4 md:mb-6">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                <FaSearch className="text-pink-400" />
+              </div>
               <input
                 value={search}
                 onChange={handleChange}
@@ -207,32 +213,66 @@ function Index({ subjectData, code, error }: IndexProps) {
                 placeholder={subjectDataLanguage.searchPlaceholder(
                   language.data ?? "en",
                 )}
-                className="w-full rounded-2xl border border-gray-300 py-2 pl-10 pr-4 focus:outline-none focus:ring-2 focus:ring-primary-color-focus md:w-96"
+                className="w-full rounded-full border-2 border-pink-200 bg-pink-50 py-3 pl-12 pr-6 text-gray-700 transition-all focus:border-pink-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-pink-100"
               />
             </div>
+
+            {search.trim() === "" ? (
+              <div className="flex flex-col items-center justify-center py-10 text-gray-400">
+                <div className="mb-3 text-6xl">🙈</div>
+                <p className="text-xl font-medium text-pink-400">
+                  {subjectDataLanguage.whoAreYou(language.data ?? "en")}
+                </p>
+                <p className="mt-1 text-center text-sm">
+                  {subjectDataLanguage.typeYourName(language.data ?? "en")}
+                </p>
+              </div>
+            ) : search.trim().length <= 3 ? (
+              <div className="flex flex-col items-center justify-center py-10 text-gray-400">
+                <div className="mb-3 text-6xl">⌨️</div>
+                <p className="text-xl font-medium text-pink-400">
+                  {subjectDataLanguage.keepTyping(language.data ?? "en")}
+                </p>
+                <p className="mt-1 text-center text-sm">
+                  {subjectDataLanguage.typeMoreThan3(language.data ?? "en")}
+                </p>
+              </div>
+            ) : students && students.length > 0 ? (
+              <ul className="grid max-h-96 grid-cols-1 gap-1 overflow-y-auto rounded-2xl pr-2">
+                {students
+                  ?.sort((a, b) => Number(a.number) - Number(b.number))
+                  .slice(0, 3)
+                  .map((student, index) => {
+                    const odd = index % 2 === 0;
+                    return (
+                      <ListStudent
+                        key={index}
+                        odd={odd}
+                        student={student}
+                        buttonText={subjectDataLanguage.buttonJoin(
+                          language.data ?? "en",
+                        )}
+                        onClick={(data) => {
+                          handleSignIn({
+                            studentId: data.studentId,
+                          });
+                        }}
+                      />
+                    );
+                  })}
+              </ul>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-10 text-gray-400">
+                <div className="mb-3 text-6xl">🥺</div>
+                <p className="text-xl font-medium text-purple-400">
+                  {subjectDataLanguage.noStudentsFound(language.data ?? "en")}
+                </p>
+                <p className="mt-1 text-sm">
+                  {subjectDataLanguage.checkSpelling(language.data ?? "en")}
+                </p>
+              </div>
+            )}
           </div>
-          <ul className="grid max-h-96 grid-cols-1 overflow-y-auto p-3">
-            {students
-              ?.sort((a, b) => Number(a.number) - Number(b.number))
-              .map((student, index) => {
-                const odd = index % 2 === 0;
-                return (
-                  <ListStudent
-                    key={index}
-                    odd={odd}
-                    student={student}
-                    buttonText={subjectDataLanguage.buttonJoin(
-                      language.data ?? "en",
-                    )}
-                    onClick={(data) => {
-                      handleSignIn({
-                        studentId: data.studentId,
-                      });
-                    }}
-                  />
-                );
-              })}
-          </ul>
         </main>
       </HomepageLayout>
     </>

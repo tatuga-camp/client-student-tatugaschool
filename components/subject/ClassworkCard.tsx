@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { BiBook, BiLock } from "react-icons/bi";
 import { MdAssignment, MdVideoLibrary } from "react-icons/md";
-import { classworkCardDataLanguage } from "../../data/language";
+import { classworkCardDataLanguage } from "../../data/languages";
 import {
   Assignment,
   FileOnAssignment,

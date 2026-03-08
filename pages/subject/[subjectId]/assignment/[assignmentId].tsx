@@ -25,7 +25,7 @@ import AssignmentText from "../../../../components/subject/AssignmentText";
 import AssignmentUploadFile from "../../../../components/subject/AssignmentUploadFile";
 import CommentSection from "../../../../components/subject/CommentSection";
 import FileStudentAssignmentCard from "../../../../components/subject/FileStudentAssignmentCard";
-import { classworkDataLanguage } from "../../../../data/language";
+import { classworkDataLanguage } from "../../../../data/languages";
 import useClickOutside from "../../../../hook/useClickOutside";
 import useAdjustPosition from "../../../../hook/useWindow";
 import {

@@ -3,7 +3,12 @@ import type { ReactNode } from "react";
 import React, { useEffect } from "react";
 import { FaBookOpen, FaHome } from "react-icons/fa";
 import useClickOutside from "../../hook/useClickOutside";
-import { useGetStudent, useGetSubjectById } from "../../react-query";
+import {
+  useGetLanguage,
+  useGetStudent,
+  useGetSubjectById,
+} from "../../react-query";
+import { sidebarDataLanguage } from "../../data/languages";
 import Navbar from "../Navbar";
 
 import Image from "next/image";
@@ -12,6 +17,7 @@ import { decodeBlurhashToCanvas } from "../../utils";
 import Footbar from "../Footbar";
 import Header from "../subject/Header";
 import TeacherList from "../subject/TeacherList";
+import { MdSubject } from "react-icons/md";
 
 type LayoutProps = {
   children: ReactNode;
@@ -27,7 +33,7 @@ function Layout({ children, listData, subjectId }: LayoutProps) {
     setTrigger(false);
   });
   const router = useRouter();
-
+  const language = useGetLanguage();
   const subject = useGetSubjectById({ id: subjectId ?? "" });
   const student = useGetStudent();
 
@@ -38,7 +44,7 @@ function Layout({ children, listData, subjectId }: LayoutProps) {
   }, [subject.data]);
   return (
     <div className="relative flex min-h-dvh flex-col">
-      <div className="absolute top-3 z-50 w-full px-3">
+      <div className="absolute top-3 z-50 h-max w-full px-3">
         <Navbar
           subject={subject}
           student={student.data}
@@ -55,7 +61,7 @@ function Layout({ children, listData, subjectId }: LayoutProps) {
           }}
           menuList={[
             {
-              title: "Student",
+              title: sidebarDataLanguage.profile(language.data ?? "th"),
               icon: (
                 <div className="relative h-7 w-7 overflow-hidden rounded-full ring-1 ring-orange-400">
                   <Image
@@ -72,17 +78,16 @@ function Layout({ children, listData, subjectId }: LayoutProps) {
               ),
               url: `/student/${student.data.id}?subject_id=${subject.data.id}`,
             },
-
             {
-              title: "Subject",
-              icon: <FaBookOpen />,
+              title: sidebarDataLanguage.homepage(language.data ?? "th"),
+              icon: <FaHome />,
               url: `/subject/${subject.data.id}`,
             },
-
             {
-              title: "Home",
-              icon: <FaHome />,
-              url: `/`,
+              title: sidebarDataLanguage.subject(language.data ?? "th"),
+              icon: <MdSubject />,
+
+              url: `/student/${student.data.id}/subjects?subject_id=${subject.data.id}`,
             },
           ]}
         />
