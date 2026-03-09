@@ -12,7 +12,7 @@ type Props = {
 function TeacherList({ teachers }: Props) {
   const language = useGetLanguage();
   return (
-    <div className="h-max w-full rounded-none p-2 md:rounded-2xl md:border">
+    <div className="h-max w-full rounded-none bg-white p-2 md:rounded-2xl md:border">
       <h2 className="p-2 text-xl font-semibold text-primary-color">
         {subjectDataLanguage.teacher(language.data ?? "en")}
       </h2>

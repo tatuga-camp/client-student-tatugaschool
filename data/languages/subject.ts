@@ -134,11 +134,11 @@ export const subjectDataLanguage = {
   typeMoreThan3: (language: Language) => {
     switch (language) {
       case "en":
-        return "Please type more than 3 characters to search!";
+        return "Please type more than 2 characters to search!";
       case "th":
-        return "กรุณาพิมพ์มากกว่า 3 ตัวอักษรเพื่อค้นหา!";
+        return "กรุณาพิมพ์มากกว่า 2 ตัวอักษรเพื่อค้นหา!";
       default:
-        return "Please type more than 3 characters to search!";
+        return "Please type more than 2 characters to search!";
     }
   },
   noStudentsFound: (language: Language) => {

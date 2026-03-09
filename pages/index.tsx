@@ -75,7 +75,11 @@ function Index({ subjectData, code, error }: IndexProps) {
 
   useEffect(() => {
     if (subject.data) {
-      setStudents([]);
+      if (subject.data.allowHideStudentList) {
+        setStudents([]);
+      } else {
+        setStudents(subject.data.studentOnSubjects);
+      }
       setLocalStorage("subject_id", subject.data.id);
     }
   }, [subject.status]);
@@ -83,19 +87,34 @@ function Index({ subjectData, code, error }: IndexProps) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
     if (subject.data) {
-      if (e.target.value.trim().length <= 3) {
+      if (
+        subject.data.allowHideStudentList &&
+        e.target.value.trim().length <= 2
+      ) {
         setStudents([]);
+      } else if (
+        !subject.data.allowHideStudentList &&
+        e.target.value.trim() === ""
+      ) {
+        setStudents(subject.data.studentOnSubjects);
       } else {
         setStudents(
           subject.data.studentOnSubjects.filter(
             (student) =>
               student.firstName
                 .toLowerCase()
-                .includes(e.target.value.toLowerCase()) ||
+                .includes(e.target.value.toLowerCase().trim()) ||
               student.lastName
                 .toLowerCase()
-                .includes(e.target.value.toLowerCase()) ||
-              student.number.toString().includes(e.target.value),
+                .includes(e.target.value.toLowerCase().trim()) ||
+              `${student.firstName} ${student.lastName}`
+                .toLowerCase()
+                .includes(e.target.value.toLowerCase().trim()) ||
+              `${student.firstName}${student.lastName}`
+                .toLowerCase()
+                .replace(/\s+/g, "")
+                .includes(e.target.value.toLowerCase().replace(/\s+/g, "")) ||
+              student.number.toString().includes(e.target.value.trim()),
           ),
         );
       }
@@ -217,7 +236,7 @@ function Index({ subjectData, code, error }: IndexProps) {
               />
             </div>
 
-            {search.trim() === "" ? (
+            {subject.data?.allowHideStudentList && search.trim() === "" ? (
               <div className="flex flex-col items-center justify-center py-10 text-gray-400">
                 <div className="mb-3 text-6xl">🙈</div>
                 <p className="text-xl font-medium text-pink-400">
@@ -227,7 +246,8 @@ function Index({ subjectData, code, error }: IndexProps) {
                   {subjectDataLanguage.typeYourName(language.data ?? "en")}
                 </p>
               </div>
-            ) : search.trim().length <= 3 ? (
+            ) : subject.data?.allowHideStudentList &&
+              search.trim().length <= 2 ? (
               <div className="flex flex-col items-center justify-center py-10 text-gray-400">
                 <div className="mb-3 text-6xl">⌨️</div>
                 <p className="text-xl font-medium text-pink-400">
@@ -241,7 +261,6 @@ function Index({ subjectData, code, error }: IndexProps) {
               <ul className="grid max-h-96 grid-cols-1 gap-1 overflow-y-auto rounded-2xl pr-2">
                 {students
                   ?.sort((a, b) => Number(a.number) - Number(b.number))
-                  .slice(0, 3)
                   .map((student, index) => {
                     const odd = index % 2 === 0;
                     return (
