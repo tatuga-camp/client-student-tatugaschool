@@ -90,56 +90,58 @@ function Index({ subjectId }: { subjectId: string }) {
                 </p>
               </div>
             ) : (
-              subjects.data?.map((subject) => (
-                <button
-                  key={subject.id}
-                  onClick={() => router.push(`/subject/${subject.id}`)}
-                  className="group relative flex h-60 w-full flex-col overflow-hidden rounded-3xl bg-white shadow-md transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:shadow-orange-200"
-                >
-                  <div className="relative h-32 w-full">
-                    {subject.backgroundImage ? (
-                      <Image
-                        src={subject.backgroundImage}
-                        alt={subject.title}
-                        fill
-                        className="object-cover transition-transform duration-500 group-hover:scale-110"
-                        placeholder="blur"
-                        blurDataURL={subject.blurHash || defaultCanvas}
-                      />
-                    ) : (
-                      <div className="h-full w-full bg-gradient-to-br from-orange-300 via-pink-300 to-purple-300 transition-transform duration-500 group-hover:scale-110" />
-                    )}
-                    <div className="absolute inset-0 bg-black/20 transition-colors group-hover:bg-black/10" />
-                    <div className="absolute bottom-3 left-3 flex items-center gap-1 rounded-full bg-white/90 px-3 py-1 text-xs font-bold text-pink-500 shadow-sm backdrop-blur-sm">
-                      ✨ {subject.code}
-                    </div>
-                  </div>
-
-                  <div className="flex flex-1 flex-col justify-between p-4 text-left">
-                    <h2 className="line-clamp-2 text-lg font-bold leading-tight text-gray-800 transition-colors group-hover:text-orange-500">
-                      {subject.title}
-                    </h2>
-                    {subject.description && (
-                      <p className="mt-1 line-clamp-2 text-sm text-gray-500">
-                        {subject.description}
-                      </p>
-                    )}
-                    <div className="mt-auto pt-3">
-                      <div className="flex items-center gap-2">
-                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-orange-100 text-xs text-orange-600">
-                          🎓
-                        </span>
-                        <span className="text-xs font-medium text-gray-400">
-                          {language.data === "th"
-                            ? "ปีการศึกษา"
-                            : "Academic Year"}{" "}
-                          {subject.educationYear}
-                        </span>
+              subjects.data
+                ?.sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+                .map((subject) => (
+                  <button
+                    key={subject.id}
+                    onClick={() => router.push(`/subject/${subject.id}`)}
+                    className="group relative flex h-60 w-full flex-col overflow-hidden rounded-3xl bg-white shadow-md transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:shadow-orange-200"
+                  >
+                    <div className="relative h-32 w-full">
+                      {subject.backgroundImage ? (
+                        <Image
+                          src={subject.backgroundImage}
+                          alt={subject.title}
+                          fill
+                          className="object-cover transition-transform duration-500 group-hover:scale-110"
+                          placeholder="blur"
+                          blurDataURL={subject.blurHash || defaultCanvas}
+                        />
+                      ) : (
+                        <div className="h-full w-full bg-gradient-to-br from-orange-300 via-pink-300 to-purple-300 transition-transform duration-500 group-hover:scale-110" />
+                      )}
+                      <div className="absolute inset-0 bg-black/20 transition-colors group-hover:bg-black/10" />
+                      <div className="absolute bottom-3 left-3 flex items-center gap-1 rounded-full bg-white/90 px-3 py-1 text-xs font-bold text-pink-500 shadow-sm backdrop-blur-sm">
+                        ✨ {subject.code}
                       </div>
                     </div>
-                  </div>
-                </button>
-              ))
+
+                    <div className="flex flex-1 flex-col justify-between p-4 text-left">
+                      <h2 className="line-clamp-2 text-lg font-bold leading-tight text-gray-800 transition-colors group-hover:text-orange-500">
+                        {subject.title}
+                      </h2>
+                      {subject.description && (
+                        <p className="mt-1 line-clamp-2 text-sm text-gray-500">
+                          {subject.description}
+                        </p>
+                      )}
+                      <div className="mt-auto pt-3">
+                        <div className="flex items-center gap-2">
+                          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-orange-100 text-xs text-orange-600">
+                            🎓
+                          </span>
+                          <span className="text-xs font-medium text-gray-400">
+                            {language.data === "th"
+                              ? "ปีการศึกษา"
+                              : "Academic Year"}{" "}
+                            {subject.educationYear}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                ))
             )}
           </div>
         </div>
