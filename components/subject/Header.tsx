@@ -14,7 +14,7 @@ function Header({ subject }: Props) {
   return (
     <header className="relative flex h-max w-full items-center justify-center md:-top-20">
       <section
-        className={`w-12/12 relative z-30 flex h-60 justify-between overflow-hidden p-5 shadow-inner md:w-8/12 md:ring-4 md:ring-white ${
+        className={`relative z-30 flex h-96 w-full justify-between overflow-hidden p-5 shadow-inner md:aspect-[16/5] md:w-8/12 md:ring-4 md:ring-white ${
           subject.backgroundImage ? "" : "gradient-bg"
         } rounded-none md:rounded-2xl`}
       >
