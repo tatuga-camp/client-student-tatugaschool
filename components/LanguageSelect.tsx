@@ -38,7 +38,7 @@ function LanguageSelect() {
   }, [language.data]);
 
   return (
-    <div className="h-14 w-40 overflow-hidden rounded-2xl font-Anuphan">
+    <div className="w-40">
       <Dropdown<CurrentLanguage>
         onChange={async (e) => {
           await update.mutateAsync(e.value);
