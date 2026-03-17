@@ -3,6 +3,8 @@ import Head from "next/head";
 import { Toast } from "primereact/toast";
 import React from "react";
 import {
+  FaPlay,
+  FaPlus,
   FaRegFile,
   FaRegFileImage,
   FaRegFileVideo,
@@ -15,7 +17,9 @@ import { MdLink, MdOutlineDone, MdOutlineRemoveDone } from "react-icons/md";
 import { RiEmotionHappyFill } from "react-icons/ri";
 import Swal from "sweetalert2";
 import LoadingSpinner from "../../../../components/common/LoadingSpinner";
-import StudentVideoPlayer from "../../../../components/common/StudentVideoPlayer";
+import StudentVideoPlayer, {
+  StudentVideoPlayerRef,
+} from "../../../../components/common/StudentVideoPlayer";
 import TextEditor from "../../../../components/common/TextEditor";
 import Layout from "../../../../components/layouts/Layout";
 import PopupLayout from "../../../../components/layouts/PopupLayout";
@@ -25,7 +29,10 @@ import AssignmentText from "../../../../components/subject/AssignmentText";
 import AssignmentUploadFile from "../../../../components/subject/AssignmentUploadFile";
 import CommentSection from "../../../../components/subject/CommentSection";
 import FileStudentAssignmentCard from "../../../../components/subject/FileStudentAssignmentCard";
-import { classworkDataLanguage } from "../../../../data/languages";
+import {
+  classworkDataLanguage,
+  sidebarDataLanguage,
+} from "../../../../data/languages";
 import useClickOutside from "../../../../hook/useClickOutside";
 import useAdjustPosition from "../../../../hook/useWindow";
 import {
@@ -44,6 +51,8 @@ import {
 } from "../../../../react-query";
 import { timeAgo, timeLeft } from "../../../../utils";
 import FileAssignmentVideoPlayer from "../../../../components/common/FileAssignmentVideoPlayer";
+import { CiCirclePlus } from "react-icons/ci";
+import { GrFormNextLink } from "react-icons/gr";
 
 const SummitWorkMenus = [
   {
@@ -91,6 +100,7 @@ function Index({
   const language = useGetLanguage();
   const toast = React.useRef<Toast>(null);
   const divRef = React.useRef<HTMLDivElement>(null);
+  const videoPlayerRef = React.useRef<StudentVideoPlayerRef>(null);
   const updateWork = useUpdateStudentOnAssignment();
   const adjustedStyle = useAdjustPosition(divRef, 20); // 20px padding
   const [triggerSummitDropDown, setTriggerSummitDropDown] =
@@ -105,9 +115,8 @@ function Index({
   } | null>(null);
   const subject = useGetSubjectById({ id: subjectId });
 
-  const assignment = useGetAssignments({ subjectId }).data?.find(
-    (item) => item.id === assignmentId,
-  );
+  const assignments = useGetAssignments({ subjectId });
+  const assignment = assignments.data?.find((item) => item.id === assignmentId);
 
   const studentFiles = useGetFileStudentAssignment({
     studentOnAssignmentId: assignment?.studentOnAssignment.id as string,
@@ -123,6 +132,13 @@ function Index({
       </div>
     );
   }
+
+  const nextAssignment = assignments.data
+    // 1. Keep only assignments that come AFTER the current one
+    ?.filter((item) => item.order > assignment?.order)
+    // 2. Sort them from lowest order to highest order
+    .sort((a, b) => a.order - b.order)[0];
+
   const studentOnAssignment: StudentOnAssignment =
     assignment.studentOnAssignment;
 
@@ -502,6 +518,38 @@ function Index({
 
       <Layout
         subjectId={subjectId}
+        customMenus={[
+          ...(nextAssignment &&
+          assignment.studentOnAssignment.status !== "PENDDING"
+            ? [
+                {
+                  icon: <GrFormNextLink />,
+                  title: sidebarDataLanguage.nextAssignment(
+                    language.data ?? "en",
+                  ),
+                  url: `/subject/${subjectId}/assignment/${nextAssignment.id}`,
+                },
+              ]
+            : []),
+          ...(assignment.type === "Assignment"
+            ? [
+                {
+                  icon: <FaPlus />,
+                  action: "button" as const,
+                  onClick: () => setSelectMenu({ title: "Create" }),
+                },
+              ]
+            : []),
+          ...(assignment.type === "VideoQuiz"
+            ? [
+                {
+                  icon: <FaPlay />,
+                  action: "button" as const,
+                  onClick: () => videoPlayerRef.current?.togglePlay(),
+                },
+              ]
+            : []),
+        ]}
         listData={
           <>
             <StudentWorkInfo />
@@ -529,6 +577,7 @@ function Index({
             {assignment.type === "VideoQuiz" && assignment.videoURL && (
               <>
                 <StudentVideoPlayer
+                  ref={videoPlayerRef}
                   src={assignment.videoURL}
                   config={{
                     preventFastForward: assignment.preventFastForward ?? false,

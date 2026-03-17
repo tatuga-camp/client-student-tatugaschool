@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import TextEditor from "../common/TextEditor";
 import {
   Assignment,
@@ -91,6 +91,13 @@ function AssignmentText({
   const handleCopyAssignmentToText = () => {
     setValue(assignment.description);
   };
+
+  useEffect(() => {
+    if (assignment.description && !text) {
+      handleCopyAssignmentToText();
+    }
+  }, []);
+
   return (
     <form
       onSubmit={handleSave}
@@ -105,27 +112,6 @@ function AssignmentText({
           required
           className="main-input h-10 grow"
         />
-        <button
-          type="button"
-          onClick={() => {
-            if (value) {
-              if (
-                confirm(
-                  "It will overwrite current data, Do you want to continue?",
-                )
-              ) {
-                handleCopyAssignmentToText();
-              }
-            } else {
-              handleCopyAssignmentToText();
-            }
-          }}
-          className="main-button flex w-40 items-center justify-center"
-        >
-          <>
-            <MdCopyAll /> Copy
-          </>
-        </button>
       </div>
 
       <div className="grow">
@@ -139,15 +125,7 @@ function AssignmentText({
         <button
           type="button"
           onClick={() => {
-            if (
-              confirm(
-                lanague.data === "en"
-                  ? "Do you want to close?"
-                  : "ต้องการยกเลิกใช่หรือไม่",
-              )
-            ) {
-              onClose();
-            }
+            onClose();
           }}
           className="second-button flex w-40 items-center justify-center border"
         >

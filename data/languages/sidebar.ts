@@ -14,21 +14,31 @@ export const sidebarDataLanguage = {
   subject: (language: Language) => {
     switch (language) {
       case "en":
-        return "Subject";
+        return "My Subjects";
       case "th":
-        return "รายวิชา";
+        return "รายวิชาทั้งหมด";
       default:
-        return "Subject";
+        return "My Subjects";
     }
   },
   homepage: (language: Language) => {
     switch (language) {
       case "en":
-        return "Homepage";
+        return "My Classworks";
       case "th":
-        return "หน้าหลัก";
+        return "งานของฉัน";
       default:
-        return "Homepage";
+        return "My Classworks";
+    }
+  },
+  nextAssignment: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "Next Assignment";
+      case "th":
+        return "งานถัดไป";
+      default:
+        return "Next Assignment";
     }
   },
 } as const;

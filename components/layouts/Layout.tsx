@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import React, { useEffect } from "react";
 import { FaBookOpen, FaHome } from "react-icons/fa";
 import useClickOutside from "../../hook/useClickOutside";
+import type { Menu } from "../Footbar";
 import {
   useGetLanguage,
   useGetStudent,
@@ -17,15 +18,16 @@ import { decodeBlurhashToCanvas } from "../../utils";
 import Footbar from "../Footbar";
 import Header from "../subject/Header";
 import TeacherList from "../subject/TeacherList";
-import { MdSubject } from "react-icons/md";
+import { MdSubject, MdWork } from "react-icons/md";
 
 type LayoutProps = {
   children: ReactNode;
   listData?: ReactNode;
   subjectId?: string;
+  customMenus?: Menu[];
 };
 
-function Layout({ children, listData, subjectId }: LayoutProps) {
+function Layout({ children, listData, subjectId, customMenus }: LayoutProps) {
   const [trigger, setTrigger] = React.useState(false);
   const sidebarRef = React.useRef<HTMLDivElement>(null);
   const [subject_code, setSubjectCode] = React.useState<null | string>();
@@ -80,13 +82,13 @@ function Layout({ children, listData, subjectId }: LayoutProps) {
             },
             {
               title: sidebarDataLanguage.homepage(language.data ?? "th"),
-              icon: <FaHome />,
+              icon: <MdWork />,
               url: `/subject/${subject.data.id}`,
             },
+            ...(customMenus ? customMenus : []),
             {
               title: sidebarDataLanguage.subject(language.data ?? "th"),
               icon: <MdSubject />,
-
               url: `/student/${student.data.id}/subjects?subject_id=${subject.data.id}`,
             },
           ]}
