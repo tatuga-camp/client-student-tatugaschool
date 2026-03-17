@@ -18,11 +18,9 @@ function Footbar({ menuList, onClick }: Props) {
   const router = useRouter();
 
   return (
-    <nav className="fixed bottom-5 left-1/2 z-40 flex h-16 w-[95%] max-w-md -translate-x-1/2 items-center justify-around rounded-full border border-gray-100 bg-white px-6 font-Anuphan shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
+    <nav className="fixed bottom-5 left-1/2 z-40 flex h-16 w-[98%] max-w-md -translate-x-1/2 items-center justify-around rounded-full border border-gray-100 bg-white px-1 font-Anuphan shadow-[0_8px_30px_rgb(0,0,0,0.12)] md:px-5">
       {menuList.map((list, index) => {
-        const isActive = list.url
-          ? router.asPath.split("?")[0] === list.url.split("?")[0]
-          : false;
+        const isActive = false;
 
         if (list.action === "button") {
           return (
@@ -46,7 +44,7 @@ function Footbar({ menuList, onClick }: Props) {
               else if (onClick) onClick(list);
             }}
             key={index}
-            className={`flex cursor-pointer flex-col items-center justify-center gap-1 transition-all duration-300 ${
+            className={`group flex cursor-pointer flex-col items-center justify-center gap-1 transition-all duration-300 ${
               isActive ? "text-pink-500" : "text-gray-400 hover:text-pink-400"
             }`}
           >
@@ -57,7 +55,7 @@ function Footbar({ menuList, onClick }: Props) {
             </div>
             {list.title && (
               <span
-                className={`text-[10px] font-semibold ${isActive ? "" : "font-medium"}`}
+                className={`text-[10px] font-semibold group-hover:block group-focus:block md:block`}
               >
                 {list.title}
               </span>
