@@ -577,6 +577,10 @@ function Index({
             {assignment.type === "VideoQuiz" && assignment.videoURL && (
               <>
                 <StudentVideoPlayer
+                  nextVideoURL={
+                    nextAssignment &&
+                    `/subject/${subjectId}/assignment/${nextAssignment.id}`
+                  }
                   ref={videoPlayerRef}
                   src={assignment.videoURL}
                   config={{

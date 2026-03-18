@@ -15,8 +15,11 @@ import {
   FaVolumeUp,
   FaCheckCircle,
   FaTimesCircle,
+  FaArrowRight,
 } from "react-icons/fa";
 import { QuestionOnVideo } from "../../interfaces";
+import Link from "next/link";
+import { useRouter } from "next/router";
 
 export type VideoConfig = {
   preventFastForward: boolean;
@@ -28,6 +31,7 @@ type Props = {
   config?: VideoConfig;
   cannotSummit?: boolean;
   onSubmit?: (score: number, total: number) => void;
+  nextVideoURL?: string;
 };
 
 export type StudentVideoPlayerRef = {
@@ -35,7 +39,8 @@ export type StudentVideoPlayerRef = {
 };
 
 const StudentVideoPlayer = forwardRef<StudentVideoPlayerRef, Props>(
-  ({ src, config, onSubmit, cannotSummit }, ref) => {
+  ({ src, config, onSubmit, cannotSummit, nextVideoURL }, ref) => {
+    const router = useRouter();
     const videoRef = useRef<HTMLVideoElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -332,6 +337,24 @@ const StudentVideoPlayer = forwardRef<StudentVideoPlayerRef, Props>(
                   >
                     <FaRedo /> Retry
                   </button>
+                  {cannotSummit && nextVideoURL && (
+                    <button
+                      onClick={() => {
+                        setCurrentTime(0);
+                        setAnsweredQuestions([]);
+                        setCorrectAnswers(0);
+                        setShowSummary(false);
+                        setIsPlaying(true);
+                        setMaxTimeWatched(0);
+                        maxTimeWatchedRef.current = 0;
+                        document.exitFullscreen();
+                        router.push(nextVideoURL);
+                      }}
+                      className="flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-gray-200 bg-white py-3 font-bold text-gray-700 transition hover:bg-gray-50 hover:text-gray-900"
+                    >
+                      <FaArrowRight /> Next Video
+                    </button>
+                  )}
                   {!cannotSummit && (
                     <button
                       onClick={handleSubmit}

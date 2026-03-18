@@ -127,11 +127,6 @@ function Index({ subjectData, code, error }: IndexProps) {
         studentId: studentId,
       });
       router.push(`/subject/${subject.data?.id}`);
-      Swal.fire({
-        title: requestDataLanguage.successTitle(language.data ?? "en"),
-        text: requestDataLanguage.successDesciption(language.data ?? "en"),
-        icon: "success",
-      });
     } catch (error) {
       let result = error as ErrorMessages;
       console.error(error);
