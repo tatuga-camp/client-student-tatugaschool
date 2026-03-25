@@ -90,7 +90,7 @@ function CommentSection({ studentOnAssignmentId }: Props) {
           )}
           <button
             disabled={loadingComments}
-            className="main-button absolute bottom-8 right-2 flex w-24 items-center justify-center rounded bg-blue-500 px-2 py-1 text-white"
+            className="main-button absolute bottom-8 right-2 flex w-24 items-center justify-center rounded-xl bg-blue-500 px-2 py-1 text-white"
           >
             {loadingComments ? (
               <ProgressSpinner

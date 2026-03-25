@@ -40,19 +40,22 @@ function TextCard({ file, onShowText }: Props) {
     }
   };
   return (
-    <li className="flex h-14 w-full items-center justify-between overflow-hidden rounded-2xl border bg-white">
-      <div className="flex h-full w-full items-center justify-start gap-2">
+    <li
+      title={file.name ?? ""}
+      className="flex h-14 w-full items-center justify-between overflow-hidden rounded-2xl border bg-white"
+    >
+      <div className="flex h-full w-10/12 items-center justify-start gap-2">
         <button
           onClick={() => onShowText?.(file)}
-          className="flex h-full w-16 items-center justify-center border-r bg-gradient-to-r from-green-200 to-green-600 text-lg text-white"
+          className="flex h-full w-14 items-center justify-center border-r bg-gradient-to-r from-green-200 to-green-600 text-lg text-white"
         >
           <MdNoteAlt />
         </button>
         <button
           onClick={() => onShowText?.(file)}
-          className="flex max-w-40 items-center gap-2 truncate"
+          className="w-10/12 truncate text-start"
         >
-          <span>{file.name}</span>
+          {file.name}
         </button>
       </div>
 
@@ -101,8 +104,11 @@ function FileCard({ file }: Props) {
     }
   };
   return (
-    <li className="flex h-14 w-full items-center justify-between overflow-hidden rounded-2xl border bg-white">
-      <div className="flex h-full w-60 items-center justify-start gap-2">
+    <li
+      title={fileName}
+      className="flex h-14 w-full items-center justify-between overflow-hidden rounded-2xl border bg-white"
+    >
+      <div className="flex h-full w-10/12 items-center justify-start gap-2">
         <button
           onClick={() => window.open(file.body, "_blank")}
           className="gradient-bg flex h-full w-14 items-center justify-center border-r text-lg text-white"
@@ -117,11 +123,9 @@ function FileCard({ file }: Props) {
         </button>
         <button
           onClick={() => window.open(file.body, "_blank")}
-          className="flex w-40 items-center gap-2"
+          className="w-10/12 truncate"
         >
-          <div className="max-w-52 overflow-x-auto text-sm">
-            <span className="w-max text-nowrap">{fileName}</span>
-          </div>
+          {fileName}
         </button>
       </div>
 

@@ -629,6 +629,7 @@ function Index({
                 const isLink = file.type === "LINK";
                 return (
                   <li
+                    title={isLink ? file.url : fileName}
                     onClick={() => {
                       if (isVideo) {
                         setActiveVideo({
@@ -654,7 +655,7 @@ function Index({
                           <FaRegFile />
                         )}
                       </div>
-                      <div className="w-60 text-wrap break-words text-sm">
+                      <div className="w-10/12 truncate text-sm">
                         {isLink ? file.url : fileName}
                       </div>
                     </div>

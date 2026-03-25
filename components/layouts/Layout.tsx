@@ -99,11 +99,10 @@ function Layout({ children, listData, subjectId, customMenus }: LayoutProps) {
         {subject.data && !router.pathname.startsWith("/student/") && (
           <Header subject={subject.data} />
         )}
-        <section className="flex w-full flex-col-reverse justify-center gap-5 px-0 pb-40 xl:flex-row xl:px-40">
+        <section className="flex w-full flex-col justify-center gap-5 px-0 pb-40 lg:flex-row lg:px-5 xl:px-20">
           {children}
           {subject.data && !router.pathname.startsWith("/student/") && (
-            <div className="bg flex w-full flex-col gap-2 xl:w-4/12">
-              <TeacherList teachers={subject.data?.teacherOnSubjects} />
+            <div className="flex w-full flex-col gap-2 xl:w-4/12">
               {listData}
             </div>
           )}
