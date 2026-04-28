@@ -37,7 +37,9 @@ export type RequestGetSubjectFromStudentService = {
   educationYear: string;
 };
 
-type ResponseGetSubjectFromStudentService = Subject[];
+type ResponseGetSubjectFromStudentService = (Subject & {
+  status: "complete" | "uncomplete";
+})[];
 
 export async function GetSubjectFromStudentService(
   input: RequestGetSubjectFromStudentService,

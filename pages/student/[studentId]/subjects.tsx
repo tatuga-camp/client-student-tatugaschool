@@ -96,7 +96,7 @@ function Index({ subjectId }: { subjectId: string }) {
                   <button
                     key={subject.id}
                     onClick={() => router.push(`/subject/${subject.id}`)}
-                    className="group relative flex h-60 w-full flex-col overflow-hidden rounded-3xl bg-white shadow-md transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:shadow-orange-200"
+                    className="group relative flex h-60 w-full flex-col overflow-hidden rounded-3xl bg-white shadow-md transition-all duration-300 hover:shadow-xl hover:shadow-orange-200"
                   >
                     <div className="relative h-32 w-full">
                       {subject.backgroundImage ? (
@@ -127,16 +127,31 @@ function Index({ subjectId }: { subjectId: string }) {
                         </p>
                       )}
                       <div className="mt-auto pt-3">
-                        <div className="flex items-center gap-2">
-                          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-orange-100 text-xs text-orange-600">
-                            🎓
-                          </span>
-                          <span className="text-xs font-medium text-gray-400">
-                            {language.data === "th"
-                              ? "ปีการศึกษา"
-                              : "Academic Year"}{" "}
-                            {subject.educationYear}
-                          </span>
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2">
+                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-orange-100 text-xs text-orange-600">
+                              🎓
+                            </span>
+                            <span className="text-xs font-medium text-gray-400">
+                              {language.data === "th"
+                                ? "ปีการศึกษา"
+                                : "Academic Year"}{" "}
+                              {subject.educationYear}
+                            </span>
+                          </div>
+                          {subject.status === "complete" ? (
+                            <span className="rounded-full bg-green-100 px-2 py-1 text-[10px] font-semibold text-green-600">
+                              {language.data === "th"
+                                ? "งานเสร็จสมบูรณ์"
+                                : "Completed"}
+                            </span>
+                          ) : subject.status === "uncomplete" ? (
+                            <span className="rounded-full bg-red-100 px-2 py-1 text-[10px] font-semibold text-red-600">
+                              {language.data === "th"
+                                ? "งานยังไม่เสร็จ"
+                                : "Incomplete"}
+                            </span>
+                          ) : null}
                         </div>
                       </div>
                     </div>
