@@ -1,5 +1,7 @@
 export * from "./footer";
 export * from "./subject";
+export * from "./subjects";
+export * from "./navbar";
 export * from "./welcome";
 export * from "./request";
 export * from "./classworks";

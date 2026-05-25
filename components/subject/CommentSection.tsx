@@ -51,7 +51,7 @@ function CommentSection({ studentOnAssignmentId }: Props) {
   };
 
   return (
-    <div className="flex w-full flex-col gap-2">
+    <div className="flex h-max w-full flex-col gap-2 rounded-2xl border bg-white p-2">
       <header className="h-10 border-b">
         <h1 className="text-lg font-semibold">Comments</h1>
       </header>

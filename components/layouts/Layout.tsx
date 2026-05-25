@@ -30,7 +30,6 @@ type LayoutProps = {
 function Layout({ children, listData, subjectId, customMenus }: LayoutProps) {
   const [trigger, setTrigger] = React.useState(false);
   const sidebarRef = React.useRef<HTMLDivElement>(null);
-  const [subject_code, setSubjectCode] = React.useState<null | string>();
   useClickOutside(sidebarRef, () => {
     setTrigger(false);
   });
@@ -39,20 +38,10 @@ function Layout({ children, listData, subjectId, customMenus }: LayoutProps) {
   const subject = useGetSubjectById({ id: subjectId ?? "" });
   const student = useGetStudent();
 
-  useEffect(() => {
-    if (subject.data) {
-      setSubjectCode(() => subject.data.code);
-    }
-  }, [subject.data]);
   return (
     <div className="relative flex min-h-dvh flex-col">
       <div className="absolute top-3 z-50 h-max w-full px-3">
-        <Navbar
-          subject={subject}
-          student={student.data}
-          trigger={trigger}
-          setTrigger={setTrigger}
-        />
+        <Navbar student={student.data} />
       </div>
       {student.data && subject.data && (
         <Footbar
@@ -63,9 +52,9 @@ function Layout({ children, listData, subjectId, customMenus }: LayoutProps) {
           }}
           menuList={[
             {
-              title: sidebarDataLanguage.profile(language.data ?? "th"),
+              title: sidebarDataLanguage.profile(language.data ?? "en"),
               icon: (
-                <div className="relative h-7 w-7 overflow-hidden rounded-full ring-1 ring-orange-400">
+                <div className="relative h-7 w-7 overflow-hidden rounded-full ring-1 ring-primary-color">
                   <Image
                     alt={`profile picture of ${student.data.firstName}`}
                     src={student.data.photo}
@@ -81,21 +70,20 @@ function Layout({ children, listData, subjectId, customMenus }: LayoutProps) {
               url: `/student/${student.data.id}?subject_id=${subject.data.id}`,
             },
             {
-              title: sidebarDataLanguage.homepage(language.data ?? "th"),
+              title: sidebarDataLanguage.homepage(language.data ?? "en"),
               icon: <MdWork />,
               url: `/subject/${subject.data.id}`,
             },
             ...(customMenus ? customMenus : []),
             {
-              title: sidebarDataLanguage.subject(language.data ?? "th"),
+              title: sidebarDataLanguage.subject(language.data ?? "en"),
               icon: <MdSubject />,
               url: `/student/${student.data.id}/subjects?subject_id=${subject.data.id}`,
             },
           ]}
         />
       )}
-      <main className="flex w-full flex-col items-center bg-orange-50 font-Anuphan">
-        <div className="hidden h-40 w-full bg-sky-100 md:block"></div>
+      <main className="flex w-full flex-col items-center bg-background-color font-Anuphan">
         {subject.data && !router.pathname.startsWith("/student/") && (
           <Header subject={subject.data} />
         )}

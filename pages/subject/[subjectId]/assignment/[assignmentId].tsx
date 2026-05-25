@@ -235,7 +235,6 @@ function Index({
               )}
             </span>
           </div>{" "}
-          <IoIosInformationCircle />
         </div>
         <div className="relative flex items-center">
           {(studentOnAssignment.status === "PENDDING" ||
@@ -361,7 +360,7 @@ function Index({
     return (
       <div className="h-max w-full rounded-2xl border bg-white p-2">
         <div className="flex w-full items-center justify-between p-2 text-xl font-semibold">
-          Assignment <IoIosInformationCircle />
+          Assignment{" "}
         </div>
         <ul className="mt-2 grid w-full">
           <li className="flex h-max items-center justify-start gap-1 border-b p-2">
@@ -470,6 +469,57 @@ function Index({
     );
   };
 
+  const FileOnAssignments = () => {
+    return (
+      <div className="h-max w-full rounded-2xl border bg-white p-2">
+        <div className="flex w-full items-center justify-between p-2 text-xl font-semibold">
+          Assignment Files
+        </div>
+        <ul className="grid w-full gap-2">
+          {assignment.files?.map((file, index) => {
+            const isImage = file.type.includes("image");
+            const isVideo = file.type.includes("video");
+            const fileName = file.url.split("/").pop();
+            const isLink = file.type === "LINK";
+            return (
+              <li
+                title={isLink ? file.url : fileName}
+                onClick={() => {
+                  if (isVideo) {
+                    setActiveVideo({
+                      url: file.url,
+                      fileOnAssignment: file,
+                    });
+                  } else {
+                    window.open(file.url, "_blank");
+                  }
+                }}
+                key={index}
+                className="flex h-14 w-full items-center justify-between overflow-hidden rounded-2xl border bg-white transition hover:cursor-pointer hover:bg-gray-100"
+              >
+                <div className="flex h-full w-full items-center justify-start gap-2">
+                  <div className="gradient-bg flex h-full w-16 items-center justify-center border-r text-lg text-white">
+                    {isLink ? (
+                      <MdLink />
+                    ) : isImage ? (
+                      <FaRegFileImage />
+                    ) : isVideo ? (
+                      <FaRegFileVideo />
+                    ) : (
+                      <FaRegFile />
+                    )}
+                  </div>
+                  <div className="w-10/12 truncate text-sm">
+                    {isLink ? file.url : fileName}
+                  </div>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    );
+  };
   return (
     <>
       <Head>
@@ -552,9 +602,13 @@ function Index({
         ]}
         listData={
           <>
+            <FileOnAssignments />
             <StudentWorkInfo />
             <SummitStatus />
             <SummitWork />
+            <CommentSection
+              studentOnAssignmentId={assignment.studentOnAssignment.id}
+            />
           </>
         }
       >
@@ -563,7 +617,7 @@ function Index({
             <h1 className="mb-5 border-b text-xl">{assignment.title}</h1>
             {(assignment.type === "Assignment" ||
               assignment.type === "Material") && (
-              <div className={`my-5 h-screen`}>
+              <div className={`my-5 h-60 lg:h-96`}>
                 <TextEditor
                   disabled={false}
                   schoolId={assignment.schoolId}
@@ -621,53 +675,6 @@ function Index({
                 )}
               </>
             )}
-            <ul className="grid w-full gap-2">
-              {assignment.files?.map((file, index) => {
-                const isImage = file.type.includes("image");
-                const isVideo = file.type.includes("video");
-                const fileName = file.url.split("/").pop();
-                const isLink = file.type === "LINK";
-                return (
-                  <li
-                    title={isLink ? file.url : fileName}
-                    onClick={() => {
-                      if (isVideo) {
-                        setActiveVideo({
-                          url: file.url,
-                          fileOnAssignment: file,
-                        });
-                      } else {
-                        window.open(file.url, "_blank");
-                      }
-                    }}
-                    key={index}
-                    className="flex h-14 w-full items-center justify-between overflow-hidden rounded-2xl border bg-white transition hover:cursor-pointer hover:bg-gray-100"
-                  >
-                    <div className="flex h-full w-full items-center justify-start gap-2">
-                      <div className="gradient-bg flex h-full w-16 items-center justify-center border-r text-lg text-white">
-                        {isLink ? (
-                          <MdLink />
-                        ) : isImage ? (
-                          <FaRegFileImage />
-                        ) : isVideo ? (
-                          <FaRegFileVideo />
-                        ) : (
-                          <FaRegFile />
-                        )}
-                      </div>
-                      <div className="w-10/12 truncate text-sm">
-                        {isLink ? file.url : fileName}
-                      </div>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-          <div className="bg-white p-2">
-            <CommentSection
-              studentOnAssignmentId={assignment.studentOnAssignment.id}
-            />
           </div>
         </main>
       </Layout>

@@ -17,8 +17,7 @@ function HomepageLayout({ children, subject }: LayoutProps) {
       <div className="absolute top-3 z-50 w-full px-3">
         <Navbar />
       </div>
-      <main className="flex w-full flex-col items-center bg-orange-50 font-Anuphan">
-        <div className="hidden h-40 w-full bg-sky-100 md:block"></div>
+      <main className="flex w-full flex-col items-center bg-background-color font-Anuphan">
         {subject.data && <Header subject={subject.data} />}
         <section className="flex w-full flex-col-reverse justify-center gap-5 px-0 pb-40 lg:px-40 xl:flex-row">
           {children}

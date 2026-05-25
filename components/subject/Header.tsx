@@ -12,7 +12,7 @@ type Props = {
 function Header({ subject }: Props) {
   const language = useGetLanguage();
   return (
-    <header className="relative flex h-max w-full items-center justify-center md:-top-20">
+    <header className="relative flex h-max w-full items-center justify-center lg:my-20">
       <section
         className={`relative z-30 flex h-96 w-full justify-between overflow-hidden p-5 shadow-inner md:aspect-[16/5] md:w-8/12 md:ring-4 md:ring-white ${
           subject.backgroundImage ? "" : "gradient-bg"
