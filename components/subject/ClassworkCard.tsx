@@ -12,6 +12,7 @@ import { useGetLanguage } from "../../react-query";
 import AssignmentStatusCard from "./AssignmentStatus";
 import { FaRegFile, FaRegFileImage } from "react-icons/fa";
 import { LuLink } from "react-icons/lu";
+import { TagChipList } from "./AssignmentTagEditor";
 
 type PropsClassworkCard = {
   classwork: Assignment & {
@@ -147,6 +148,11 @@ function AssignmentCard({
       <p className="my-2 line-clamp-4 text-sm text-gray-500">
         {stripHtml(assignment.description)}
       </p>
+      {assignment.tags && assignment.tags.length > 0 && (
+        <div className="my-2">
+          <TagChipList tags={assignment.tags} size="sm" />
+        </div>
+      )}
       <span className="text-sm text-gray-400">
         {classworkCardDataLanguage.pubishAt(language.data ?? "en")} :{" "}
         {new Date(assignment.beginDate).toLocaleDateString(undefined)}
@@ -230,6 +236,11 @@ function MaterialCard({
       <p className="my-2 line-clamp-4 text-sm text-gray-500">
         {stripHtml(material.description)}
       </p>
+      {material.tags && material.tags.length > 0 && (
+        <div className="my-2">
+          <TagChipList tags={material.tags} size="sm" />
+        </div>
+      )}
       <span className="text-sm text-gray-400">
         {classworkCardDataLanguage.pubishAt(language.data ?? "en")} :{" "}
         {new Date(material.beginDate).toLocaleDateString(undefined)}
@@ -329,6 +340,11 @@ function AssignmentVideoCard({
         </div>
       </section>
       <h1 className="text-lg font-medium">{assignment.title}</h1>
+      {assignment.tags && assignment.tags.length > 0 && (
+        <div className="my-2">
+          <TagChipList tags={assignment.tags} size="sm" />
+        </div>
+      )}
       <span className="text-sm text-gray-400">
         {classworkCardDataLanguage.pubishAt(language.data ?? "en")} :{" "}
         {new Date(assignment.beginDate).toLocaleDateString(undefined)}

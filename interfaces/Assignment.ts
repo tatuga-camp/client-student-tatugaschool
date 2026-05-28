@@ -15,6 +15,7 @@ export interface Assignment {
   type: AssignmentType;
   preventFastForward?: boolean;
   videoURL?: string;
+  tags: string[];
 }
 
 export type AssignmentStatus = "Published" | "Draft";

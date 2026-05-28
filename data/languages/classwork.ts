@@ -177,3 +177,16 @@ export const classworkDataLanguage = {
     }
   },
 } as const;
+
+export const tagsDataLanguage = {
+  showAll: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "Show All";
+      case "th":
+        return "แสดงทั้งหมด";
+      default:
+        return "Show All";
+    }
+  },
+} as const;
