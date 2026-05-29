@@ -8,9 +8,12 @@ export function useSignIn() {
     mutationKey: ["signIn"],
     mutationFn: (request: RequestStudentSignInService) =>
       StudentSignInService(request),
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       setAccessToken({ access_token: data.accessToken });
       setRefreshToken({ refresh_token: data.refreshToken });
+      // Drop any data cached for a previous session before the new user
+      // enters the app. Cancel first so nothing repopulates the cache.
+      await queryClient.cancelQueries();
       queryClient.clear();
     },
   });

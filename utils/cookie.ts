@@ -33,9 +33,9 @@ export function setRefreshToken({ refresh_token }: { refresh_token: string }) {
 }
 
 export function removeAccessToken() {
-  destroyCookie(null, "student_access_token");
+  destroyCookie(null, "student_access_token", { path: "/" });
 }
 
 export function removeRefreshToken() {
-  destroyCookie(null, "student_refresh_token");
+  destroyCookie(null, "student_refresh_token", { path: "/" });
 }
