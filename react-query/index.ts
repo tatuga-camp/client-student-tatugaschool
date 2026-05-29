@@ -5,3 +5,4 @@ export * from "./assignment";
 export * from "./commentOnAssignment";
 export * from "./attendance";
 export * from "./language";
+export * from "./word-cloud";

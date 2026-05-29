@@ -2,7 +2,9 @@ export type LocalStorageKeys =
   | "subject_code"
   | "subject_id"
   | `attendanceRow_id:${string}`
-  | "language";
+  | "language"
+  | "word_cloud_browser_token"
+  | `word_cloud_answered:${string}`;
 
 export function setLocalStorage(key: LocalStorageKeys, value: string) {
   localStorage.setItem(key, value);

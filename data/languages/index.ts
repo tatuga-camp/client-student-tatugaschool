@@ -9,3 +9,4 @@ export * from "./classwork";
 export * from "./sidebar";
 export * from "./qr-code";
 export * from "./student";
+export * from "./word-cloud";

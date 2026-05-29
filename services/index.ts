@@ -4,3 +4,4 @@ export * from "./student";
 export * from "./google-storage";
 export * from "./commentOnAssignment";
 export * from "./attendance";
+export * from "./word-cloud";

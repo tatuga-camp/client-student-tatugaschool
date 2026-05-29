@@ -23,6 +23,9 @@ const createAxiosInstance = () => {
       if (request?.startsWith("/v1/auth/")) {
         return config;
       }
+      if (request?.startsWith("v1/students/student/get-as-user")) {
+        return config; // Handle specific endpoint for getting student info as user
+      }
 
       const { refresh_token } = getRefetchtoken();
 
