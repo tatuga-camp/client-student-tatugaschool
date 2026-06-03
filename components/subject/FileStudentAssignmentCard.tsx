@@ -104,7 +104,7 @@ function FileCard({ file }: Props) {
       return;
     }
     const nextName = editingName.trim();
-    if (!nextName || nextName === file.name) return;
+    if (!nextName || nextName === displayName) return;
     try {
       await updateFile.mutateAsync({
         query: { id: file.id },
@@ -179,6 +179,7 @@ function FileCard({ file }: Props) {
       {!isEditing && (
         <button
           type="button"
+          aria-label="Rename file"
           onClick={() => {
             cancelRenameRef.current = false;
             setEditingName(displayName ?? "");
