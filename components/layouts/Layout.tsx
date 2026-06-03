@@ -41,7 +41,7 @@ function Layout({ children, listData, subjectId, customMenus }: LayoutProps) {
   return (
     <div className="relative flex min-h-dvh flex-col">
       <div className="absolute top-3 z-50 h-max w-full px-3">
-        <Navbar student={student.data} />
+        <Navbar student={student.data} subject={subject.data} />
       </div>
       {student.data && subject.data && (
         <Footbar
@@ -51,24 +51,6 @@ function Layout({ children, listData, subjectId, customMenus }: LayoutProps) {
             }
           }}
           menuList={[
-            {
-              title: sidebarDataLanguage.profile(language.data ?? "en"),
-              icon: (
-                <div className="relative h-7 w-7 overflow-hidden rounded-full ring-1 ring-primary-color">
-                  <Image
-                    alt={`profile picture of ${student.data.firstName}`}
-                    src={student.data.photo}
-                    fill
-                    className="object-cover"
-                    blurDataURL={decodeBlurhashToCanvas(
-                      student.data.blurHash ?? defaultBlurHash,
-                    )}
-                    placeholder="blur"
-                  />
-                </div>
-              ),
-              url: `/student/${student.data.id}?subject_id=${subject.data.id}`,
-            },
             {
               title: sidebarDataLanguage.homepage(language.data ?? "en"),
               icon: <MdWork />,

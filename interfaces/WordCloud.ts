@@ -8,6 +8,7 @@ export interface WordCloudPublic {
   question: string;
   status: WordCloudStatus;
   accessMode: WordCloudAccess;
+  subjectId: string;
   allowMultiple: boolean;
   students: StudentOnSubject[]; // subject roster, only populated for STUDENTS_ONLY
 }
