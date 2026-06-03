@@ -2,8 +2,11 @@ import React from "react";
 import { ErrorMessages, FileOnStudentOnAssignment } from "../../interfaces";
 import { FiFile } from "react-icons/fi";
 import { FaRegFile, FaRegFileImage } from "react-icons/fa";
-import { MdDelete, MdNoteAlt } from "react-icons/md";
-import { useDeleteFileStudentAssignment } from "../../react-query";
+import { MdDelete, MdEdit, MdNoteAlt } from "react-icons/md";
+import {
+  useDeleteFileStudentAssignment,
+  useUpdateFileStudentAssignment,
+} from "../../react-query";
 import Swal from "sweetalert2";
 import { ProgressSpinner } from "primereact/progressspinner";
 import { LuLink } from "react-icons/lu";
@@ -83,10 +86,34 @@ function TextCard({ file, onShowText }: Props) {
 function FileCard({ file }: Props) {
   const isImage = file.type.includes("image");
 
-  const fileName =
-    file.type === "link-url" ? file.body : file.body.split("/").pop();
-
   const deleteFile = useDeleteFileStudentAssignment();
+  const updateFile = useUpdateFileStudentAssignment();
+  const [isEditing, setIsEditing] = React.useState(false);
+  const [editingName, setEditingName] = React.useState(file.name ?? "");
+  const cancelRenameRef = React.useRef(false);
+
+  const displayName =
+    file.name ??
+    (file.type === "link-url" ? file.body : file.body.split("/").pop());
+
+  const handleCommitRename = async () => {
+    if (!isEditing) return;
+    setIsEditing(false);
+    if (cancelRenameRef.current) {
+      cancelRenameRef.current = false;
+      return;
+    }
+    const nextName = editingName.trim();
+    if (!nextName || nextName === file.name) return;
+    try {
+      await updateFile.mutateAsync({
+        query: { id: file.id },
+        body: { name: nextName },
+      });
+    } catch {
+      setIsEditing(true);
+    }
+  };
 
   const handleDeleteFile = async () => {
     try {
@@ -105,7 +132,7 @@ function FileCard({ file }: Props) {
   };
   return (
     <li
-      title={fileName}
+      title={displayName}
       className="flex h-14 w-full items-center justify-between overflow-hidden rounded-2xl border bg-white"
     >
       <div className="flex h-full w-10/12 items-center justify-start gap-2">
@@ -121,13 +148,47 @@ function FileCard({ file }: Props) {
             <FaRegFile />
           )}
         </button>
-        <button
-          onClick={() => window.open(file.body, "_blank")}
-          className="w-10/12 truncate"
-        >
-          {fileName}
-        </button>
+        {isEditing ? (
+          <input
+            autoFocus
+            aria-label="File name"
+            value={editingName}
+            onChange={(e) => setEditingName(e.target.value)}
+            onBlur={handleCommitRename}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.currentTarget.blur();
+              }
+              if (e.key === "Escape") {
+                cancelRenameRef.current = true;
+                e.currentTarget.blur();
+              }
+            }}
+            className="w-10/12 rounded border px-2 py-1 text-sm"
+          />
+        ) : (
+          <button
+            onClick={() => window.open(file.body, "_blank")}
+            className="w-10/12 truncate"
+          >
+            {displayName}
+          </button>
+        )}
       </div>
+
+      {!isEditing && (
+        <button
+          type="button"
+          onClick={() => {
+            cancelRenameRef.current = false;
+            setEditingName(displayName ?? "");
+            setIsEditing(true);
+          }}
+          className="flex items-center justify-center rounded-full p-2 text-xl text-gray-500 hover:bg-gray-200 active:scale-105"
+        >
+          <MdEdit />
+        </button>
+      )}
 
       <button
         type="button"
