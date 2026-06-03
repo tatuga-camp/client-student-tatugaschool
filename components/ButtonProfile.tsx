@@ -13,16 +13,17 @@ import {
 import { defaultBlurHash, defaultCanvas } from "../data";
 import { navbarLanguageData } from "../data/languages";
 import useClickOutside from "../hook/useClickOutside";
-import { Student } from "../interfaces";
+import { Student, Subject } from "../interfaces";
 import { useGetLanguage } from "../react-query";
 import { decodeBlurhashToCanvas } from "../utils";
 import LanguageSelect from "./LanguageSelect";
 
 type Props = {
   student: Student;
+  subjectId: string;
 };
 
-function ButtonProfile({ student }: Props) {
+function ButtonProfile({ student, subjectId }: Props) {
   const queryClient = useQueryClient();
   const language = useGetLanguage();
   const lang = language.data ?? "en";
@@ -68,8 +69,8 @@ function ButtonProfile({ student }: Props) {
             className="object-cover"
           />
         </div>
-        <span className="hidden max-w-[100px] truncate text-sm font-medium text-gray-700 md:block">
-          {student.firstName}
+        <span className="max-w-[100px] truncate text-sm font-medium text-gray-700 md:block">
+          {student.firstName} {student.lastName}
         </span>
         {isOpen ? (
           <MdKeyboardArrowUp className="text-gray-500" size={20} />
@@ -82,7 +83,10 @@ function ButtonProfile({ student }: Props) {
       {isOpen && (
         <div className="absolute right-0 top-full z-50 mt-2 w-64 rounded-2xl border border-gray-100 bg-white p-2 shadow-xl">
           {/* Header */}
-          <div className="mb-2 flex items-center gap-3 border-b border-gray-100 p-3">
+          <Link
+            href={`/student/${student.id}?subject_id=${subjectId}`}
+            className="mb-2 flex items-center gap-3 border-b border-gray-100 p-3"
+          >
             <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full">
               <Image
                 src={student.photo || defaultCanvas}
@@ -104,7 +108,7 @@ function ButtonProfile({ student }: Props) {
                 {navbarLanguageData.classNo(lang)} {student.number}
               </span>
             </div>
-          </div>
+          </Link>
 
           {/* Menu items */}
           <div className="flex flex-col gap-1">

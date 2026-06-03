@@ -479,7 +479,7 @@ function Index({
           {assignment.files?.map((file, index) => {
             const isImage = file.type.includes("image");
             const isVideo = file.type.includes("video");
-            const fileName = file.url.split("/").pop();
+            const fileName = file.name ?? file.url.split("/").pop();
             const isLink = file.type === "LINK";
             return (
               <li

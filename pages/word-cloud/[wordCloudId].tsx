@@ -176,8 +176,11 @@ function Index({ id }: { id: string }) {
       </Head>
       <main className="gradient-bg flex min-h-screen w-screen flex-col items-center justify-center gap-6 p-6 font-Anuphan text-white">
         <div className="absolute right-4 top-4">
-          {student.data ? (
-            <ButtonProfile student={student.data} />
+          {student.data && wordCloud.data ? (
+            <ButtonProfile
+              student={student.data}
+              subjectId={wordCloud.data.subjectId}
+            />
           ) : (
             <LanguageSelect />
           )}

@@ -1,15 +1,18 @@
 import React from "react";
-import { Student } from "../interfaces";
+import { Student, Subject } from "../interfaces";
 import ButtonProfile from "./ButtonProfile";
 
 type NavbarProps = {
   student?: Student;
+  subject?: Subject;
 };
 
-function Navbar({ student }: NavbarProps) {
+function Navbar({ student, subject }: NavbarProps) {
   return (
     <nav className="flex w-full items-center justify-end">
-      {student && <ButtonProfile student={student} />}
+      {student && subject && (
+        <ButtonProfile student={student} subjectId={subject.id} />
+      )}
     </nav>
   );
 }
