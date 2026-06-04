@@ -510,7 +510,11 @@ function Index({
                     )}
                   </div>
                   <div className="w-10/12 truncate text-sm">
-                    {isLink ? file.url : fileName}
+                    {isLink && file.name
+                      ? fileName
+                      : isLink && !file.name
+                        ? file.url
+                        : fileName}
                   </div>
                 </div>
               </li>
