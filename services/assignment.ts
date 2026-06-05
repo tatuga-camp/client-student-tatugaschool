@@ -4,6 +4,7 @@ import {
   FileOnStudentOnAssignment,
   Grade,
   QuestionOnVideo,
+  RubricBreakdown,
   ScoreOnStudent,
   ScoreOnSubject,
   StudentAssignmentContentType,
@@ -177,6 +178,24 @@ export async function UpdateFileOnStudentAssignmentService(
       "CreateFileOnStudentAssignment request failed:",
       error.response.data,
     );
+    throw error?.response?.data;
+  }
+}
+
+export type RequestGetStudentRubricBreakdownService = {
+  studentOnAssignmentId: string;
+};
+export async function GetStudentRubricBreakdownService(
+  input: RequestGetStudentRubricBreakdownService,
+): Promise<RubricBreakdown> {
+  try {
+    const response = await axiosInstance({
+      method: "GET",
+      url: `v1/rubric-scores/student-on-assignment/${input.studentOnAssignmentId}/student`,
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error("Get rubric breakdown failed:", error?.response?.data);
     throw error?.response?.data;
   }
 }

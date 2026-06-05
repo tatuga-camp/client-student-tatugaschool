@@ -6,3 +6,4 @@ export * from "./commentOnAssignment";
 export * from "./attendance";
 export * from "./language";
 export * from "./word-cloud";
+export * from "./rubric";
