@@ -132,11 +132,6 @@ function Grade({ subjectId, studentId }: Props) {
                     studentOnAssignment: a.studentOnAssignment,
                   }}
                 />
-                {a.studentOnAssignment.status === "REVIEWD" && (
-                  <RubricBreakdown
-                    studentOnAssignmentId={a.studentOnAssignment.id}
-                  />
-                )}
               </li>
             );
           })}
