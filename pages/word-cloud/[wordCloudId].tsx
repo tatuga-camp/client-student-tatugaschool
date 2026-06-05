@@ -245,7 +245,7 @@ function Index({ id }: { id: string }) {
                   }}
                   onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
                   placeholder={wordCloudLanguage.placeholder(lang)}
-                  maxLength={100}
+                  maxLength={999}
                   disabled={isSubmitting}
                   className="w-full rounded-xl border border-gray-300 px-4 py-3 text-center text-lg text-icon-color outline-none focus:border-primary-color disabled:opacity-60"
                 />
