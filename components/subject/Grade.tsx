@@ -4,6 +4,7 @@ import { MdAssignment, MdStar } from "react-icons/md";
 import { useGetOverviewScore, useGetSubjectById } from "../../react-query";
 import { calulateGrade, defaultGradeRule } from "../../utils";
 import ClassworkCard from "./ClassworkCard";
+import RubricBreakdown from "./RubricBreakdown";
 import Image from "next/image";
 
 type Props = {
@@ -120,17 +121,23 @@ function Grade({ subjectId, studentId }: Props) {
         <ul className="mt-3 flex w-full flex-col gap-4">
           {overview.data?.assignments.map((a) => {
             return (
-              <ClassworkCard
-                allowStudentViewScoreOnAssignment={true}
-                key={a.assignment.id}
-                subjectId={subjectId}
-                onSelect={() => {}}
-                classwork={{
-                  ...a.assignment,
-                  files: [],
-                  studentOnAssignment: a.studentOnAssignment,
-                }}
-              />
+              <li key={a.assignment.id} className="flex w-full flex-col">
+                <ClassworkCard
+                  allowStudentViewScoreOnAssignment={true}
+                  subjectId={subjectId}
+                  onSelect={() => {}}
+                  classwork={{
+                    ...a.assignment,
+                    files: [],
+                    studentOnAssignment: a.studentOnAssignment,
+                  }}
+                />
+                {a.studentOnAssignment.status === "REVIEWD" && (
+                  <RubricBreakdown
+                    studentOnAssignmentId={a.studentOnAssignment.id}
+                  />
+                )}
+              </li>
             );
           })}
         </ul>
