@@ -13,6 +13,7 @@ import AssignmentStatusCard from "./AssignmentStatus";
 import { FaRegFile, FaRegFileImage } from "react-icons/fa";
 import { LuLink } from "react-icons/lu";
 import { TagChipList } from "./AssignmentTagEditor";
+import RubricBreakdown from "./RubricBreakdown";
 
 type PropsClassworkCard = {
   classwork: Assignment & {
@@ -187,6 +188,12 @@ function AssignmentCard({
             })}
           </div>
         </section>
+      )}
+
+      {assignment.studentOnAssignment.status === "REVIEWD" && (
+        <RubricBreakdown
+          studentOnAssignmentId={assignment.studentOnAssignment.id}
+        />
       )}
     </button>
   );

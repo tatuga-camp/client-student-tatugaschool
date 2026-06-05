@@ -32,4 +32,5 @@ export * from "./Exception";
 export * from "./Query";
 export * from "./Grade";
 export * from "./QuestionOnVideo";
+export * from "./Rubric";
 export * from "./WordCloud";
