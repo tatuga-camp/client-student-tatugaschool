@@ -1,8 +1,9 @@
 import { GetServerSideProps } from "next";
 import Head from "next/head";
 import Image from "next/image";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Countdown from "react-countdown";
+import { FaSearch } from "react-icons/fa";
 import { GrStatusUnknown } from "react-icons/gr";
 import { IoMdClose } from "react-icons/io";
 import { PiNote } from "react-icons/pi";
@@ -33,6 +34,7 @@ import {
   qrcodeAttendanceLanguage,
   qrcodeMenuBarLanguage,
   requestDataLanguage,
+  subjectDataLanguage,
 } from "../../data/languages";
 import LanguageSelect from "../../components/LanguageSelect";
 import PopupLayout from "../../components/layouts/PopupLayout";
@@ -55,9 +57,59 @@ function Index({ id }: { id: string }) {
   const [triggerFormSignIn, setTriggerFormSignIn] = useState<boolean>(false);
   const [note, setNote] = useState<string>("");
   const [selectMenu, setSelectMenu] = useState<"status" | "note">("status");
+  const [search, setSearch] = useState("");
+  const [students, setStudents] =
+    useState<(StudentOnSubject & { attendance: Attendance })[]>();
   const qrCode = useGetAttendanceQRCode({
     attendanceRowId: id,
   });
+
+  useEffect(() => {
+    if (qrCode.data) {
+      if (qrCode.data.subject.allowHideStudentList) {
+        setStudents([]);
+      } else {
+        setStudents(qrCode.data.students);
+      }
+    }
+  }, [qrCode.status]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value);
+    if (qrCode.data) {
+      if (
+        qrCode.data.subject.allowHideStudentList &&
+        e.target.value.trim().length <= 2
+      ) {
+        setStudents([]);
+      } else if (
+        !qrCode.data.subject.allowHideStudentList &&
+        e.target.value.trim() === ""
+      ) {
+        setStudents(qrCode.data.students);
+      } else {
+        setStudents(
+          qrCode.data.students.filter(
+            (student) =>
+              student.firstName
+                .toLowerCase()
+                .includes(e.target.value.toLowerCase().trim()) ||
+              student.lastName
+                .toLowerCase()
+                .includes(e.target.value.toLowerCase().trim()) ||
+              `${student.firstName} ${student.lastName}`
+                .toLowerCase()
+                .includes(e.target.value.toLowerCase().trim()) ||
+              `${student.firstName}${student.lastName}`
+                .toLowerCase()
+                .replace(/\s+/g, "")
+                .includes(e.target.value.toLowerCase().replace(/\s+/g, "")) ||
+              student.number.toString().includes(e.target.value.trim()),
+          ),
+        );
+      }
+    }
+  };
 
   if (qrCode.isLoading) {
     return (
@@ -317,7 +369,7 @@ function Index({ id }: { id: string }) {
       )}
 
       <main className="gradient-bg flex min-h-screen w-screen flex-col items-center justify-center gap-2 font-Anuphan text-white">
-        <div className="flex w-full justify-end p-2">
+        <div className="flex w-60 justify-end p-2">
           <LanguageSelect />
         </div>
         <div className="flex items-center justify-center gap-1 rounded-full bg-white px-3 py-1 md:gap-2">
@@ -452,23 +504,76 @@ function Index({ id }: { id: string }) {
             </div>
           </section>
         ) : (
-          <section className="flex h-96 w-11/12 flex-col overflow-auto rounded-2xl bg-white p-5 text-black md:w-96">
-            {qrCode.data?.students
-              .sort((a, b) => Number(a.number) - Number(b.number))
-              .map((student, index) => {
-                const odd = index % 2 === 0;
-                return (
-                  <ListStudent<StudentOnSubject & { attendance: Attendance }>
-                    student={student}
-                    odd={odd}
-                    key={index}
-                    onClick={(data) => {
-                      handleSignIn(data);
-                    }}
-                    buttonText="Go"
-                  />
-                );
-              })}
+          <section className="flex h-96 w-11/12 flex-col gap-3 overflow-hidden rounded-2xl bg-white p-5 text-black md:w-96">
+            <div className="relative">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                <FaSearch className="text-pink-400" />
+              </div>
+              <input
+                value={search}
+                onChange={handleChange}
+                type="text"
+                placeholder={subjectDataLanguage.searchPlaceholder(
+                  language.data ?? "en",
+                )}
+                className="w-full rounded-full border-2 border-pink-200 bg-pink-50 py-3 pl-12 pr-6 text-gray-700 transition-all focus:border-pink-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-pink-100"
+              />
+            </div>
+
+            {qrCode.data?.subject.allowHideStudentList &&
+            search.trim() === "" ? (
+              <div className="flex flex-1 flex-col items-center justify-center text-gray-400">
+                <div className="mb-3 text-6xl">🙈</div>
+                <p className="text-xl font-medium text-pink-400">
+                  {subjectDataLanguage.whoAreYou(language.data ?? "en")}
+                </p>
+                <p className="mt-1 text-center text-sm">
+                  {subjectDataLanguage.typeYourName(language.data ?? "en")}
+                </p>
+              </div>
+            ) : qrCode.data?.subject.allowHideStudentList &&
+              search.trim().length <= 2 ? (
+              <div className="flex flex-1 flex-col items-center justify-center text-gray-400">
+                <div className="mb-3 text-6xl">⌨️</div>
+                <p className="text-xl font-medium text-pink-400">
+                  {subjectDataLanguage.keepTyping(language.data ?? "en")}
+                </p>
+                <p className="mt-1 text-center text-sm">
+                  {subjectDataLanguage.typeMoreThan3(language.data ?? "en")}
+                </p>
+              </div>
+            ) : students && students.length > 0 ? (
+              <ul className="flex flex-1 flex-col overflow-auto">
+                {students
+                  .sort((a, b) => Number(a.number) - Number(b.number))
+                  .map((student, index) => {
+                    const odd = index % 2 === 0;
+                    return (
+                      <ListStudent<
+                        StudentOnSubject & { attendance: Attendance }
+                      >
+                        student={student}
+                        odd={odd}
+                        key={index}
+                        onClick={(data) => {
+                          handleSignIn(data);
+                        }}
+                        buttonText="Go"
+                      />
+                    );
+                  })}
+              </ul>
+            ) : (
+              <div className="flex flex-1 flex-col items-center justify-center text-gray-400">
+                <div className="mb-3 text-6xl">🥺</div>
+                <p className="text-xl font-medium text-purple-400">
+                  {subjectDataLanguage.noStudentsFound(language.data ?? "en")}
+                </p>
+                <p className="mt-1 text-sm">
+                  {subjectDataLanguage.checkSpelling(language.data ?? "en")}
+                </p>
+              </div>
+            )}
           </section>
         )}
 
