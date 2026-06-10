@@ -4,24 +4,28 @@ import React, { useEffect, useRef, useState } from "react";
 import Swal from "sweetalert2";
 import { Password as PasswordPrimereact } from "primereact/password";
 import { IoMdCheckmarkCircleOutline } from "react-icons/io";
-import { FaSearch } from "react-icons/fa";
-import LoadingSpinner from "../../components/common/LoadingSpinner";
-import LanguageSelect from "../../components/LanguageSelect";
-import PopupLayout from "../../components/layouts/PopupLayout";
-import SignInStudentForm from "../../components/student/SignInStudentForm";
-import ListStudent from "../../components/student/ListStudent";
-import { ErrorMessages } from "../../interfaces";
+import { FaSearch, FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import LoadingSpinner from "../../../components/common/LoadingSpinner";
+import LanguageSelect from "../../../components/LanguageSelect";
+import PopupLayout from "../../../components/layouts/PopupLayout";
+import SignInStudentForm from "../../../components/student/SignInStudentForm";
+import ListStudent from "../../../components/student/ListStudent";
+import { ErrorMessages } from "../../../interfaces";
 import {
   useGetLanguage,
   useGetStudent,
-  useGetWordCloudPublic,
+  useGetWordCloudSetPublic,
   useSignIn,
   useSubmitWordCloudPublic,
   useSubmitWordCloudStudent,
-} from "../../react-query";
-import { getAccessToken, getLocalStorage, setLocalStorage } from "../../utils";
-import { wordCloudLanguage } from "../../data/languages";
-import ButtonProfile from "../../components/ButtonProfile";
+} from "../../../react-query";
+import {
+  getAccessToken,
+  getLocalStorage,
+  setLocalStorage,
+} from "../../../utils";
+import { wordCloudLanguage } from "../../../data/languages";
+import ButtonProfile from "../../../components/ButtonProfile";
 
 const MAX_ANSWER_LENGTH = 999;
 
@@ -36,67 +40,82 @@ function getBrowserToken(): string {
 
 function Index({ id }: { id: string }) {
   const language = useGetLanguage();
-  const wordCloud = useGetWordCloudPublic({ wordCloudId: id });
+  const set = useGetWordCloudSetPublic({ setId: id });
   const submitPublic = useSubmitWordCloudPublic();
   const submitStudent = useSubmitWordCloudStudent();
   const signIn = useSignIn();
+  const student = useGetStudent();
 
   const [text, setText] = useState("");
-  const [done, setDone] = useState(false);
   const [justSubmitted, setJustSubmitted] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
   const [selectStudentId, setSelectStudentId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  // The question id the student is currently viewing. null = follow live.
+  const [viewedQuestionId, setViewedQuestionId] = useState<string | null>(null);
   const passwordInputRef = useRef<PasswordPrimereact>(null);
-  const student = useGetStudent();
 
   const lang = language.data ?? "en";
   const isSubmitting = submitPublic.isPending || submitStudent.isPending;
+  const data = set.data;
 
   useEffect(() => {
-    if (getLocalStorage(`word_cloud_answered:${id}`)) setDone(true);
     setSignedIn(!!getAccessToken().access_token);
   }, [id]);
 
-  // Briefly show the success state on the button after a submit
-  // (only relevant when multiple answers are allowed; otherwise the
-  // view switches to the "done" message).
   useEffect(() => {
     if (!justSubmitted) return;
     const timer = setTimeout(() => setJustSubmitted(false), 2500);
     return () => clearTimeout(timer);
   }, [justSubmitted]);
 
+  // When the teacher advances, follow the live question unless the student has
+  // explicitly navigated back to an earlier one.
+  const revealed = data?.questions ?? [];
+  const liveQuestion =
+    revealed.find((q) => q.id === data?.activeWordCloudId) ??
+    revealed[revealed.length - 1];
+  const current =
+    revealed.find((q) => q.id === viewedQuestionId) ?? liveQuestion;
+  const currentIndex = current
+    ? revealed.findIndex((q) => q.id === current.id)
+    : -1;
+  const isLive = !!current && current.id === liveQuestion?.id;
+
+  const alreadyAnswered =
+    !!current && !!getLocalStorage(`word_cloud_answered:${current.id}`);
+
   const markDoneIfSingle = () => {
-    if (wordCloud.data && wordCloud.data.allowMultiple === false) {
-      setLocalStorage(`word_cloud_answered:${id}`, id);
-      setDone(true);
+    if (data && data.allowMultiple === false && current) {
+      setLocalStorage(`word_cloud_answered:${current.id}`, current.id);
     }
     setText("");
   };
 
-  const submitStudentAnswer = async () => {
-    const browserToken = getBrowserToken();
-    await submitStudent.mutateAsync({ wordCloudId: id, text, browserToken });
-    markDoneIfSingle();
-    setJustSubmitted(true);
-  };
-
   const handleSubmit = async () => {
-    if (!text.trim() || !wordCloud.data) return;
+    if (!text.trim() || !data || !current) return;
     const browserToken = getBrowserToken();
     try {
-      if (wordCloud.data.accessMode === "PUBLIC") {
-        await submitPublic.mutateAsync({ wordCloudId: id, text, browserToken });
+      if (data.accessMode === "PUBLIC") {
+        await submitPublic.mutateAsync({
+          wordCloudId: current.id,
+          text,
+          browserToken,
+        });
         markDoneIfSingle();
         setJustSubmitted(true);
       } else {
-        // STUDENTS_ONLY: a profile must have been chosen + signed in already.
         if (!getAccessToken().access_token) {
           setSignedIn(false);
           return;
         }
-        await submitStudentAnswer();
+        await submitStudent.mutateAsync({
+          wordCloudId: current.id,
+          text,
+          browserToken,
+        });
+        markDoneIfSingle();
+        setJustSubmitted(true);
       }
     } catch (error) {
       const result = error as ErrorMessages;
@@ -108,8 +127,6 @@ function Index({ id }: { id: string }) {
     }
   };
 
-  // Tapping a student in the roster: try a password-less sign-in first; if the
-  // server requires a password, open the password popup for that student.
   const handleSelectStudent = async (sid: string) => {
     try {
       await signIn.mutateAsync({ studentId: sid });
@@ -149,7 +166,6 @@ function Index({ id }: { id: string }) {
     }
   };
 
-  const data = wordCloud.data;
   const needProfile =
     !!data &&
     data.status !== "CLOSED" &&
@@ -178,21 +194,57 @@ function Index({ id }: { id: string }) {
       </Head>
       <main className="gradient-bg flex min-h-screen w-screen flex-col items-center justify-center gap-6 p-6 font-Anuphan text-white">
         <div className="absolute right-4 top-4">
-          {student.data && wordCloud.data ? (
-            <ButtonProfile
-              student={student.data}
-              subjectId={wordCloud.data.subjectId}
-            />
+          {student.data && data ? (
+            <ButtonProfile student={student.data} subjectId={data.subjectId} />
           ) : (
             <LanguageSelect />
           )}
         </div>
 
-        {wordCloud.isLoading && <LoadingSpinner />}
+        {set.isLoading && <LoadingSpinner />}
 
-        {data && (
+        {data && !current && (
+          <p className="text-center text-lg">
+            {wordCloudLanguage.waitingForTeacher(lang)}
+          </p>
+        )}
+
+        {data && current && (
           <div className="flex w-full max-w-md flex-col items-center gap-5 rounded-2xl bg-white/95 p-6 text-icon-color shadow-xl">
-            <h1 className="text-center text-xl font-bold">{data.question}</h1>
+            {/* Question position + back/forward */}
+            <div className="flex w-full items-center justify-between text-xs text-icon-color/70">
+              <button
+                onClick={() => {
+                  const prev = revealed[currentIndex - 1];
+                  if (prev) setViewedQuestionId(prev.id);
+                }}
+                disabled={currentIndex <= 0}
+                className="flex items-center gap-1 rounded-full bg-background-color px-2 py-1 font-semibold disabled:opacity-30"
+              >
+                <FaChevronLeft /> {wordCloudLanguage.prevQuestion(lang)}
+              </button>
+              <span>
+                {wordCloudLanguage.questionXofY(
+                  lang,
+                  currentIndex + 1,
+                  revealed.length,
+                )}
+                {isLive ? ` · ${wordCloudLanguage.liveNow(lang)}` : ""}
+              </span>
+              <button
+                onClick={() => {
+                  const next = revealed[currentIndex + 1];
+                  if (next) setViewedQuestionId(next.id);
+                  else setViewedQuestionId(null); // back to following live
+                }}
+                disabled={currentIndex >= revealed.length - 1}
+                className="flex items-center gap-1 rounded-full bg-background-color px-2 py-1 font-semibold disabled:opacity-30"
+              >
+                {wordCloudLanguage.nextQuestion(lang)} <FaChevronRight />
+              </button>
+            </div>
+
+            <h1 className="text-center text-xl font-bold">{current.question}</h1>
 
             {data.status === "CLOSED" ? (
               <p className="text-center text-error-color">
@@ -216,14 +268,16 @@ function Index({ id }: { id: string }) {
                 </div>
                 {filteredStudents.length > 0 ? (
                   <ul className="grid max-h-80 grid-cols-1 gap-1 overflow-y-auto pr-1">
-                    {filteredStudents.map((student, index) => (
+                    {filteredStudents.map((s, index) => (
                       <ListStudent
-                        key={student.id}
+                        key={s.id}
                         odd={index % 2 === 0}
-                        student={student}
+                        student={s}
                         isPedding={signIn.isPending}
                         buttonText={wordCloudLanguage.selectButton(lang)}
-                        onClick={(s) => handleSelectStudent(s.studentId)}
+                        onClick={(picked) =>
+                          handleSelectStudent(picked.studentId)
+                        }
                       />
                     ))}
                   </ul>
@@ -233,7 +287,7 @@ function Index({ id }: { id: string }) {
                   </p>
                 )}
               </div>
-            ) : done ? (
+            ) : alreadyAnswered ? (
               <p className="text-center text-success-color">
                 {wordCloudLanguage.submitted(lang)}
               </p>
@@ -252,7 +306,10 @@ function Index({ id }: { id: string }) {
                   className="w-full rounded-xl border border-gray-300 px-4 py-3 text-center text-lg text-icon-color outline-none focus:border-primary-color disabled:opacity-60"
                 />
                 <span className="-mt-2 self-end text-xs text-icon-color/60">
-                  {wordCloudLanguage.lettersLeft(lang, MAX_ANSWER_LENGTH - text.length)}
+                  {wordCloudLanguage.lettersLeft(
+                    lang,
+                    MAX_ANSWER_LENGTH - text.length,
+                  )}
                 </span>
                 <button
                   onClick={handleSubmit}
@@ -297,10 +354,10 @@ function Index({ id }: { id: string }) {
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const query = ctx.query;
-  if (!query.wordCloudId) {
+  if (!query.setId) {
     return { notFound: true };
   }
-  return { props: { id: query.wordCloudId } };
+  return { props: { id: query.setId } };
 };
 
 export default Index;

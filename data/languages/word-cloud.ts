@@ -36,4 +36,56 @@ export const wordCloudLanguage = {
     language === "th" ? "เลือก" : "Select",
   noStudentsFound: (language: Language) =>
     language === "th" ? "ไม่พบนักเรียน" : "No students found",
+  lettersLeft: (language: Language, n: number) =>
+    language === "th" ? `เหลืออีก ${n} ตัวอักษร` : `${n} letters left`,
+  questionXofY: (language: Language, x: number, y: number) => {
+    switch (language) {
+      case "en":
+        return `Question ${x} of ${y}`;
+      case "th":
+        return `คำถาม ${x} จาก ${y}`;
+      default:
+        return `Question ${x} of ${y}`;
+    }
+  },
+  prevQuestion: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "Back";
+      case "th":
+        return "ย้อนกลับ";
+      default:
+        return "Back";
+    }
+  },
+  nextQuestion: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "Next";
+      case "th":
+        return "ถัดไป";
+      default:
+        return "Next";
+    }
+  },
+  liveNow: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "Live now";
+      case "th":
+        return "กำลังถามอยู่";
+      default:
+        return "Live now";
+    }
+  },
+  waitingForTeacher: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "Waiting for the teacher to start…";
+      case "th":
+        return "กำลังรอครูเริ่ม…";
+      default:
+        return "Waiting for the teacher to start…";
+    }
+  },
 } as const;
