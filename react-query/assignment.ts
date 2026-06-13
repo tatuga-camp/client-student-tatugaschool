@@ -20,7 +20,7 @@ export function useGetAssignments(input: RequestGetAssignmentsService) {
   return useQuery({
     queryKey: ["assignments", { subjectId: input.subjectId }],
     queryFn: () => GetAssignmentsService(input),
-    refetchInterval: 1000 * 5,
+    refetchInterval: 1000 * 10,
   });
 }
 

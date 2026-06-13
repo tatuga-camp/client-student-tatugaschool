@@ -11,11 +11,12 @@ import {
   FaRegSadTear,
 } from "react-icons/fa";
 import { FcLink, FcPlus, FcUpload } from "react-icons/fc";
-import { IoIosInformationCircle } from "react-icons/io";
+import { GrFormNextLink } from "react-icons/gr";
 import { IoChevronDownSharp } from "react-icons/io5";
 import { MdLink, MdOutlineDone, MdOutlineRemoveDone } from "react-icons/md";
 import { RiEmotionHappyFill } from "react-icons/ri";
 import Swal from "sweetalert2";
+import FileAssignmentVideoPlayer from "../../../../components/common/FileAssignmentVideoPlayer";
 import LoadingSpinner from "../../../../components/common/LoadingSpinner";
 import StudentVideoPlayer, {
   StudentVideoPlayerRef,
@@ -50,9 +51,6 @@ import {
   useUpdateStudentOnAssignment,
 } from "../../../../react-query";
 import { timeAgo, timeLeft } from "../../../../utils";
-import FileAssignmentVideoPlayer from "../../../../components/common/FileAssignmentVideoPlayer";
-import { CiCirclePlus } from "react-icons/ci";
-import { GrFormNextLink } from "react-icons/gr";
 
 const SummitWorkMenus = [
   {
@@ -642,7 +640,10 @@ function Index({
                   ref={videoPlayerRef}
                   src={assignment.videoURL}
                   config={{
-                    preventFastForward: assignment.preventFastForward ?? false,
+                    preventFastForward:
+                      studentOnAssignment.status === "REVIEWD"
+                        ? false
+                        : (assignment.preventFastForward ?? false),
                     questions: assignment.questions,
                   }}
                   cannotSummit={studentOnAssignment.status === "REVIEWD"}

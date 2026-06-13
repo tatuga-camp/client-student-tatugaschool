@@ -17,7 +17,7 @@ type Props = {
 function CommentSection({ studentOnAssignmentId }: Props) {
   const comments = useGetComments({
     studentOnAssignmentId,
-    refetchInterval: 5000,
+    refetchInterval: 1000 * 10,
   });
   const student = useGetStudent();
   const [comment, setComment] = React.useState("");
