@@ -135,7 +135,7 @@ function FileCard({ file }: Props) {
       title={displayName}
       className="flex h-14 w-full items-center justify-between overflow-hidden rounded-2xl border bg-white"
     >
-      <div className="flex h-full w-10/12 items-center justify-start gap-2">
+      <div className="flex h-full w-9/12 items-center justify-start gap-2">
         <button
           onClick={() => window.open(file.body, "_blank")}
           className="gradient-bg flex h-full w-14 items-center justify-center border-r text-lg text-white"

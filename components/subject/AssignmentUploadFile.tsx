@@ -106,6 +106,9 @@ function AssignmentUploadFile({
         <input
           disabled={loading}
           onChange={handleUploadFiles}
+          onClick={(e) => {
+            e.currentTarget.value = "";
+          }}
           type="file"
           className="hidden"
           multiple
