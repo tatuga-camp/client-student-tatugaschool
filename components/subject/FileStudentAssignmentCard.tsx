@@ -50,7 +50,7 @@ function TextCard({ file, onShowText }: Props) {
       <div className="flex h-full w-10/12 items-center justify-start gap-2">
         <button
           onClick={() => onShowText?.(file)}
-          className="flex h-full w-14 items-center justify-center border-r bg-gradient-to-r from-green-200 to-green-600 text-lg text-white"
+          className="flex h-full w-14 items-center justify-center border-r bg-green-500 text-lg text-white"
         >
           <MdNoteAlt />
         </button>
@@ -138,7 +138,7 @@ function FileCard({ file }: Props) {
       <div className="flex h-full w-9/12 items-center justify-start gap-2">
         <button
           onClick={() => window.open(file.body, "_blank")}
-          className="gradient-bg flex h-full w-14 items-center justify-center border-r text-lg text-white"
+          className="flex h-full w-14 items-center justify-center border-r bg-primary-color text-lg text-white"
         >
           {isImage ? (
             <FaRegFileImage />

@@ -3,27 +3,29 @@ import { FaTrophy } from "react-icons/fa";
 import { MdAssignment, MdStar } from "react-icons/md";
 import { useGetOverviewScore, useGetSubjectById } from "../../react-query";
 import { calulateGrade, defaultGradeRule } from "../../utils";
-import ClassworkCard from "./ClassworkCard";
-import RubricBreakdown from "./RubricBreakdown";
 import Image from "next/image";
 
 type Props = {
   subjectId: string;
   studentId: string;
 };
+
 function Grade({ subjectId, studentId }: Props) {
   const subject = useGetSubjectById({ id: subjectId });
   const [totalScore, setTotalScore] = useState<number>(0);
   const [totalSpecialScore, setTotalSpecialScore] = useState<number>(0);
   const [totalAssignmentScore, setTotalAssignmentScore] = useState<number>(0);
   const [grade, setGrade] = useState<string>("NONE");
+
   const overview = useGetOverviewScore({
     subjectId,
     studentId,
   });
-  const totalMaxScore = overview.data?.assignments.reduce((acc, curr) => {
-    return acc + curr.assignment.maxScore;
-  }, 0);
+
+  const totalMaxScore =
+    overview.data?.assignments.reduce((acc, curr) => {
+      return acc + curr.assignment.maxScore;
+    }, 0) ?? 0;
 
   useEffect(() => {
     if (overview.data) {
@@ -39,15 +41,13 @@ function Grade({ subjectId, studentId }: Props) {
           const originalScore = score / current.assignment.maxScore;
           score = originalScore * current.assignment.weight;
         }
-
         return prev + score;
       }, 0) ?? 0;
+
     const totalSpecial =
       overview.data?.scoreOnSubjects.reduce((prev, scoreOnSubject) => {
         const sumRawScore = scoreOnSubject.students.reduce(
-          (prev, studentOnScore) => {
-            return (prev += studentOnScore.score);
-          },
+          (sum, studentOnScore) => sum + studentOnScore.score,
           0,
         );
 
@@ -59,133 +59,209 @@ function Grade({ subjectId, studentId }: Props) {
           score = originalScore * scoreOnSubject.scoreOnSubject.weight;
         }
 
-        return (prev += score);
+        return prev + score;
       }, 0) ?? 0;
 
     setTotalAssignmentScore(totalAssignment);
     setTotalSpecialScore(totalSpecial);
     setTotalScore(totalAssignment + totalSpecial);
-    const grade = calulateGrade(
+
+    const calcGrade = calulateGrade(
       overview.data?.grade?.gradeRules ?? defaultGradeRule,
       totalAssignment + totalSpecial,
     );
-    setGrade(grade);
+    setGrade(calcGrade);
   };
 
+  if (!overview.data) {
+    return (
+      <div className="flex h-64 w-full items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-color border-t-transparent"></div>
+      </div>
+    );
+  }
+
+  const allowViewGrade = subject.data?.allowStudentViewGrade === true;
+
   return (
-    <div className="flex w-full flex-col items-center gap-5 pt-5 font-Anuphan">
-      <header className="flex h-40 w-80 items-center justify-between rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 p-3">
-        <section className="flex flex-col items-start justify-center">
-          <span className="text-lg text-white/80">Total Points</span>
-          <span className="text-5xl font-bold text-white">{totalScore}</span>
-          <span className="text-lg text-white/80">
-            From {totalMaxScore} Points
+    <div className="flex w-full flex-col items-center gap-6 px-4 pb-12 pt-6 font-Anuphan md:px-0">
+      {/* Top Header Card */}
+      <header className="relative flex w-full max-w-lg flex-col items-center overflow-hidden rounded-3xl bg-primary-color p-6 text-white shadow-lg md:w-96">
+        <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-white opacity-10 blur-2xl"></div>
+        <div className="absolute -bottom-10 -left-10 h-32 w-32 rounded-full bg-white opacity-10 blur-2xl"></div>
+
+        <h2 className="z-10 text-lg font-medium text-blue-100">Total Points</h2>
+        <div className="z-10 mt-1 flex items-baseline gap-1">
+          <span className="text-6xl font-extrabold tracking-tight">
+            {totalScore.toFixed(1)}
           </span>
-        </section>
-        <section className="flex flex-col items-center">
-          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-white/20 text-3xl text-white">
-            <FaTrophy />
+          <span className="text-xl font-medium text-blue-100">
+            / {totalMaxScore}
+          </span>
+        </div>
+
+        <div className="z-10 mt-6 flex w-full items-center justify-between rounded-2xl bg-white/10 px-5 py-3 backdrop-blur-md">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-xl text-yellow-300">
+              <FaTrophy />
+            </div>
+            <span className="font-medium text-blue-50">Current Grade</span>
           </div>
-          <span className="text-white">
-            {" "}
-            {subject.data?.allowStudentViewGrade === true
-              ? `Grade ${grade}`
-              : "NOT ALLOW"}
+          <span className="text-2xl font-bold">
+            {allowViewGrade ? grade : "-"}
           </span>
-        </section>
+        </div>
       </header>
-      <section className="flex items-center justify-center gap-5">
-        <section className="flex h-20 w-44 items-center justify-between rounded-xl border bg-white p-3 py-5 text-blue-700">
-          <div className="flex flex-col gap-1">
-            <span className="text-sm text-gray-500">Assignment Points</span>
-            <span className="text-3xl font-bold text-blue-700">
-              {totalAssignmentScore.toLocaleString()}
+
+      {/* Summary Cards */}
+      <section className="grid w-full max-w-lg grid-cols-2 gap-4">
+        <div className="flex flex-col items-start justify-center gap-2 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
+          <div className="flex w-full items-center justify-between">
+            <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+              Assignments
             </span>
+            <MdAssignment className="text-xl text-primary-color opacity-70" />
           </div>
-          <MdAssignment className="text-2xl" />
-        </section>
-        <section className="flex h-20 w-44 items-center justify-between rounded-xl border bg-white p-3 py-5 text-blue-700">
-          <div className="flex flex-col gap-1">
-            <span className="text-sm text-gray-500">Speical Points</span>
-            <span className="text-3xl font-bold text-blue-700">
-              {totalSpecialScore.toLocaleString()}
+          <span className="text-2xl font-bold text-gray-800">
+            {totalAssignmentScore.toLocaleString(undefined, {
+              maximumFractionDigits: 1,
+            })}
+          </span>
+        </div>
+        <div className="flex flex-col items-start justify-center gap-2 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
+          <div className="flex w-full items-center justify-between">
+            <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+              Special
             </span>
+            <MdStar className="text-xl text-yellow-500 opacity-70" />
           </div>
-          <MdStar className="text-2xl" />
-        </section>
+          <span className="text-2xl font-bold text-gray-800">
+            {totalSpecialScore.toLocaleString(undefined, {
+              maximumFractionDigits: 1,
+            })}
+          </span>
+        </div>
       </section>
-      <main className="w-full">
-        <h3 className="w-full text-start text-2xl font-bold text-black">
-          Assignments
-        </h3>
-        <ul className="mt-3 flex w-full flex-col gap-4">
-          {overview.data?.assignments.map((a) => {
-            return (
-              <li key={a.assignment.id} className="flex w-full flex-col">
-                <ClassworkCard
-                  allowStudentViewScoreOnAssignment={true}
-                  subjectId={subjectId}
-                  onSelect={() => {}}
-                  classwork={{
-                    ...a.assignment,
-                    files: [],
-                    studentOnAssignment: a.studentOnAssignment,
-                  }}
-                />
-              </li>
-            );
-          })}
-        </ul>
-        <h3 className="mt-5 w-full text-start text-2xl font-bold text-black">
-          Speical Points
-        </h3>{" "}
-        <ul className="mt-3 flex w-full flex-col gap-4">
-          {overview.data?.scoreOnSubjects.map((a) => {
-            const sumRawScore = a.students.reduce((prev, studentOnScore) => {
-              return (prev += studentOnScore.score);
-            }, 0);
 
-            let score = sumRawScore;
-            const maxScore = a.scoreOnSubject.maxScore ?? 100;
-            if (a.scoreOnSubject.weight !== null) {
-              const originalScore =
-                (sumRawScore > maxScore ? maxScore : sumRawScore) / maxScore;
-              score = originalScore * a.scoreOnSubject.weight;
-            }
+      {/* Breakdown Lists */}
+      <main className="w-full max-w-3xl space-y-8">
+        {/* Assignments Section */}
+        {overview.data.assignments.length > 0 && (
+          <section className="flex w-full flex-col gap-4">
+            <h3 className="border-l-4 border-primary-color pl-3 text-lg font-bold text-gray-800">
+              Assignment Scores
+            </h3>
+            <ul className="flex flex-col gap-3">
+              {overview.data.assignments.map((a) => {
+                const score = a.studentOnAssignment.score ?? 0;
+                const max = a.assignment.maxScore;
+                const percent =
+                  max > 0 ? Math.min(100, Math.max(0, (score / max) * 100)) : 0;
 
-            return (
-              <section
-                key={a.scoreOnSubject.id}
-                className="flex h-20 w-full items-center justify-between rounded-xl border bg-white p-3"
-              >
-                <div className="flex items-center justify-center gap-2">
-                  <div className="relative h-10 w-10">
-                    <Image
-                      src={a.scoreOnSubject.icon}
-                      alt={a.scoreOnSubject.title}
-                      fill
-                      className="object-contain"
-                    />
-                  </div>
-                  <div className="items-staet flex flex-col gap-0">
-                    <span className="text-xl font-semibold">
-                      {a.scoreOnSubject.title}
-                    </span>
-                    {a.scoreOnSubject.maxScore && (
-                      <span className="text-sm text-gray-500">
-                        {a.scoreOnSubject.maxScore} max score -{" "}
-                        {a.scoreOnSubject.weight} weight
+                return (
+                  <li
+                    key={a.assignment.id}
+                    className="flex flex-col gap-2 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm"
+                  >
+                    <div className="flex w-full items-start justify-between gap-4">
+                      <span className="line-clamp-2 font-semibold text-gray-800">
+                        {a.assignment.title}
                       </span>
+                      <div className="flex shrink-0 flex-col items-end">
+                        <span className="text-lg font-bold text-primary-color">
+                          {score}
+                        </span>
+                        <span className="text-xs font-medium text-gray-400">
+                          / {max}
+                        </span>
+                      </div>
+                    </div>
+                    {/* Progress Bar */}
+                    <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-gray-100">
+                      <div
+                        className="h-full rounded-full bg-primary-color transition-all duration-1000"
+                        style={{ width: `${percent}%` }}
+                      ></div>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        )}
+
+        {/* Special Points Section */}
+        {overview.data.scoreOnSubjects.length > 0 && (
+          <section className="flex w-full flex-col gap-4">
+            <h3 className="border-l-4 border-yellow-400 pl-3 text-lg font-bold text-gray-800">
+              Special Scores
+            </h3>
+            <ul className="flex flex-col gap-3">
+              {overview.data.scoreOnSubjects.map((a) => {
+                const sumRawScore = a.students.reduce(
+                  (prev, studentOnScore) => prev + studentOnScore.score,
+                  0,
+                );
+                let score = sumRawScore;
+                const maxScore = a.scoreOnSubject.maxScore ?? 100;
+                if (a.scoreOnSubject.weight !== null) {
+                  const originalScore =
+                    (sumRawScore > maxScore ? maxScore : sumRawScore) /
+                    maxScore;
+                  score = originalScore * a.scoreOnSubject.weight;
+                }
+                const percent =
+                  maxScore > 0
+                    ? Math.min(100, Math.max(0, (sumRawScore / maxScore) * 100))
+                    : 0;
+
+                return (
+                  <li
+                    key={a.scoreOnSubject.id}
+                    className="flex flex-col gap-2 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm"
+                  >
+                    <div className="flex w-full items-center justify-between gap-4">
+                      <div className="flex items-center gap-3 overflow-hidden">
+                        {a.scoreOnSubject.icon && (
+                          <div className="relative h-10 w-10 shrink-0">
+                            <Image
+                              src={a.scoreOnSubject.icon}
+                              alt={a.scoreOnSubject.title}
+                              fill
+                              className="object-contain drop-shadow-sm"
+                            />
+                          </div>
+                        )}
+                        <span className="truncate font-semibold text-gray-800">
+                          {a.scoreOnSubject.title}
+                        </span>
+                      </div>
+                      <div className="flex shrink-0 flex-col items-end">
+                        <span className="text-lg font-bold text-yellow-500">
+                          {score.toFixed(1)}
+                        </span>
+                        {a.scoreOnSubject.maxScore && (
+                          <span className="text-xs font-medium text-gray-400">
+                            / {a.scoreOnSubject.weight ?? maxScore}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    {/* Progress Bar */}
+                    {a.scoreOnSubject.maxScore && (
+                      <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-gray-100">
+                        <div
+                          className="h-full rounded-full bg-yellow-400 transition-all duration-1000"
+                          style={{ width: `${percent}%` }}
+                        ></div>
+                      </div>
                     )}
-                  </div>
-                </div>
-                <span className="text-xl font-bold text-green-600">
-                  ({score} Points)
-                </span>
-              </section>
-            );
-          })}
-        </ul>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        )}
       </main>
     </div>
   );

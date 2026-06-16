@@ -40,8 +40,8 @@ function Attendance({ subjectId, studentId }: Props) {
             setSelectNote(null);
           }}
         >
-          <div className="rounded-2xl80 flex-col rounded-2xl bg-white p-3">
-            <div className="flex w-full justify-end">
+          <div className="flex w-[90vw] max-w-md flex-col rounded-2xl bg-white p-5 shadow-xl">
+            <div className="flex w-full justify-end border-b pb-2">
               <button
                 onClick={() => {
                   document.body.style.overflow = "auto";
@@ -74,18 +74,20 @@ function Attendance({ subjectId, studentId }: Props) {
               <li
                 onClick={() => setSelectTable(table)}
                 key={table.id}
-                className={`rounded-2xl40 shrink-0 cursor-pointer rounded-2xl p-3 ${
+                className={`shrink-0 cursor-pointer rounded-2xl border p-4 transition-all duration-300 ${
                   table.id === selectTable?.id
-                    ? "gradient-bg -primary-color text-white"
-                    : "bg-white text-black"
+                    ? "border-primary-color bg-primary-color text-white shadow-md"
+                    : "border-gray-200 bg-white text-gray-700 hover:border-primary-color hover:shadow-sm"
                 }`}
               >
-                <h2 className="text-base font-semibold">{table.title}</h2>
+                <h2 className="text-base font-bold tracking-tight">
+                  {table.title}
+                </h2>
                 <p
-                  className={`text-xs text-gray-400 ${
+                  className={`mt-1 text-xs ${
                     table.id === selectTable?.id
-                      ? "text-white"
-                      : "text-gray-400"
+                      ? "text-blue-100"
+                      : "text-gray-500"
                   } `}
                 >
                   {table.description}
@@ -95,16 +97,16 @@ function Attendance({ subjectId, studentId }: Props) {
           )}
         </ul>
       </div>
-      <div className="rounded-2xlw-hidden rounded-2xl bg-white">
-        <table className="w-full">
-          <thead className="">
-            <tr className="bg-gray-200">
-              <th className="">Date</th>
-              <th className="">Status</th>
-              <th className="">Note</th>
+      <div className="w-full overflow-x-auto rounded-2xl border border-gray-100 bg-white shadow-sm">
+        <table className="w-full text-left text-sm text-gray-700">
+          <thead className="bg-gray-50 text-xs uppercase tracking-wider text-gray-500">
+            <tr>
+              <th className="px-6 py-4 font-semibold">Date</th>
+              <th className="px-6 py-4 text-center font-semibold">Status</th>
+              <th className="px-6 py-4 text-center font-semibold">Note</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-gray-100">
             {selectTable?.rows
               .sort(
                 (a, b) =>
@@ -132,14 +134,19 @@ function Attendance({ subjectId, studentId }: Props) {
                   },
                 );
                 return (
-                  <tr key={index} className="border-b">
-                    <td className="">
-                      <div className="relative flex w-24 flex-col items-start p-2">
-                        <span className="font-semibold">{dateFormat}</span>
+                  <tr
+                    key={index}
+                    className="transition-colors hover:bg-gray-50/50"
+                  >
+                    <td className="whitespace-nowrap px-6 py-4">
+                      <div className="flex flex-col">
+                        <span className="font-semibold text-gray-900">
+                          {dateFormat}
+                        </span>
                         <span className="text-xs text-gray-500">{time}</span>
                       </div>
                     </td>
-                    <td className="">
+                    <td className="px-6 py-4 text-center">
                       {attendance ? (
                         <div
                           style={{
@@ -148,30 +155,26 @@ function Attendance({ subjectId, studentId }: Props) {
                                 (s) => s.title === attendance?.status,
                               )?.color ?? "#94a3b8",
                           }}
-                          className="relative flex flex-col items-center justify-center rounded-2xl px-4 py-2 ring-black transition"
+                          className="mx-auto flex w-max items-center justify-center rounded-full px-3 py-1 text-xs font-bold tracking-wide text-white shadow-sm"
                         >
                           {attendance?.status}
                         </div>
                       ) : (
-                        <div className="relative flex flex-col items-center justify-center rounded-2xl px-4 py-2 ring-black transition">
-                          NO DATA
+                        <div className="mx-auto flex w-max items-center justify-center rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-400">
+                          -
                         </div>
                       )}
                     </td>
-                    <td className="">
+                    <td className="px-6 py-4 text-center">
                       {attendance?.note ? (
-                        <div className="flex w-full items-center justify-center">
-                          <button
-                            onClick={() => setSelectNote(attendance.note)}
-                            className="second-button flex items-center justify-center gap-1"
-                          >
-                            View Note <MdOutlineSpeakerNotes />
-                          </button>
-                        </div>
+                        <button
+                          onClick={() => setSelectNote(attendance.note)}
+                          className="mx-auto flex items-center justify-center gap-1.5 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm transition hover:border-primary-color hover:text-primary-color"
+                        >
+                          <MdOutlineSpeakerNotes className="text-base" /> Note
+                        </button>
                       ) : (
-                        <div className="flex items-center justify-center">
-                          No Note
-                        </div>
+                        <span className="text-xs text-gray-400">-</span>
                       )}
                     </td>
                   </tr>

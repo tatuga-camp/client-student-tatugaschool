@@ -59,47 +59,54 @@ function Index({ subjectId }: { subjectId: string }) {
       <Layout subjectId={subjectId}>
         <main className="flex w-full flex-col xl:w-7/12">
           {subject.data && (
-            <ul className="flex w-full flex-wrap items-center justify-start gap-2 p-5">
-              {menuLists
-                .filter((m) => {
-                  if (
-                    m.title === "Attendance" &&
-                    !subject.data.allowStudentViewAttendance
-                  ) {
-                    return false; // Exclude "Attendance" if not allowed
-                  }
-                  if (
-                    m.title === "Grade" &&
-                    !subject.data.allowStudentViewOverallScore
-                  ) {
-                    return false; // Exclude "Grade" if not allowed
-                  }
-                  return true; // Keep other items
-                })
-                .map((menu, index) => {
-                  return (
-                    <button
-                      onClick={() => {
-                        window.scrollTo(0, 0);
-                        setSelectMenu(menu.title);
-                      }}
-                      key={index}
-                      className={` ${
-                        menu.title === selectMenu
-                          ? "gradient-bg text-white"
-                          : "bg-white text-black"
-                      } active:gradient-bg flex h-10 w-max items-center justify-start gap-2 rounded-2xl border p-2 hover:bg-primary-color hover:text-white`}
-                    >
-                      {menu.icon}
-                      <span>
-                        {menuSubjectDataLanguage[
-                          menu.title.toLowerCase() as keyof typeof menuSubjectDataLanguage
-                        ](language.data ?? "en")}
-                      </span>
-                    </button>
-                  );
-                })}
-            </ul>
+            <div className="w-full px-5 py-3 md:top-0 md:bg-transparent md:backdrop-blur-none">
+              <div className="mx-auto flex h-14 w-full max-w-md items-center justify-between rounded-full bg-white p-1.5 shadow-sm ring-1 ring-gray-200">
+                {menuLists
+                  .filter((m) => {
+                    if (
+                      m.title === "Attendance" &&
+                      !subject.data.allowStudentViewAttendance
+                    ) {
+                      return false;
+                    }
+                    if (
+                      m.title === "Grade" &&
+                      !subject.data.allowStudentViewOverallScore
+                    ) {
+                      return false;
+                    }
+                    return true;
+                  })
+                  .map((menu, index) => {
+                    const isActive = menu.title === selectMenu;
+                    return (
+                      <button
+                        onClick={() => {
+                          window.scrollTo(0, 0);
+                          setSelectMenu(menu.title);
+                        }}
+                        key={index}
+                        className={`flex h-full flex-1 items-center justify-center gap-1.5 rounded-full px-1 text-xs font-bold transition-all duration-300 ${
+                          isActive
+                            ? "bg-primary-color text-white shadow-md"
+                            : "text-gray-500 hover:bg-gray-50 hover:text-primary-color"
+                        }`}
+                      >
+                        <span className={isActive ? "text-base" : "text-sm"}>
+                          {menu.icon}
+                        </span>
+                        <span
+                          className={`truncate ${isActive ? "block" : "hidden sm:block"}`}
+                        >
+                          {menuSubjectDataLanguage[
+                            menu.title.toLowerCase() as keyof typeof menuSubjectDataLanguage
+                          ](language.data ?? "en")}
+                        </span>
+                      </button>
+                    );
+                  })}
+              </div>
+            </div>
           )}
           {selectMenu === "Classwork" && (
             <Classwork

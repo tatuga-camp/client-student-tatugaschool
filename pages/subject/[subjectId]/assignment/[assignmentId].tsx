@@ -1,6 +1,5 @@
 import { GetServerSideProps } from "next";
 import Head from "next/head";
-import { Toast } from "primereact/toast";
 import React from "react";
 import {
   FaPlay,
@@ -96,7 +95,28 @@ function Index({
   subjectId: string;
 }) {
   const language = useGetLanguage();
-  const toast = React.useRef<Toast>(null);
+  // Adapter to replace primereact Toast with Swal custom popup to fit the theme
+  const toast = React.useRef<any>({
+    show: (options: {
+      severity: string;
+      summary: string;
+      detail: string;
+      life?: number;
+    }) => {
+      Swal.fire({
+        title: options.summary,
+        text: options.detail,
+        icon: options.severity === "error" ? "error" : "success",
+        timer: options.life || 3000,
+        showConfirmButton: false,
+        toast: true,
+        position: "top-end",
+        customClass: {
+          popup: "rounded-2xl border border-gray-100 shadow-md",
+        },
+      });
+    },
+  });
   const divRef = React.useRef<HTMLDivElement>(null);
   const videoPlayerRef = React.useRef<StudentVideoPlayerRef>(null);
   const updateWork = useUpdateStudentOnAssignment();
@@ -243,7 +263,7 @@ function Index({
               }}
               disabled={updateWork.isPending}
               type="submit"
-              className="gradient-bg flex h-10 w-52 items-center justify-center gap-2 rounded-2xl rounded-r-none p-2 text-base font-medium text-white opacity-85 hover:opacity-100"
+              className="flex h-10 w-52 items-center justify-center gap-2 rounded-2xl rounded-r-none bg-primary-color p-2 text-base font-medium text-white opacity-85 hover:opacity-100"
             >
               {updateWork.isPending ? (
                 <LoadingSpinner />
@@ -284,7 +304,7 @@ function Index({
             <button
               disabled={true}
               type="submit"
-              className="gradient-bg flex h-10 w-52 items-center justify-center gap-2 rounded-2xl rounded-r-none p-2 text-base font-medium text-white opacity-85 hover:opacity-100"
+              className="flex h-10 w-52 items-center justify-center gap-2 rounded-2xl rounded-r-none bg-primary-color p-2 text-base font-medium text-white opacity-85 hover:opacity-100"
             >
               {classworkDataLanguage.menuSummitLists.review(
                 language.data ?? "en",
@@ -294,7 +314,7 @@ function Index({
           <button
             onClick={() => setTriggerSummitDropDown((prev) => !prev)}
             type="button"
-            className="gradient-bg h-10 w-max rounded-2xl rounded-l-none p-2 text-base font-medium text-white"
+            className="flex h-10 w-max items-center justify-center rounded-2xl rounded-l-none bg-primary-color p-2 text-base font-medium text-white"
           >
             <IoChevronDownSharp />
           </button>
@@ -496,7 +516,7 @@ function Index({
                 className="flex h-14 w-full items-center justify-between overflow-hidden rounded-2xl border bg-white transition hover:cursor-pointer hover:bg-gray-100"
               >
                 <div className="flex h-full w-full items-center justify-start gap-2">
-                  <div className="gradient-bg flex h-full w-16 items-center justify-center border-r text-lg text-white">
+                  <div className="flex h-full w-16 items-center justify-center border-r bg-primary-color text-lg text-white">
                     {isLink ? (
                       <MdLink />
                     ) : isImage ? (
@@ -537,7 +557,6 @@ function Index({
           onClose={() => setActiveVideo(null)}
         />
       )}
-      <Toast ref={toast} />
       {selectMenu !== null && (
         <PopupLayout onClose={() => setSelectMenu(null)}>
           {selectMenu.title === "Create" && (
