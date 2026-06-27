@@ -189,6 +189,17 @@ function Index({ subjectData, code, error }: IndexProps) {
           name="description"
           content={`welcome to subject ${subject.data?.title} by ${subject.data?.teacherOnSubjects[0].firstName}`}
         />
+        <link
+          rel="manifest"
+          href={`/api/manifest?subject_code=${encodeURIComponent(code)}`}
+        />
+        <meta name="theme-color" content="#2C7CD1" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta
+          name="apple-mobile-web-app-title"
+          content={subject.data?.title ?? "Tatuga School"}
+        />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
       </Head>
       {selectStudentId && (
         <PopupLayout
