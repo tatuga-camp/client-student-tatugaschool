@@ -2,7 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import Link from "next/link";
 import { destroyCookie } from "nookies";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { AiOutlineLogout } from "react-icons/ai";
 import { FiHelpCircle } from "react-icons/fi";
 import {
@@ -14,9 +14,15 @@ import { defaultBlurHash, defaultCanvas } from "../data";
 import { navbarLanguageData } from "../data/languages";
 import useClickOutside from "../hook/useClickOutside";
 import { Student, Subject } from "../interfaces";
-import { useGetLanguage } from "../react-query";
-import { decodeBlurhashToCanvas } from "../utils";
+import { useGetAssignments, useGetLanguage } from "../react-query";
+import {
+  calculateSubmissionCompletion,
+  decodeBlurhashToCanvas,
+} from "../utils";
 import LanguageSelect from "./LanguageSelect";
+import AvatarSubmissionRing, {
+  submissionColorClasses,
+} from "./AvatarSubmissionRing";
 
 type Props = {
   student: Student;
@@ -27,6 +33,20 @@ function ButtonProfile({ student, subjectId }: Props) {
   const queryClient = useQueryClient();
   const language = useGetLanguage();
   const lang = language.data ?? "en";
+  const assignments = useGetAssignments({ subjectId });
+  const completion = useMemo(
+    () => calculateSubmissionCompletion(assignments.data ?? []),
+    [assignments.data],
+  );
+  const ringLabel =
+    completion.percentage === null
+      ? undefined
+      : navbarLanguageData.submittedLabel(
+          completion.submittedCount,
+          completion.applicableCount,
+          completion.percentage,
+          lang,
+        );
   const [loading, setLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -56,7 +76,10 @@ function ButtonProfile({ student, subjectId }: Props) {
         onClick={() => setIsOpen(!isOpen)}
         className="flex h-10 items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-white px-2 transition-colors hover:bg-gray-50"
       >
-        <div className="relative h-7 w-7 overflow-hidden rounded-full">
+        <AvatarSubmissionRing
+          percentage={completion.percentage}
+          label={ringLabel}
+        >
           <Image
             src={student.photo || defaultCanvas}
             alt={`${student.firstName} avatar`}
@@ -68,7 +91,7 @@ function ButtonProfile({ student, subjectId }: Props) {
             )}
             className="object-cover"
           />
-        </div>
+        </AvatarSubmissionRing>
         <span className="max-w-[100px] truncate text-sm font-medium text-gray-700 md:block">
           {student.firstName} {student.lastName}
         </span>
@@ -107,6 +130,34 @@ function ButtonProfile({ student, subjectId }: Props) {
               <span className="truncate text-xs text-gray-500">
                 {navbarLanguageData.classNo(lang)} {student.number}
               </span>
+              {completion.percentage !== null && (
+                <div className="mt-1 flex flex-col gap-0.5">
+                  <div className="flex items-center gap-2">
+                    <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-gray-200">
+                      <div
+                        className={`h-full rounded-full ${
+                          submissionColorClasses(completion.percentage).bg
+                        }`}
+                        style={{ width: `${completion.percentage}%` }}
+                      />
+                    </div>
+                    <span
+                      className={`text-xs font-semibold ${
+                        submissionColorClasses(completion.percentage).text
+                      }`}
+                    >
+                      {completion.percentage}%
+                    </span>
+                  </div>
+                  <span className="text-xs text-gray-500">
+                    {navbarLanguageData.submittedCountLabel(
+                      completion.submittedCount,
+                      completion.applicableCount,
+                      lang,
+                    )}
+                  </span>
+                </div>
+              )}
             </div>
           </Link>
 
