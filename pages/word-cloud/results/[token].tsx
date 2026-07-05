@@ -47,7 +47,7 @@ function Results({ token }: { token: string }) {
           </div>
         ) : (
           <div className="mx-auto flex h-full w-full max-w-5xl flex-col">
-            <header className="flex items-start justify-between gap-2 border-b p-3 sm:p-4">
+            <header className="flex flex-col gap-2 border-b p-3 sm:flex-row sm:items-start sm:justify-between sm:p-4">
               <div className="min-w-0">
                 <span className="text-xs font-semibold text-icon-color/60">
                   {data.title || wordCloudLanguage.resultsTitle(lang)}
@@ -63,27 +63,29 @@ function Results({ token }: { token: string }) {
                     : wordCloudLanguage.closedStatus(lang)}
                 </span>
               </div>
-              <div className="flex shrink-0 items-center gap-2">
-                <button
-                  onClick={() => setView("cloud")}
-                  className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                    view === "cloud"
-                      ? "bg-primary-color text-white"
-                      : "bg-background-color text-icon-color"
-                  }`}
-                >
-                  {wordCloudLanguage.cloudView(lang)}
-                </button>
-                <button
-                  onClick={() => setView("bars")}
-                  className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                    view === "bars"
-                      ? "bg-primary-color text-white"
-                      : "bg-background-color text-icon-color"
-                  }`}
-                >
-                  {wordCloudLanguage.barsView(lang)}
-                </button>
+              <div className="flex shrink-0 items-center justify-between gap-2 sm:justify-end">
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setView("cloud")}
+                    className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                      view === "cloud"
+                        ? "bg-primary-color text-white"
+                        : "bg-background-color text-icon-color"
+                    }`}
+                  >
+                    {wordCloudLanguage.cloudView(lang)}
+                  </button>
+                  <button
+                    onClick={() => setView("bars")}
+                    className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                      view === "bars"
+                        ? "bg-primary-color text-white"
+                        : "bg-background-color text-icon-color"
+                    }`}
+                  >
+                    {wordCloudLanguage.barsView(lang)}
+                  </button>
+                </div>
                 <LanguageSelect />
               </div>
             </header>
