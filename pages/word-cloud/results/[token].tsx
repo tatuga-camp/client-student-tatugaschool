@@ -56,8 +56,8 @@ function Results({ token }: { token: string }) {
                   {current?.question}
                 </h1>
                 <span className="text-xs text-icon-color/60">
-                  {current?.totalAnswers ?? 0}{" "}
-                  {wordCloudLanguage.answers(lang)} ·{" "}
+                  {current?.totalAnswers ?? 0} {wordCloudLanguage.answers(lang)}{" "}
+                  ·{" "}
                   {data.status === "OPEN"
                     ? wordCloudLanguage.openStatus(lang)
                     : wordCloudLanguage.closedStatus(lang)}
@@ -67,7 +67,7 @@ function Results({ token }: { token: string }) {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setView("cloud")}
-                    className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                    className={`w-20 rounded-full px-3 py-1 text-xs font-semibold ${
                       view === "cloud"
                         ? "bg-primary-color text-white"
                         : "bg-background-color text-icon-color"
@@ -77,7 +77,7 @@ function Results({ token }: { token: string }) {
                   </button>
                   <button
                     onClick={() => setView("bars")}
-                    className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                    className={`w-20 rounded-full px-3 py-1 text-xs font-semibold ${
                       view === "bars"
                         ? "bg-primary-color text-white"
                         : "bg-background-color text-icon-color"
