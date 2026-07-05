@@ -30,3 +30,27 @@ export interface WordCloudSetPublic {
   questions: PublicSetQuestion[];
   students: StudentOnSubject[];
 }
+
+export interface WordCount {
+  text: string;
+  normalized: string;
+  count: number;
+  students?: string[]; // answerer names, present for STUDENTS_ONLY questions
+}
+
+export interface ResultsQuestion {
+  id: string;
+  question: string;
+  order: number;
+  status: WordCloudStatus;
+  words: WordCount[];
+  totalAnswers: number;
+}
+
+// Payload of GET /v1/word-cloud-sets/results/:token
+export interface WordCloudSetResults {
+  title: string | null;
+  status: WordCloudStatus;
+  activeWordCloudId: string | null;
+  questions: ResultsQuestion[];
+}

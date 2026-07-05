@@ -88,4 +88,26 @@ export const wordCloudLanguage = {
         return "Waiting for the teacher to start…";
     }
   },
+  noAnswers: (language: Language) =>
+    language === "th" ? "ยังไม่มีคำตอบ" : "No answers yet",
+  answeredBy: (language: Language) =>
+    language === "th" ? "ตอบโดย" : "Answered by",
+  answers: (language: Language) =>
+    language === "th" ? "คำตอบ" : "answers",
+  cloudView: (language: Language) => (language === "th" ? "เมฆคำ" : "Cloud"),
+  barsView: (language: Language) => (language === "th" ? "แท่ง" : "Bars"),
+  openStatus: (language: Language) => (language === "th" ? "เปิด" : "Open"),
+  closedStatus: (language: Language) => (language === "th" ? "ปิด" : "Closed"),
+  questionN: (language: Language, n: number) =>
+    language === "th" ? `คำถามที่ ${n}` : `Question ${n}`,
+  resultsTitle: (language: Language) =>
+    language === "th" ? "ผลคำตอบ" : "Results",
+  linkUnavailable: (language: Language) =>
+    language === "th"
+      ? "ลิงก์นี้ไม่สามารถใช้งานได้แล้ว"
+      : "This link is no longer available",
+  linkUnavailableHint: (language: Language) =>
+    language === "th"
+      ? "ครูอาจปิดการแชร์ผลลัพธ์แล้ว"
+      : "The teacher may have removed public sharing for these results.",
 } as const;
