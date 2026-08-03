@@ -29,11 +29,14 @@ function markDismissed(): void {
   }
 }
 
+type RequestState = "idle" | "pending" | "dismissed" | "blocked";
+
 function AskNotification() {
   const language = useGetLanguage();
   const [isNotification, setIsNotification] = React.useState(true);
   const [loading, setLoading] = React.useState(false);
   const [iosNeedsInstall, setIosNeedsInstall] = React.useState(false);
+  const [requestState, setRequestState] = React.useState<RequestState>("idle");
 
   useEffect(() => {
     registerServiceWorker();
@@ -67,18 +70,24 @@ function AskNotification() {
   const requestNotificationPermission = async (): Promise<void> => {
     document.body.style.overflow = "auto";
     try {
+      setRequestState("pending");
       const permission = await Notification.requestPermission();
       if (permission === "granted") {
         setLoading(true);
         await SubscribeStudentToPushService();
         setLoading(false);
+        setRequestState("idle");
+        setIsNotification(true);
       } else if (permission === "denied") {
-        markDismissed();
+        // Edge/Chrome quiet UI: often no visible popup, just a small
+        // address-bar icon — keep the modal open and tell the user where to look
+        setRequestState("blocked");
+      } else {
+        setRequestState("dismissed");
       }
-      setIsNotification(true);
     } catch (error) {
       console.error("Error requesting notification permission:", error);
-      setIsNotification(true);
+      setRequestState("dismissed");
     }
   };
 
@@ -131,14 +140,37 @@ function AskNotification() {
             <span className="text-sm text-gray-500">
               {askNotificationDataLanguage.body(language.data ?? "en")}
             </span>
+            {requestState === "pending" && (
+              <span className="rounded-xl bg-primary-color/5 p-2 text-center text-xs text-primary-color">
+                {askNotificationDataLanguage.lookForPrompt(
+                  language.data ?? "en",
+                )}
+              </span>
+            )}
+            {requestState === "dismissed" && (
+              <span className="rounded-xl bg-warning-color/10 p-2 text-center text-xs text-gray-600">
+                {askNotificationDataLanguage.promptDismissedHelp(
+                  language.data ?? "en",
+                )}
+              </span>
+            )}
+            {requestState === "blocked" && (
+              <span className="rounded-xl bg-warning-color/10 p-2 text-center text-xs text-gray-600">
+                {askNotificationDataLanguage.promptBlockedHelp(
+                  language.data ?? "en",
+                )}
+              </span>
+            )}
             <button
-              disabled={loading}
+              disabled={loading || requestState === "pending"}
               onClick={requestNotificationPermission}
-              className="w-60 rounded-full bg-primary-color px-4 py-1 text-white hover:bg-primary-color-hover"
+              className="w-60 rounded-full bg-primary-color px-4 py-1 text-white hover:bg-primary-color-hover disabled:opacity-50"
             >
-              {loading
+              {loading || requestState === "pending"
                 ? "..."
-                : askNotificationDataLanguage.allow(language.data ?? "en")}
+                : requestState === "dismissed" || requestState === "blocked"
+                  ? askNotificationDataLanguage.tryAgain(language.data ?? "en")
+                  : askNotificationDataLanguage.allow(language.data ?? "en")}
             </button>
             <button
               onClick={() => {

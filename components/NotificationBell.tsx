@@ -38,6 +38,7 @@ function NotificationBell() {
   const [open, setOpen] = React.useState(false);
   const [pushStatus, setPushStatus] = React.useState<PushStatus>("granted");
   const [allowing, setAllowing] = React.useState(false);
+  const [attempted, setAttempted] = React.useState(false);
   const containerRef = React.useRef<HTMLDivElement>(null);
 
   const unreadCount = notifications.data?.length ?? 0;
@@ -60,10 +61,10 @@ function NotificationBell() {
   }, []);
 
   const handleAllowPush = async () => {
+    setAllowing(true);
     try {
       const permission = await Notification.requestPermission();
       if (permission === "granted") {
-        setAllowing(true);
         await SubscribeStudentToPushService();
       }
       setPushStatus(getPushStatus());
@@ -72,6 +73,7 @@ function NotificationBell() {
       setPushStatus(getPushStatus());
     } finally {
       setAllowing(false);
+      setAttempted(true);
     }
   };
 
@@ -93,7 +95,7 @@ function NotificationBell() {
       <button
         aria-label="notifications"
         onClick={() => setOpen((prev) => !prev)}
-        className="relative flex h-9 w-9 items-center justify-center rounded-full text-xl text-icon-color hover:bg-gray-100 hover:text-primary-color"
+        className="relative flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-xl text-icon-color hover:bg-gray-100 hover:text-primary-color"
       >
         <IoMdNotifications />
         {unreadCount > 0 && (
@@ -124,20 +126,45 @@ function NotificationBell() {
                   language.data ?? "en",
                 )}
               </span>
+              {allowing && (
+                <span className="text-xs text-primary-color">
+                  {askNotificationDataLanguage.lookForPrompt(
+                    language.data ?? "en",
+                  )}
+                </span>
+              )}
+              {!allowing && attempted && (
+                <span className="text-xs text-gray-600">
+                  {askNotificationDataLanguage.promptDismissedHelp(
+                    language.data ?? "en",
+                  )}
+                </span>
+              )}
               <button
                 disabled={allowing}
                 onClick={handleAllowPush}
                 className="w-max rounded-full bg-primary-color px-4 py-1 text-xs text-white hover:bg-primary-color-hover disabled:opacity-50"
               >
-                {askNotificationDataLanguage.allow(language.data ?? "en")}
+                {attempted
+                  ? askNotificationDataLanguage.tryAgain(language.data ?? "en")
+                  : askNotificationDataLanguage.allow(language.data ?? "en")}
               </button>
             </div>
           )}
           {pushStatus === "denied" && (
-            <div className="mt-2 rounded-xl bg-warning-color/10 p-3">
+            <div className="mt-2 flex flex-col gap-2 rounded-xl bg-warning-color/10 p-3">
               <span className="text-xs text-gray-600">
-                {announcementDataLanguage.pushBlocked(language.data ?? "en")}
+                {askNotificationDataLanguage.promptBlockedHelp(
+                  language.data ?? "en",
+                )}
               </span>
+              <button
+                disabled={allowing}
+                onClick={handleAllowPush}
+                className="w-max rounded-full bg-primary-color px-4 py-1 text-xs text-white hover:bg-primary-color-hover disabled:opacity-50"
+              >
+                {askNotificationDataLanguage.tryAgain(language.data ?? "en")}
+              </button>
             </div>
           )}
           {pushStatus === "ios-install" && (

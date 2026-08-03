@@ -61,6 +61,46 @@ export const askNotificationDataLanguage = {
         return "On iPhone, tap Share → Add to Home Screen, then open the app from your home screen to enable notifications.";
     }
   },
+  lookForPrompt: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "Waiting for the browser… look for the permission popup near the address bar and click Allow";
+      case "th":
+        return "กำลังรอเบราว์เซอร์… มองหาป๊อปอัพขออนุญาตใกล้แถบที่อยู่ แล้วกด อนุญาต (Allow)";
+      default:
+        return "Waiting for the browser… look for the permission popup near the address bar and click Allow";
+    }
+  },
+  promptDismissedHelp: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "No popup appeared? Click the bell icon in your browser's address bar, select Allow, then try again.";
+      case "th":
+        return "ไม่เห็นป๊อปอัพ? กดไอคอนรูปกระดิ่งที่แถบที่อยู่ของเบราว์เซอร์ เลือก อนุญาต (Allow) แล้วลองอีกครั้ง";
+      default:
+        return "No popup appeared? Click the bell icon in your browser's address bar, select Allow, then try again.";
+    }
+  },
+  promptBlockedHelp: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "Your browser blocked notifications. Click the bell or lock icon in the address bar, select Allow, then try again.";
+      case "th":
+        return "เบราว์เซอร์ปิดกั้นการแจ้งเตือน กดไอคอนกระดิ่งหรือแม่กุญแจที่แถบที่อยู่ เลือก อนุญาต (Allow) แล้วลองอีกครั้ง";
+      default:
+        return "Your browser blocked notifications. Click the bell or lock icon in the address bar, select Allow, then try again.";
+    }
+  },
+  tryAgain: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "Try again";
+      case "th":
+        return "ลองอีกครั้ง";
+      default:
+        return "Try again";
+    }
+  },
   gotIt: (language: Language) => {
     switch (language) {
       case "en":
@@ -172,16 +212,6 @@ export const announcementDataLanguage = {
         return "เปิดการแจ้งเตือนเพื่อไม่พลาดประกาศจากคุณครู";
       default:
         return "Turn on notifications so you never miss an announcement";
-    }
-  },
-  pushBlocked: (language: Language) => {
-    switch (language) {
-      case "en":
-        return "Notifications are blocked — please enable them in your browser settings";
-      case "th":
-        return "การแจ้งเตือนถูกปิดกั้น — กรุณาเปิดในการตั้งค่าเบราว์เซอร์";
-      default:
-        return "Notifications are blocked — please enable them in your browser settings";
     }
   },
 };
