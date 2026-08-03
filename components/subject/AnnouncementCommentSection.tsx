@@ -62,6 +62,11 @@ function AnnouncementCommentSection({ announcementId, studentId }: Props) {
                   <span className="text-xs font-semibold">
                     {comment.firstName} {comment.lastName}
                   </span>
+                  {comment.userId && (
+                    <span className="ml-1 rounded bg-primary-color/10 px-1 text-[10px] text-primary-color">
+                      {comment.title}
+                    </span>
+                  )}
                   <span className="text-[10px] text-gray-400">
                     {timeAgo({ pastTime: comment.createAt })}
                   </span>
