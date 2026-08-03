@@ -1,19 +1,13 @@
 import React, { useEffect } from "react";
 import Image from "next/image";
-import { registerServiceWorker } from "../utils/notifications";
+import {
+  isIosSafariWithoutPwa,
+  registerServiceWorker,
+} from "../utils/notifications";
 import { SubscribeStudentToPushService } from "../services";
 import PopupLayout from "./layouts/PopupLayout";
 import { useGetLanguage } from "../react-query";
 import { askNotificationDataLanguage } from "../data/languages";
-
-function isIosSafariWithoutPwa(): boolean {
-  if (typeof window === "undefined") return false;
-  const isIos = /iphone|ipad|ipod/i.test(window.navigator.userAgent);
-  const isStandalone =
-    window.matchMedia("(display-mode: standalone)").matches ||
-    (window.navigator as any).standalone === true;
-  return isIos && !isStandalone;
-}
 
 const DISMISSED_KEY = "ask-notification-dismissed";
 

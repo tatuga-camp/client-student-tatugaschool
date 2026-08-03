@@ -1,3 +1,12 @@
+export function isIosSafariWithoutPwa(): boolean {
+  if (typeof window === "undefined") return false;
+  const isIos = /iphone|ipad|ipod/i.test(window.navigator.userAgent);
+  const isStandalone =
+    window.matchMedia("(display-mode: standalone)").matches ||
+    (window.navigator as any).standalone === true;
+  return isIos && !isStandalone;
+}
+
 export async function registerServiceWorker() {
   if ("serviceWorker" in navigator) {
     return await navigator.serviceWorker.register("/sw.js");

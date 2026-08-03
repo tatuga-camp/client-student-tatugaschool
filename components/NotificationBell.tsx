@@ -1,7 +1,10 @@
 import { useRouter } from "next/router";
 import React from "react";
 import { IoMdNotifications } from "react-icons/io";
-import { announcementDataLanguage } from "../data/languages";
+import {
+  announcementDataLanguage,
+  askNotificationDataLanguage,
+} from "../data/languages";
 import { StudentNotification } from "../interfaces";
 import {
   useGetLanguage,
@@ -9,6 +12,22 @@ import {
   useMarkAllAsReadStudentNotifications,
   useMarkAsReadStudentNotification,
 } from "../react-query";
+import { SubscribeStudentToPushService } from "../services";
+import { isIosSafariWithoutPwa } from "../utils/notifications";
+
+type PushStatus =
+  | "granted"
+  | "default"
+  | "denied"
+  | "ios-install"
+  | "unsupported";
+
+function getPushStatus(): PushStatus {
+  if (typeof window === "undefined") return "unsupported";
+  if (isIosSafariWithoutPwa()) return "ios-install";
+  if (typeof Notification === "undefined") return "unsupported";
+  return Notification.permission as PushStatus;
+}
 
 function NotificationBell() {
   const router = useRouter();
@@ -17,9 +36,15 @@ function NotificationBell() {
   const markAsRead = useMarkAsReadStudentNotification();
   const markAllAsRead = useMarkAllAsReadStudentNotifications();
   const [open, setOpen] = React.useState(false);
+  const [pushStatus, setPushStatus] = React.useState<PushStatus>("granted");
+  const [allowing, setAllowing] = React.useState(false);
   const containerRef = React.useRef<HTMLDivElement>(null);
 
   const unreadCount = notifications.data?.length ?? 0;
+
+  React.useEffect(() => {
+    setPushStatus(getPushStatus());
+  }, []);
 
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -34,16 +59,32 @@ function NotificationBell() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const handleAllowPush = async () => {
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission === "granted") {
+        setAllowing(true);
+        await SubscribeStudentToPushService();
+      }
+      setPushStatus(getPushStatus());
+    } catch (error) {
+      console.error("Error requesting notification permission:", error);
+      setPushStatus(getPushStatus());
+    } finally {
+      setAllowing(false);
+    }
+  };
+
   const handleSelect = (notification: StudentNotification) => {
     markAsRead.mutate({ id: notification.id });
     setOpen(false);
     const announcementId = new URL(notification.link).searchParams.get(
-      "announcement_id"
+      "announcement_id",
     );
     router.push(
       "/subject/" +
         notification.subjectId +
-        (announcementId ? "?announcement_id=" + announcementId : "")
+        (announcementId ? "?announcement_id=" + announcementId : ""),
     );
   };
 
@@ -62,7 +103,7 @@ function NotificationBell() {
         )}
       </button>
       {open && (
-        <div className="absolute right-0 z-50 mt-2 w-80 max-w-[90vw] rounded-2xl border bg-white p-3 shadow-lg">
+        <div className="fixed inset-x-3 top-14 z-50 rounded-2xl border bg-white p-3 shadow-lg sm:absolute sm:inset-x-auto sm:right-0 sm:top-auto sm:mt-2 sm:w-80 sm:max-w-[90vw]">
           <div className="flex items-center justify-between">
             <span className="text-sm font-semibold">
               {announcementDataLanguage.notifications(language.data ?? "en")}
@@ -76,7 +117,39 @@ function NotificationBell() {
               </button>
             )}
           </div>
-          <ul className="mt-2 flex max-h-80 flex-col gap-1 overflow-y-auto">
+          {pushStatus === "default" && (
+            <div className="mt-2 flex flex-col gap-2 rounded-xl bg-primary-color/5 p-3">
+              <span className="text-xs text-gray-600">
+                {announcementDataLanguage.enablePushBanner(
+                  language.data ?? "en",
+                )}
+              </span>
+              <button
+                disabled={allowing}
+                onClick={handleAllowPush}
+                className="w-max rounded-full bg-primary-color px-4 py-1 text-xs text-white hover:bg-primary-color-hover disabled:opacity-50"
+              >
+                {askNotificationDataLanguage.allow(language.data ?? "en")}
+              </button>
+            </div>
+          )}
+          {pushStatus === "denied" && (
+            <div className="mt-2 rounded-xl bg-warning-color/10 p-3">
+              <span className="text-xs text-gray-600">
+                {announcementDataLanguage.pushBlocked(language.data ?? "en")}
+              </span>
+            </div>
+          )}
+          {pushStatus === "ios-install" && (
+            <div className="mt-2 rounded-xl bg-primary-color/5 p-3">
+              <span className="text-xs text-gray-600">
+                {askNotificationDataLanguage.iosInstallBody(
+                  language.data ?? "en",
+                )}
+              </span>
+            </div>
+          )}
+          <ul className="mt-2 flex max-h-[60vh] flex-col gap-1 overflow-y-auto sm:max-h-80">
             {unreadCount === 0 && (
               <li className="py-6 text-center text-xs text-gray-400">
                 {announcementDataLanguage.empty(language.data ?? "en")}
@@ -96,7 +169,7 @@ function NotificationBell() {
                   </span>
                   <span className="block text-[10px] text-gray-400">
                     {new Date(notification.createAt).toLocaleString(
-                      language.data === "th" ? "th-TH" : "en-US"
+                      language.data === "th" ? "th-TH" : "en-US",
                     )}
                   </span>
                 </button>

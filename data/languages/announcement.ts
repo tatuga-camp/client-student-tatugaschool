@@ -164,4 +164,24 @@ export const announcementDataLanguage = {
         return "No notifications yet";
     }
   },
+  enablePushBanner: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "Turn on notifications so you never miss an announcement";
+      case "th":
+        return "เปิดการแจ้งเตือนเพื่อไม่พลาดประกาศจากคุณครู";
+      default:
+        return "Turn on notifications so you never miss an announcement";
+    }
+  },
+  pushBlocked: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "Notifications are blocked — please enable them in your browser settings";
+      case "th":
+        return "การแจ้งเตือนถูกปิดกั้น — กรุณาเปิดในการตั้งค่าเบราว์เซอร์";
+      default:
+        return "Notifications are blocked — please enable them in your browser settings";
+    }
+  },
 };
