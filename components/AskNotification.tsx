@@ -6,7 +6,7 @@ import {
 } from "../utils/notifications";
 import { SubscribeStudentToPushService } from "../services";
 import PopupLayout from "./layouts/PopupLayout";
-import { useGetLanguage } from "../react-query";
+import { useGetLanguage, useGetStudent } from "../react-query";
 import { askNotificationDataLanguage } from "../data/languages";
 
 const DISMISSED_KEY = "ask-notification-dismissed";
@@ -29,10 +29,34 @@ function markDismissed(): void {
   }
 }
 
+// Browsers can rotate or invalidate a PushSubscription, and the server
+// self-deletes rows whose endpoint returns 410/404. Once permission is
+// granted the prompt never shows again, so we silently re-send the current
+// subscription to the server on visits — at most once per day per student.
+const SYNC_INTERVAL_MS = 24 * 60 * 60 * 1000;
+
+function shouldSyncPush(studentId: string): boolean {
+  try {
+    const last = window.localStorage.getItem(`push-sync-at:${studentId}`);
+    return !last || Date.now() - Number(last) > SYNC_INTERVAL_MS;
+  } catch {
+    return true;
+  }
+}
+
+function markPushSynced(studentId: string): void {
+  try {
+    window.localStorage.setItem(`push-sync-at:${studentId}`, String(Date.now()));
+  } catch {
+    // localStorage unavailable — sync will just run again next visit
+  }
+}
+
 type RequestState = "idle" | "pending" | "dismissed" | "blocked";
 
 function AskNotification() {
   const language = useGetLanguage();
+  const student = useGetStudent();
   const [isNotification, setIsNotification] = React.useState(true);
   const [loading, setLoading] = React.useState(false);
   const [iosNeedsInstall, setIosNeedsInstall] = React.useState(false);
@@ -41,6 +65,20 @@ function AskNotification() {
   useEffect(() => {
     registerServiceWorker();
   }, []);
+
+  const studentId = student.data?.id;
+  useEffect(() => {
+    if (!studentId) return;
+    if (typeof Notification === "undefined") return;
+    if (Notification.permission !== "granted") return;
+    if (!shouldSyncPush(studentId)) return;
+
+    SubscribeStudentToPushService()
+      .then(() => markPushSynced(studentId))
+      .catch((error) =>
+        console.error("Push subscription re-sync failed:", error),
+      );
+  }, [studentId]);
 
   useEffect(() => {
     if (isDismissed()) {
