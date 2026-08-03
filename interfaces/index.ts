@@ -1,3 +1,4 @@
+export * from "./Announcement";
 export * from "./Assignment";
 export * from "./Attendance";
 export * from "./AttendanceRow";
@@ -12,6 +13,7 @@ export * from "./FileOnAssignment";
 export * from "./FileOnStudentOnAssignment";
 export * from "./MemberOnSchool";
 export * from "./MemberOnTeam";
+export * from "./Notification";
 export * from "./School";
 export * from "./ScoreOnStudent";
 export * from "./ScoreOnSubject";
