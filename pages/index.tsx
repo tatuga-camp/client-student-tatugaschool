@@ -24,9 +24,10 @@ import { setLocalStorage } from "../utils";
 type IndexProps = {
   subjectData: ResponseGetSubjectByCodeService;
   code: string;
+  announcementId?: string;
   error?: any;
 };
-function Index({ subjectData, code, error }: IndexProps) {
+function Index({ subjectData, code, announcementId, error }: IndexProps) {
   const subject = useGetSubjectByCode(code, {
     initialData: subjectData,
   });
@@ -54,7 +55,11 @@ function Index({ subjectData, code, error }: IndexProps) {
         studentId: selectStudentId,
         password: password,
       });
-      router.push(`/subject/${subject.data?.id}`);
+      router.push(
+        announcementId
+          ? `/subject/${subject.data?.id}?announcement_id=${announcementId}`
+          : `/subject/${subject.data?.id}`,
+      );
       Swal.fire({
         title: requestDataLanguage.successTitle(language.data ?? "en"),
         text: requestDataLanguage.successDesciption(language.data ?? "en"),
@@ -126,7 +131,11 @@ function Index({ subjectData, code, error }: IndexProps) {
       await signIn.mutateAsync({
         studentId: studentId,
       });
-      router.push(`/subject/${subject.data?.id}`);
+      router.push(
+        announcementId
+          ? `/subject/${subject.data?.id}?announcement_id=${announcementId}`
+          : `/subject/${subject.data?.id}`,
+      );
     } catch (error) {
       let result = error as ErrorMessages;
       console.error(error);
@@ -325,6 +334,9 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
       props: {
         subjectData: subject,
         code: query.subject_code,
+        ...(query.announcement_id
+          ? { announcementId: query.announcement_id }
+          : {}),
       },
     };
   } catch (error: any) {
