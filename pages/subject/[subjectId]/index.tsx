@@ -3,6 +3,7 @@ import Head from "next/head";
 import React from "react";
 import { FaStarHalfStroke, FaUserGroup } from "react-icons/fa6";
 import { MdAssignmentAdd } from "react-icons/md";
+import AskNotification from "../../../components/AskNotification";
 import Layout from "../../../components/layouts/Layout";
 import Attendance from "../../../components/subject/Attendance";
 import Classwork from "../../../components/subject/Classwork";
@@ -57,6 +58,7 @@ function Index({ subjectId }: { subjectId: string }) {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Layout subjectId={subjectId}>
+        <AskNotification />
         <main className="flex w-full flex-col xl:w-7/12">
           {subject.data && (
             <div className="w-full px-5 py-3 md:top-0 md:bg-transparent md:backdrop-blur-none">

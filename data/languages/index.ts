@@ -1,3 +1,4 @@
+export * from "./announcement";
 export * from "./footer";
 export * from "./subject";
 export * from "./subjects";
