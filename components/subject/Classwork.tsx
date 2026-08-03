@@ -77,7 +77,7 @@ function Classwork({ subjectId, allowStudentViewScoreOnAssignment }: Props) {
         .getElementById(`announcement-${announcementId}`)
         ?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
-  }, [router.query.announcement_id, announcements.data]);
+  }, [router.query.announcement_id, announcements.data, student.data]);
 
   // 2. Find the index of the first incomplete assignment
   let firstIncompleteIndex = -1;

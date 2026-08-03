@@ -15,6 +15,26 @@ function isIosSafariWithoutPwa(): boolean {
   return isIos && !isStandalone;
 }
 
+const DISMISSED_KEY = "ask-notification-dismissed";
+
+function isDismissed(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return window.localStorage.getItem(DISMISSED_KEY) !== null;
+  } catch {
+    return false;
+  }
+}
+
+function markDismissed(): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(DISMISSED_KEY, String(Date.now()));
+  } catch {
+    // localStorage unavailable (e.g. private mode) — nothing to persist
+  }
+}
+
 function AskNotification() {
   const language = useGetLanguage();
   const [isNotification, setIsNotification] = React.useState(true);
@@ -26,6 +46,18 @@ function AskNotification() {
   }, []);
 
   useEffect(() => {
+    if (isDismissed()) {
+      setIsNotification(true);
+      return;
+    }
+    if (
+      typeof Notification !== "undefined" &&
+      Notification.permission === "denied"
+    ) {
+      markDismissed();
+      setIsNotification(true);
+      return;
+    }
     if (isIosSafariWithoutPwa()) {
       // iOS only supports web push from an installed home-screen PWA
       setIosNeedsInstall(true);
@@ -46,6 +78,8 @@ function AskNotification() {
         setLoading(true);
         await SubscribeStudentToPushService();
         setLoading(false);
+      } else if (permission === "denied") {
+        markDismissed();
       }
       setIsNotification(true);
     } catch (error) {
@@ -59,6 +93,7 @@ function AskNotification() {
   return (
     <PopupLayout
       onClose={() => {
+        markDismissed();
         setIsNotification(true);
         setIosNeedsInstall(false);
       }}
@@ -85,7 +120,10 @@ function AskNotification() {
               )}
             </span>
             <button
-              onClick={() => setIosNeedsInstall(false)}
+              onClick={() => {
+                markDismissed();
+                setIosNeedsInstall(false);
+              }}
               className="mt-5 rounded-full bg-primary-color px-6 py-1 text-white"
             >
               {askNotificationDataLanguage.gotIt(language.data ?? "en")}
@@ -110,6 +148,7 @@ function AskNotification() {
             </button>
             <button
               onClick={() => {
+                markDismissed();
                 document.body.style.overflow = "auto";
                 setIsNotification(true);
               }}
