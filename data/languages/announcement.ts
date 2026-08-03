@@ -72,3 +72,66 @@ export const askNotificationDataLanguage = {
     }
   },
 };
+
+export const announcementDataLanguage = {
+  sectionTitle: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "Announcements";
+      case "th":
+        return "ประกาศ";
+      default:
+        return "Announcements";
+    }
+  },
+  comments: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "Comments";
+      case "th":
+        return "ความคิดเห็น";
+      default:
+        return "Comments";
+    }
+  },
+  writeComment: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "Write a comment...";
+      case "th":
+        return "เขียนความคิดเห็น...";
+      default:
+        return "Write a comment...";
+    }
+  },
+  send: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "Send";
+      case "th":
+        return "ส่ง";
+      default:
+        return "Send";
+    }
+  },
+  delete: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "Delete";
+      case "th":
+        return "ลบ";
+      default:
+        return "Delete";
+    }
+  },
+  attachments: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "Attachments";
+      case "th":
+        return "ไฟล์แนบ";
+      default:
+        return "Attachments";
+    }
+  },
+};

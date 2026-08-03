@@ -1,7 +1,15 @@
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
-import { useGetAssignments, useGetSubjectById } from "../../react-query";
+import { announcementDataLanguage } from "../../data/languages";
+import {
+  useGetAnnouncements,
+  useGetAssignments,
+  useGetLanguage,
+  useGetStudent,
+  useGetSubjectById,
+} from "../../react-query";
 import LoadingBar from "../common/LoadingBar";
+import AnnouncementCard from "./AnnouncementCard";
 import ClassworkCard from "./ClassworkCard";
 import AssignmentTagFilterBar from "./AssignmentTagFilterBar";
 
@@ -14,6 +22,9 @@ function Classwork({ subjectId, allowStudentViewScoreOnAssignment }: Props) {
   const router = useRouter();
   const subject = useGetSubjectById({ id: subjectId });
   const assignments = useGetAssignments({ subjectId });
+  const announcements = useGetAnnouncements({ subjectId });
+  const student = useGetStudent();
+  const language = useGetLanguage();
 
   // 1. Safely copy the array BEFORE sorting so you don't mutate the React Query cache
   const sortedAssignments = assignments.data
@@ -59,6 +70,15 @@ function Classwork({ subjectId, allowStudentViewScoreOnAssignment }: Props) {
     });
   }, [uniqueTags]);
 
+  useEffect(() => {
+    const announcementId = router.query.announcement_id;
+    if (typeof announcementId === "string" && announcements.data) {
+      document
+        .getElementById(`announcement-${announcementId}`)
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [router.query.announcement_id, announcements.data]);
+
   // 2. Find the index of the first incomplete assignment
   let firstIncompleteIndex = -1;
   if (subject.data?.allowStudentDoneAssignmentInOrder) {
@@ -82,6 +102,23 @@ function Classwork({ subjectId, allowStudentViewScoreOnAssignment }: Props) {
         onChange={setSelectedTags}
         totalCount={sortedAssignments.length}
       />
+      {announcements.data && announcements.data.length > 0 && student.data && (
+        <section className="mt-5 w-full p-0 md:p-2">
+          <h2 className="text-sm font-semibold text-gray-500">
+            {announcementDataLanguage.sectionTitle(language.data ?? "en")}
+          </h2>
+          <ul className="mt-2 flex flex-col gap-3">
+            {announcements.data.map((announcement) => (
+              <AnnouncementCard
+                key={announcement.id}
+                announcement={announcement}
+                subjectId={subjectId}
+                studentId={student.data.id}
+              />
+            ))}
+          </ul>
+        </section>
+      )}
       <ul className="mt-5 flex h-max w-full flex-col gap-5 p-0 md:p-2">
         {visibleAssignments.map((classwork, index) => {
           const fullIndex = sortedAssignments.findIndex(
