@@ -134,4 +134,34 @@ export const announcementDataLanguage = {
         return "Attachments";
     }
   },
+  notifications: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "Notifications";
+      case "th":
+        return "การแจ้งเตือน";
+      default:
+        return "Notifications";
+    }
+  },
+  markAllRead: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "Mark all as read";
+      case "th":
+        return "อ่านทั้งหมดแล้ว";
+      default:
+        return "Mark all as read";
+    }
+  },
+  empty: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "No notifications yet";
+      case "th":
+        return "ยังไม่มีการแจ้งเตือน";
+      default:
+        return "No notifications yet";
+    }
+  },
 };
