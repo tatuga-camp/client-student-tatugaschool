@@ -176,6 +176,68 @@ export const classworkDataLanguage = {
         return "You can summit work here";
     }
   },
+  unsubmittedBanner: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "Your work is attached but NOT submitted yet — press the confirm button below to submit.";
+      case "th":
+        return "งานของคุณถูกแนบแล้ว แต่ยังไม่ได้ถูกส่ง — กดปุ่มยืนยันการส่งงานด้านล่างเพื่อส่งงาน";
+      default:
+        return "Your work is attached but NOT submitted yet — press the confirm button below to submit.";
+    }
+  },
+  leaveDialog: {
+    title: (language: Language) => {
+      switch (language) {
+        case "en":
+          return "You haven't submitted your work!";
+        case "th":
+          return "คุณยังไม่ได้ส่งงาน!";
+        default:
+          return "You haven't submitted your work!";
+      }
+    },
+    text: (language: Language) => {
+      switch (language) {
+        case "en":
+          return "You attached work but haven't confirmed the submission, so your teacher will not see it as submitted.";
+        case "th":
+          return "คุณแนบงานแล้ว แต่ยังไม่ได้กดยืนยันการส่งงาน คุณครูจะยังไม่เห็นว่างานของคุณถูกส่ง";
+        default:
+          return "You attached work but haven't confirmed the submission, so your teacher will not see it as submitted.";
+      }
+    },
+    confirm: (language: Language) => {
+      switch (language) {
+        case "en":
+          return "Confirm submission";
+        case "th":
+          return "ยืนยันการส่งงาน";
+        default:
+          return "Confirm submission";
+      }
+    },
+    leave: (language: Language) => {
+      switch (language) {
+        case "en":
+          return "Leave without submitting";
+        case "th":
+          return "ออกโดยไม่ส่งงาน";
+        default:
+          return "Leave without submitting";
+      }
+    },
+    stay: (language: Language) => {
+      switch (language) {
+        case "en":
+          return "Stay on this page";
+        case "th":
+          return "อยู่ในหน้านี้ต่อ";
+        default:
+          return "Stay on this page";
+      }
+    },
+  },
 } as const;
 
 export const tagsDataLanguage = {
