@@ -5,3 +5,4 @@ export * from "./localstorage";
 export * from "./grade";
 export * from "./calculateSubmissionCompletion";
 export * from "./confirmSubmission";
+export * from "./uploadProgress";
