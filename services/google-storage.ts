@@ -57,3 +57,42 @@ export async function UploadSignURLService(
     throw error?.response?.data;
   }
 }
+
+export async function UploadSignURLWithProgressService(
+  input: RequestUploadSignURLService & {
+    onProgress?: (progress: number, event: ProgressEvent) => void;
+  },
+): Promise<{
+  message: "success" | "error";
+}> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("PUT", input.signURL, true);
+    xhr.setRequestHeader("Content-Type", input.contentType);
+
+    if (input.onProgress) {
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const percentComplete = (event.loaded / event.total) * 100;
+          input.onProgress!(percentComplete, event);
+        }
+      };
+    }
+
+    xhr.onload = () => {
+      if (xhr.status === 200) {
+        resolve({ message: "success" });
+      } else {
+        console.error("Upload file fail:", xhr.responseText);
+        reject(xhr.responseText);
+      }
+    };
+
+    xhr.onerror = () => {
+      console.error("Upload file fail: Network Error");
+      reject(new Error("Network Error"));
+    };
+
+    xhr.send(input.file);
+  });
+}
