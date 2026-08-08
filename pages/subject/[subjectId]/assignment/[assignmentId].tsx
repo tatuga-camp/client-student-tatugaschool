@@ -34,6 +34,7 @@ import {
   sidebarDataLanguage,
 } from "../../../../data/languages";
 import useClickOutside from "../../../../hook/useClickOutside";
+import useConfirmSubmissionGuard from "../../../../hook/useConfirmSubmissionGuard";
 import useAdjustPosition from "../../../../hook/useWindow";
 import {
   ErrorMessages,
@@ -49,7 +50,7 @@ import {
   useGetSubjectById,
   useUpdateStudentOnAssignment,
 } from "../../../../react-query";
-import { timeAgo, timeLeft } from "../../../../utils";
+import { hasUnconfirmedWork, timeAgo, timeLeft } from "../../../../utils";
 
 const SummitWorkMenus = [
   {
@@ -119,6 +120,11 @@ function Index({
   });
   const divRef = React.useRef<HTMLDivElement>(null);
   const videoPlayerRef = React.useRef<StudentVideoPlayerRef>(null);
+  // handleUpdateWork is declared after the early !assignment return, but the
+  // guard hook below must be called before it; the ref bridges the gap.
+  const handleUpdateWorkRef = React.useRef<
+    (status: StudentAssignmentStatus) => Promise<boolean>
+  >(() => Promise.resolve(false));
   const updateWork = useUpdateStudentOnAssignment();
   const adjustedStyle = useAdjustPosition(divRef, 20); // 20px padding
   const [triggerSummitDropDown, setTriggerSummitDropDown] =
@@ -143,6 +149,21 @@ function Index({
   useClickOutside(divRef, () => {
     setTriggerSummitDropDown(false);
   });
+
+  const unconfirmedWork = assignment
+    ? hasUnconfirmedWork({
+        assignmentType: assignment.type,
+        fileCount: studentFiles.data?.length ?? 0,
+        status: assignment.studentOnAssignment.status,
+      })
+    : false;
+
+  useConfirmSubmissionGuard({
+    enabled: unconfirmedWork && !updateWork.isPending,
+    onConfirm: () => handleUpdateWorkRef.current("SUBMITTED"),
+    language: language.data ?? "en",
+  });
+
   if (!assignment) {
     return (
       <div>
@@ -208,7 +229,9 @@ function Index({
     );
   };
 
-  const handleUpdateWork = async (status: StudentAssignmentStatus) => {
+  const handleUpdateWork = async (
+    status: StudentAssignmentStatus,
+  ): Promise<boolean> => {
     try {
       await updateWork.mutateAsync({
         query: {
@@ -225,6 +248,7 @@ function Index({
         life: 3000,
       });
       setTriggerSummitDropDown(false);
+      return true;
     } catch (error) {
       let result = error as ErrorMessages;
       Swal.fire({
@@ -235,8 +259,10 @@ function Index({
           : "",
         icon: "error",
       });
+      return false;
     }
   };
+  handleUpdateWorkRef.current = handleUpdateWork;
 
   const SummitStatus = () => {
     if (assignment.type === "Material") {
@@ -254,6 +280,12 @@ function Index({
             </span>
           </div>{" "}
         </div>
+        {unconfirmedWork && (
+          <div className="mx-2 mb-2 flex items-center gap-2 rounded-xl border border-warning-color bg-warning-color/20 p-2 text-sm font-medium text-gray-800">
+            ⚠️
+            {classworkDataLanguage.unsubmittedBanner(language.data ?? "en")}
+          </div>
+        )}
         <div className="relative flex items-center">
           {(studentOnAssignment.status === "PENDDING" ||
             studentOnAssignment.status === "IMPROVED") && (
