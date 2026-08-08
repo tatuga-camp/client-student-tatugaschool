@@ -27,6 +27,7 @@ import {
 } from "../../react-query";
 import {
   decodeBlurhashToCanvas,
+  errorSwalContent,
   getLocalStorage,
   setLocalStorage,
 } from "../../utils";
@@ -168,13 +169,8 @@ function Index({ id }: { id: string }) {
       );
       setTriggerFormSignIn(false);
     } catch (error) {
-      let result = error as ErrorMessages;
       Swal.fire({
-        title: result.error ? result.error : "Something Went Wrong",
-        text: result.message.toString(),
-        footer: result.statusCode
-          ? "Code Error: " + result.statusCode?.toString()
-          : "",
+        ...errorSwalContent(error),
         icon: "error",
       });
     }

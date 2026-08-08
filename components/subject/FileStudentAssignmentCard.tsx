@@ -1,5 +1,6 @@
 import React from "react";
-import { ErrorMessages, FileOnStudentOnAssignment } from "../../interfaces";
+import { FileOnStudentOnAssignment } from "../../interfaces";
+import { errorSwalContent } from "../../utils";
 import { FiFile } from "react-icons/fi";
 import { FaRegFile, FaRegFileImage } from "react-icons/fa";
 import { MdDelete, MdEdit, MdNoteAlt } from "react-icons/md";
@@ -31,13 +32,8 @@ function TextCard({ file, onShowText }: Props) {
     try {
       await deleteFile.mutateAsync({ fileOnStudentAssignmentId: file.id });
     } catch (error) {
-      let result = error as ErrorMessages;
       Swal.fire({
-        title: result.error ? result.error : "Something Went Wrong",
-        text: result.message.toString(),
-        footer: result.statusCode
-          ? "Code Error: " + result.statusCode?.toString()
-          : "",
+        ...errorSwalContent(error),
         icon: "error",
       });
     }
@@ -119,13 +115,8 @@ function FileCard({ file }: Props) {
     try {
       await deleteFile.mutateAsync({ fileOnStudentAssignmentId: file.id });
     } catch (error) {
-      let result = error as ErrorMessages;
       Swal.fire({
-        title: result.error ? result.error : "Something Went Wrong",
-        text: result.message.toString(),
-        footer: result.statusCode
-          ? "Code Error: " + result.statusCode?.toString()
-          : "",
+        ...errorSwalContent(error),
         icon: "error",
       });
     }

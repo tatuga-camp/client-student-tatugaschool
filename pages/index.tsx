@@ -19,7 +19,7 @@ import {
   GetSubjectByCodeService,
   ResponseGetSubjectByCodeService,
 } from "../services";
-import { setLocalStorage } from "../utils";
+import { errorSwalContent, setLocalStorage } from "../utils";
 
 type IndexProps = {
   subjectData: ResponseGetSubjectByCodeService;
@@ -66,13 +66,8 @@ function Index({ subjectData, code, announcementId, error }: IndexProps) {
         icon: "success",
       });
     } catch (error) {
-      let result = error as ErrorMessages;
       Swal.fire({
-        title: result.error ? result.error : "Something Went Wrong",
-        text: result.message.toString(),
-        footer: result.statusCode
-          ? "Code Error: " + result.statusCode?.toString()
-          : "",
+        ...errorSwalContent(error),
         icon: "error",
       });
     }

@@ -1,9 +1,9 @@
 import React from "react";
-import { CommentOnAssignment, ErrorMessages } from "../../interfaces";
+import { CommentOnAssignment } from "../../interfaces";
 import { ProgressSpinner } from "primereact/progressspinner";
 import { MdDelete } from "react-icons/md";
 import Image from "next/image";
-import { timeAgo } from "../../utils";
+import { errorSwalContent, timeAgo } from "../../utils";
 import parse from "html-react-parser";
 import Swal from "sweetalert2";
 import { useDeleteComment, useGetComments } from "../../react-query";
@@ -25,13 +25,8 @@ function CommentList({ comment, index, studentOnAssignmentId }: Props) {
       setIsDelete(false);
     } catch (error) {
       setIsDelete(false);
-      let result = error as ErrorMessages;
       Swal.fire({
-        title: result.error ? result.error : "Something Went Wrong",
-        text: result.message.toString(),
-        footer: result.statusCode
-          ? "Code Error: " + result.statusCode?.toString()
-          : "",
+        ...errorSwalContent(error),
         icon: "error",
       });
     }

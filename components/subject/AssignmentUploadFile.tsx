@@ -1,7 +1,10 @@
 import React from "react";
-import { ErrorMessages } from "../../interfaces";
 import Swal from "sweetalert2";
-import { generateBlurHash, overallUploadPercent } from "../../utils";
+import {
+  errorSwalContent,
+  generateBlurHash,
+  overallUploadPercent,
+} from "../../utils";
 import {
   getSignedURLStudentService,
   UploadSignURLWithProgressService,
@@ -102,20 +105,8 @@ function AssignmentUploadFile({
     } catch (error) {
       setProgress(null);
       setLoading(false);
-      // UploadSignURLWithProgressService rejects with the raw response text
-      // (a string) on a non-200 PUT, not an ErrorMessages object.
-      const result = error as Partial<ErrorMessages>;
       Swal.fire({
-        title: result?.error ? result.error : "Something Went Wrong",
-        text:
-          typeof error === "string"
-            ? error
-            : result?.message
-              ? result.message.toString()
-              : "Upload failed. Please try again.",
-        footer: result?.statusCode
-          ? "Code Error: " + result.statusCode.toString()
-          : "",
+        ...errorSwalContent(error),
         icon: "error",
       });
     }

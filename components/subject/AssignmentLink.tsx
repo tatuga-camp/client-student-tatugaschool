@@ -1,6 +1,6 @@
 import React from "react";
 import { useCreateFileStudentAssignment } from "../../react-query";
-import { ErrorMessages } from "../../interfaces";
+import { errorSwalContent } from "../../utils";
 import Swal from "sweetalert2";
 import { ProgressSpinner } from "primereact/progressspinner";
 import { Toast } from "primereact/toast";
@@ -34,13 +34,8 @@ function AssignmentLink({ studentOnAssignmentId, toast, onClose }: Props) {
       });
       onClose();
     } catch (error) {
-      let result = error as ErrorMessages;
       Swal.fire({
-        title: result.error ? result.error : "Something Went Wrong",
-        text: result.message.toString(),
-        footer: result.statusCode
-          ? "Code Error: " + result.statusCode?.toString()
-          : "",
+        ...errorSwalContent(error),
         icon: "error",
       });
     }

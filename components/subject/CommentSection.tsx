@@ -3,7 +3,7 @@ import { ProgressSpinner } from "primereact/progressspinner";
 import React from "react";
 import Swal from "sweetalert2";
 import { defaultBlurHash } from "../../data";
-import { ErrorMessages } from "../../interfaces";
+import { errorSwalContent } from "../../utils";
 import {
   useCreateComment,
   useGetComments,
@@ -38,13 +38,8 @@ function CommentSection({ studentOnAssignmentId }: Props) {
       setLoadingComments(false);
     } catch (error) {
       setLoadingComments(false);
-      let result = error as ErrorMessages;
       Swal.fire({
-        title: result.error ? result.error : "Something Went Wrong",
-        text: result.message.toString(),
-        footer: result.statusCode
-          ? "Code Error: " + result.statusCode?.toString()
-          : "",
+        ...errorSwalContent(error),
         icon: "error",
       });
     }

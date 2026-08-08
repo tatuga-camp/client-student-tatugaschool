@@ -38,7 +38,6 @@ import useClickOutside from "../../../../hook/useClickOutside";
 import useConfirmSubmissionGuard from "../../../../hook/useConfirmSubmissionGuard";
 import useAdjustPosition from "../../../../hook/useWindow";
 import {
-  ErrorMessages,
   FileOnAssignment,
   FileOnStudentOnAssignment,
   StudentAssignmentStatus,
@@ -51,7 +50,12 @@ import {
   useGetSubjectById,
   useUpdateStudentOnAssignment,
 } from "../../../../react-query";
-import { hasUnconfirmedWork, timeAgo, timeLeft } from "../../../../utils";
+import {
+  errorSwalContent,
+  hasUnconfirmedWork,
+  timeAgo,
+  timeLeft,
+} from "../../../../utils";
 
 const SummitWorkMenus = [
   {
@@ -252,13 +256,8 @@ function Index({
       setTriggerSummitDropDown(false);
       return true;
     } catch (error) {
-      let result = error as ErrorMessages;
       Swal.fire({
-        title: result.error ? result.error : "Something Went Wrong",
-        text: result.message.toString(),
-        footer: result.statusCode
-          ? "Code Error: " + result.statusCode?.toString()
-          : "",
+        ...errorSwalContent(error),
         icon: "error",
       });
       return false;
