@@ -23,6 +23,7 @@ import StudentVideoPlayer, {
 import TextEditor from "../../../../components/common/TextEditor";
 import Layout from "../../../../components/layouts/Layout";
 import PopupLayout from "../../../../components/layouts/PopupLayout";
+import AssignmentActionSheet from "../../../../components/subject/AssignmentActionSheet";
 import AssignmentLink from "../../../../components/subject/AssignmentLink";
 import AssignmentStatusCard from "../../../../components/subject/AssignmentStatus";
 import AssignmentText from "../../../../components/subject/AssignmentText";
@@ -129,6 +130,7 @@ function Index({
   const adjustedStyle = useAdjustPosition(divRef, 20); // 20px padding
   const [triggerSummitDropDown, setTriggerSummitDropDown] =
     React.useState(false);
+  const [openActionSheet, setOpenActionSheet] = React.useState(false);
   const [selectMenu, setSelectMenu] = React.useState<{
     title: SummitWorkMenu;
     file?: FileOnStudentOnAssignment;
@@ -618,6 +620,24 @@ function Index({
           )}
         </PopupLayout>
       )}
+      {openActionSheet && assignment.type === "Assignment" && (
+        <AssignmentActionSheet
+          language={language.data ?? "en"}
+          status={studentOnAssignment.status}
+          isPending={updateWork.isPending}
+          onSelectAttach={(title) => {
+            setOpenActionSheet(false);
+            setSelectMenu({ title });
+          }}
+          onUpdateStatus={async (status) => {
+            const success = await handleUpdateWork(status);
+            if (success) {
+              setOpenActionSheet(false);
+            }
+          }}
+          onClose={() => setOpenActionSheet(false)}
+        />
+      )}
 
       <Layout
         subjectId={subjectId}
@@ -639,7 +659,7 @@ function Index({
                 {
                   icon: <FaPlus />,
                   action: "button" as const,
-                  onClick: () => setSelectMenu({ title: "Create" }),
+                  onClick: () => setOpenActionSheet(true),
                 },
               ]
             : []),
