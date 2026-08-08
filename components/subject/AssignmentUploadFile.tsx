@@ -102,12 +102,19 @@ function AssignmentUploadFile({
     } catch (error) {
       setProgress(null);
       setLoading(false);
-      let result = error as ErrorMessages;
+      // UploadSignURLWithProgressService rejects with the raw response text
+      // (a string) on a non-200 PUT, not an ErrorMessages object.
+      const result = error as Partial<ErrorMessages>;
       Swal.fire({
-        title: result.error ? result.error : "Something Went Wrong",
-        text: result.message.toString(),
-        footer: result.statusCode
-          ? "Code Error: " + result.statusCode?.toString()
+        title: result?.error ? result.error : "Something Went Wrong",
+        text:
+          typeof error === "string"
+            ? error
+            : result?.message
+              ? result.message.toString()
+              : "Upload failed. Please try again.",
+        footer: result?.statusCode
+          ? "Code Error: " + result.statusCode.toString()
           : "",
         icon: "error",
       });
@@ -118,8 +125,9 @@ function AssignmentUploadFile({
       <div className="flex w-full justify-end">
         <button
           type="button"
+          disabled={loading}
           onClick={() => onClose()}
-          className="flex h-6 w-6 items-center justify-center rounded text-lg font-semibold hover:bg-gray-300/50"
+          className="flex h-6 w-6 items-center justify-center rounded text-lg font-semibold hover:bg-gray-300/50 disabled:opacity-40"
         >
           <IoMdClose />
         </button>
@@ -135,6 +143,7 @@ function AssignmentUploadFile({
           </span>
           <ProgressBar
             value={Math.round(progress.percent)}
+            showValue={false}
             style={{ height: "10px" }}
           />
         </div>
