@@ -1,13 +1,17 @@
 import React from "react";
 import { ErrorMessages } from "../../interfaces";
 import Swal from "sweetalert2";
-import { generateBlurHash } from "../../utils";
+import { generateBlurHash, overallUploadPercent } from "../../utils";
 import {
   getSignedURLStudentService,
-  UploadSignURLService,
+  UploadSignURLWithProgressService,
 } from "../../services";
 import { Toast } from "primereact/toast";
-import { useCreateFileStudentAssignment } from "../../react-query";
+import { classworkDataLanguage } from "../../data/languages";
+import {
+  useCreateFileStudentAssignment,
+  useGetLanguage,
+} from "../../react-query";
 import { ProgressBar } from "primereact/progressbar";
 import { FcUpload } from "react-icons/fc";
 import { IoMdClose } from "react-icons/io";
@@ -25,6 +29,12 @@ function AssignmentUploadFile({
   onClose,
 }: Props) {
   const [loading, setLoading] = React.useState(false);
+  const language = useGetLanguage();
+  const [progress, setProgress] = React.useState<{
+    percent: number;
+    index: number;
+    count: number;
+  } | null>(null);
   const createFile = useCreateFileStudentAssignment();
 
   const handleUploadFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -35,7 +45,9 @@ function AssignmentUploadFile({
       }
       setLoading(true);
       const filesArray = Array.from(files);
-      for (const file of filesArray) {
+      const totalBytes = filesArray.reduce((sum, file) => sum + file.size, 0);
+      let uploadedBytes = 0;
+      for (const [index, file] of filesArray.entries()) {
         let blurHash: string | undefined = undefined;
         const signURL = await getSignedURLStudentService({
           fileName: file.name,
@@ -44,11 +56,26 @@ function AssignmentUploadFile({
           fileSize: file.size,
         });
 
-        const upload = await UploadSignURLService({
+        const upload = await UploadSignURLWithProgressService({
           contentType: file.type,
           file: file,
           signURL: signURL.signURL,
+          onProgress:
+            totalBytes > 0
+              ? (_percent, event) => {
+                  setProgress({
+                    percent: overallUploadPercent({
+                      uploadedBytes,
+                      currentLoaded: event.loaded,
+                      totalBytes,
+                    }),
+                    index: index + 1,
+                    count: filesArray.length,
+                  });
+                }
+              : undefined,
         });
+        uploadedBytes += file.size;
 
         if (file.type.includes("image")) {
           blurHash = await generateBlurHash(file);
@@ -63,6 +90,7 @@ function AssignmentUploadFile({
           contentType: "FILE",
         });
       }
+      setProgress(null);
       setLoading(false);
       toast.current?.show({
         severity: "success",
@@ -72,6 +100,7 @@ function AssignmentUploadFile({
       });
       onClose();
     } catch (error) {
+      setProgress(null);
       setLoading(false);
       let result = error as ErrorMessages;
       Swal.fire({
@@ -98,7 +127,19 @@ function AssignmentUploadFile({
       <h3 className="flex gap-2">
         Upload File <FcUpload />{" "}
       </h3>
-      {loading && (
+      {loading && progress && (
+        <div className="flex flex-col gap-1">
+          <span className="text-sm text-gray-600">
+            {classworkDataLanguage.uploading(language.data ?? "en")}{" "}
+            {progress.index}/{progress.count} — {Math.round(progress.percent)}%
+          </span>
+          <ProgressBar
+            value={Math.round(progress.percent)}
+            style={{ height: "10px" }}
+          />
+        </div>
+      )}
+      {loading && !progress && (
         <ProgressBar mode="indeterminate" style={{ height: "6px" }} />
       )}
       <label className="main-button cursor-pointer">

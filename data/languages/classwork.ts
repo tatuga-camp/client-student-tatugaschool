@@ -238,6 +238,16 @@ export const classworkDataLanguage = {
       }
     },
   },
+  uploading: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "Uploading";
+      case "th":
+        return "กำลังอัปโหลด";
+      default:
+        return "Uploading";
+    }
+  },
 } as const;
 
 export const tagsDataLanguage = {
