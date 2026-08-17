@@ -19,6 +19,7 @@ import {
   UploadSignURLService,
 } from "../../../services";
 import LoadingBar from "../../../components/common/LoadingBar";
+import PhotoEditor from "../../../components/common/PhotoEditor";
 import { generateBlurHash } from "../../../utils";
 import LoadingSpinner from "../../../components/common/LoadingSpinner";
 import { Toast } from "primereact/toast";
@@ -30,6 +31,7 @@ function Index(subjectId: { subjectId: string }) {
   const language = useGetLanguage();
   const toast = React.useRef<Toast>(null);
   const [loading, setLoading] = React.useState(false);
+  const [photoFile, setPhotoFile] = React.useState<File | null>(null);
   const [data, setData] = React.useState<{
     title: string;
     firstName: string;
@@ -70,12 +72,15 @@ function Index(subjectId: { subjectId: string }) {
       </Layout>
     );
   }
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setPhotoFile(file);
+  };
+
+  const handleSavePhoto = async (file: File) => {
     try {
-      const file = e.target.files?.[0];
-      if (!file) {
-        return;
-      }
       setLoading(true);
       const signURL = await getSignedURLStudentService({
         fileName: file.name,
@@ -93,6 +98,7 @@ function Index(subjectId: { subjectId: string }) {
       setData((prev) => {
         return { ...prev, photo: signURL.originalURL, blurHash: blurHash };
       });
+      setPhotoFile(null);
       setLoading(false);
     } catch (error) {
       setLoading(false);
@@ -167,6 +173,13 @@ function Index(subjectId: { subjectId: string }) {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Toast ref={toast} />
+      {photoFile && (
+        <PhotoEditor
+          file={photoFile}
+          onClose={() => setPhotoFile(null)}
+          onSave={handleSavePhoto}
+        />
+      )}
       <Layout subjectId={subjectId.subjectId}>
         <form
           onSubmit={handleSubmit}

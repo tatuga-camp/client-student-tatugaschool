@@ -7,3 +7,4 @@ export * from "./calculateSubmissionCompletion";
 export * from "./confirmSubmission";
 export * from "./uploadProgress";
 export * from "./errorSwal";
+export * from "./cropImage";
