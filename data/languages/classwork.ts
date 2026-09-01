@@ -248,6 +248,26 @@ export const classworkDataLanguage = {
         return "Uploading";
     }
   },
+  uploadNetworkError: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "Upload failed because the internet connection was interrupted. Please check your signal and try again.";
+      case "th":
+        return "อัปโหลดไฟล์ไม่สำเร็จ เนื่องจากการเชื่อมต่ออินเทอร์เน็ตขัดข้อง กรุณาตรวจสอบสัญญาณแล้วลองใหม่อีกครั้ง";
+      default:
+        return "Upload failed because the internet connection was interrupted. Please check your signal and try again.";
+    }
+  },
+  uploadFileUnreadable: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "Could not read the selected file. Please select the file again.";
+      case "th":
+        return "ไม่สามารถอ่านไฟล์ที่เลือกได้ กรุณาเลือกไฟล์ใหม่อีกครั้ง";
+      default:
+        return "Could not read the selected file. Please select the file again.";
+    }
+  },
 } as const;
 
 export const tagsDataLanguage = {

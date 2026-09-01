@@ -1,9 +1,12 @@
 import React from "react";
 import Swal from "sweetalert2";
 import {
+  UnreadableFileError,
+  UploadNetworkError,
   errorSwalContent,
   generateBlurHash,
   overallUploadPercent,
+  snapshotFileForUpload,
 } from "../../utils";
 import {
   getSignedURLStudentService,
@@ -48,20 +51,31 @@ function AssignmentUploadFile({
       }
       setLoading(true);
       const filesArray = Array.from(files);
-      const totalBytes = filesArray.reduce((sum, file) => sum + file.size, 0);
+      // Copy the picked files into memory right away: on Android the File
+      // handles from the picker can go stale before the upload starts,
+      // which aborts the request as a network error.
+      const uploads: { name: string; type: string; data: Blob }[] = [];
+      for (const file of filesArray) {
+        uploads.push({
+          name: file.name,
+          type: file.type,
+          data: await snapshotFileForUpload(file),
+        });
+      }
+      const totalBytes = uploads.reduce((sum, u) => sum + u.data.size, 0);
       let uploadedBytes = 0;
-      for (const [index, file] of filesArray.entries()) {
+      for (const [index, u] of uploads.entries()) {
         let blurHash: string | undefined = undefined;
         const signURL = await getSignedURLStudentService({
-          fileName: file.name,
-          fileType: file.type,
+          fileName: u.name,
+          fileType: u.type,
           schoolId,
-          fileSize: file.size,
+          fileSize: u.data.size,
         });
 
         const upload = await UploadSignURLWithProgressService({
-          contentType: file.type,
-          file: file,
+          contentType: u.type,
+          file: u.data,
           signURL: signURL.signURL,
           onProgress:
             totalBytes > 0
@@ -73,22 +87,22 @@ function AssignmentUploadFile({
                       totalBytes,
                     }),
                     index: index + 1,
-                    count: filesArray.length,
+                    count: uploads.length,
                   });
                 }
               : undefined,
         });
-        uploadedBytes += file.size;
+        uploadedBytes += u.data.size;
 
-        if (file.type.includes("image")) {
-          blurHash = await generateBlurHash(file);
+        if (u.type.includes("image")) {
+          blurHash = await generateBlurHash(u.data);
         }
         await createFile.mutateAsync({
           studentOnAssignmentId: studentOnAssignmentId,
-          type: file.type,
-          name: file.name,
+          type: u.type,
+          name: u.name,
           body: signURL.originalURL,
-          size: file.size,
+          size: u.data.size,
           blurHash: blurHash,
           contentType: "FILE",
         });
@@ -105,8 +119,20 @@ function AssignmentUploadFile({
     } catch (error) {
       setProgress(null);
       setLoading(false);
+      const displayError =
+        error instanceof UploadNetworkError
+          ? new Error(
+              classworkDataLanguage.uploadNetworkError(language.data ?? "en"),
+            )
+          : error instanceof UnreadableFileError
+            ? new Error(
+                classworkDataLanguage.uploadFileUnreadable(
+                  language.data ?? "en",
+                ),
+              )
+            : error;
       Swal.fire({
-        ...errorSwalContent(error),
+        ...errorSwalContent(displayError),
         icon: "error",
       });
     }

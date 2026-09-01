@@ -1,6 +1,6 @@
 import { encode } from "blurhash";
 
-type ImageFile = File;
+type ImageFile = Blob;
 
 // Function to load the image from a file
 const loadImageFromFile = (file: ImageFile): Promise<HTMLImageElement> => {
