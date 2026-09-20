@@ -1,9 +1,18 @@
 import { Language } from "../../interfaces";
 
 export const navbarLanguageData = {
+  profileSettings: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "Profile Settings";
+      case "th":
+        return "ตั้งค่าโปรไฟล์";
+      default:
+        return "Profile Settings";
+    }
+  },
   classNo: (l: Language) => (l === "th" ? "เลขที่" : "Class No."),
-  helpCenter: (l: Language) =>
-    l === "th" ? "ศูนย์ช่วยเหลือ" : "Help Center",
+  helpCenter: (l: Language) => (l === "th" ? "ศูนย์ช่วยเหลือ" : "Help Center"),
   whatsNew: (l: Language) => (l === "th" ? "อัปเดตล่าสุด" : "What's New"),
   logoutButton: (l: Language) => (l === "th" ? "ออกจากระบบ" : "Logout"),
   submittedLabel: (count: number, total: number, pct: number, l: Language) =>
@@ -11,5 +20,7 @@ export const navbarLanguageData = {
       ? `ส่งแล้ว ${count}/${total} (${pct}%)`
       : `${count}/${total} submitted (${pct}%)`,
   submittedCountLabel: (count: number, total: number, l: Language) =>
-    l === "th" ? `ส่งแล้ว ${count} / ${total}` : `${count} / ${total} submitted`,
+    l === "th"
+      ? `ส่งแล้ว ${count} / ${total}`
+      : `${count} / ${total} submitted`,
 } as const;

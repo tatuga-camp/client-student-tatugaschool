@@ -23,6 +23,7 @@ import LanguageSelect from "./LanguageSelect";
 import AvatarSubmissionRing, {
   submissionColorClasses,
 } from "./AvatarSubmissionRing";
+import { VscSettings } from "react-icons/vsc";
 
 type Props = {
   student: Student;
@@ -163,6 +164,14 @@ function ButtonProfile({ student, subjectId }: Props) {
 
           {/* Menu items */}
           <div className="flex flex-col gap-1">
+            <Link
+              href={`/student/${student.id}?subject_id=${subjectId}`}
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100"
+            >
+              <VscSettings size={18} className="text-gray-500" />
+              {navbarLanguageData.profileSettings(language.data ?? "en")}
+            </Link>
+
             <Link
               href="https://tatugaschool.com/support/contact-us"
               target="_blank"
