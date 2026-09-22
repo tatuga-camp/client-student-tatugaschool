@@ -1,7 +1,6 @@
 import { useRouter } from "next/router";
 import type { ReactNode } from "react";
-import React, { useEffect } from "react";
-import { FaBookOpen, FaHome } from "react-icons/fa";
+import React from "react";
 import useClickOutside from "../../hook/useClickOutside";
 import type { Menu } from "../Footbar";
 import {
@@ -11,13 +10,8 @@ import {
 } from "../../react-query";
 import { sidebarDataLanguage } from "../../data/languages";
 import Navbar from "../Navbar";
-
-import Image from "next/image";
-import { defaultBlurHash } from "../../data";
-import { decodeBlurhashToCanvas } from "../../utils";
 import Footbar from "../Footbar";
 import Header from "../subject/Header";
-import TeacherList from "../subject/TeacherList";
 import { MdSubject, MdWork } from "react-icons/md";
 
 type LayoutProps = {
@@ -38,11 +32,17 @@ function Layout({ children, listData, subjectId, customMenus }: LayoutProps) {
   const subject = useGetSubjectById({ id: subjectId ?? "" });
   const student = useGetStudent();
 
+  const showSubjectChrome =
+    Boolean(subject.data) && !router.pathname.startsWith("/student/");
+
   return (
-    <div className="relative flex min-h-dvh flex-col">
+    <div className="relative flex min-h-dvh flex-col bg-background-color">
       <div className="absolute top-3 z-50 h-max w-full px-3">
-        <Navbar student={student.data} subject={subject.data} />
+        <div className="mx-auto w-full max-w-5xl">
+          <Navbar student={student.data} subject={subject.data} />
+        </div>
       </div>
+
       {student.data && subject.data && (
         <Footbar
           onClick={(item) => {
@@ -65,17 +65,20 @@ function Layout({ children, listData, subjectId, customMenus }: LayoutProps) {
           ]}
         />
       )}
-      <main className="flex w-full flex-col items-center bg-background-color font-Anuphan">
-        {subject.data && !router.pathname.startsWith("/student/") && (
+
+      <main className="flex w-full flex-1 flex-col items-center font-Anuphan">
+        {showSubjectChrome && subject.data ? (
           <Header subject={subject.data} />
-        )}
-        <section className="flex w-full flex-col justify-center gap-5 px-0 pb-40 lg:flex-row lg:px-5 xl:px-20">
+        ) : null}
+
+        {/* pb-28/32 keeps last cards above fixed Footbar (h-16 + bottom-4/5) */}
+        <section className="mx-auto flex w-full max-w-5xl flex-col justify-center gap-5 px-0 pb-28 sm:pb-32 lg:flex-row lg:gap-6 lg:px-5 xl:px-6">
           {children}
-          {subject.data && !router.pathname.startsWith("/student/") && (
-            <div className="flex w-full flex-col gap-2 xl:w-4/12">
+          {showSubjectChrome ? (
+            <div className="flex w-full flex-col gap-2 px-3 pb-4 lg:max-w-sm lg:px-0 xl:w-4/12">
               {listData}
             </div>
-          )}
+          ) : null}
         </section>
       </main>
     </div>
