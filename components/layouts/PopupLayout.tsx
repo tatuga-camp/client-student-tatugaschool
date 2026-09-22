@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { IoMdClose } from "react-icons/io";
 
 type LayoutProps = {
   children: ReactNode;

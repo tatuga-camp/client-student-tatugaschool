@@ -30,19 +30,19 @@ function AssignmentTagFilterBar({
   }
 
   return (
-    <ul className="flex w-full flex-wrap items-center gap-2 p-2">
+    <ul className="flex w-full flex-wrap items-center gap-2 py-1">
       <li>
         <button
           type="button"
           onClick={() => onChange(new Set())}
-          className={`inline-flex items-center gap-1 rounded-2xl border border-primary-color px-3 py-1 text-sm ${
+          className={`inline-flex min-h-9 items-center gap-1 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors ${
             showAllActive
-              ? "bg-primary-color text-white"
-              : "bg-white text-primary-color hover:bg-primary-color/10"
+              ? "border-primary-color bg-primary-color text-white"
+              : "border-primary-color/40 bg-white text-primary-color hover:bg-primary-color/10"
           }`}
         >
           <span>{tagsDataLanguage.showAll(language.data ?? "en")}</span>
-          <span className="opacity-75">({totalCount})</span>
+          <span className="opacity-80">({totalCount})</span>
         </button>
       </li>
       {uniqueTags.map((tag) => {
@@ -53,14 +53,16 @@ function AssignmentTagFilterBar({
             <button
               type="button"
               onClick={() => toggle(tag)}
-              className={`inline-flex items-center gap-1 rounded-2xl border border-primary-color px-3 py-1 text-sm ${
+              className={`inline-flex min-h-9 max-w-full items-center gap-1 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors ${
                 active
-                  ? "bg-primary-color text-white"
-                  : "bg-white text-primary-color hover:bg-primary-color/10"
+                  ? "border-primary-color bg-primary-color text-white"
+                  : "border-primary-color/40 bg-white text-primary-color hover:bg-primary-color/10"
               }`}
             >
-              <span className="max-w-[12rem] truncate">{tag}</span>
-              <span className="opacity-75">({counts[key] ?? 0})</span>
+              <span className="max-w-[10rem] truncate sm:max-w-[14rem]">
+                {tag}
+              </span>
+              <span className="opacity-80">({counts[key] ?? 0})</span>
             </button>
           </li>
         );

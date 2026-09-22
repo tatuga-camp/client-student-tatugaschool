@@ -41,8 +41,8 @@ function Index({ subjectId }: { subjectId: string }) {
   if (student.error) {
     return (
       <Layout>
-        <main className="flex w-7/12 flex-col">
-          <div className="flex w-full items-center justify-center gap-5">
+        <main className="mx-auto flex w-full max-w-3xl flex-col px-4">
+          <div className="flex w-full items-center justify-center gap-5 py-16">
             <h1 className="text-2xl font-bold">Student not found</h1>
           </div>
         </main>
@@ -53,16 +53,20 @@ function Index({ subjectId }: { subjectId: string }) {
   return (
     <>
       <Head>
-        <title>Subject </title>
+        <title>
+          {subject.data?.title
+            ? `${subject.data.title} | Tatuga School`
+            : "Subject"}
+        </title>
         <meta name="description" content={subject.data?.title} />
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Layout subjectId={subjectId}>
         <AskNotification />
-        <main className="flex w-full flex-col xl:w-7/12">
+        <main className="mx-auto flex w-full max-w-3xl flex-col px-3 sm:px-4">
           {subject.data && (
-            <div className="w-full px-5 py-3 md:top-0 md:bg-transparent md:backdrop-blur-none">
-              <div className="mx-auto flex h-14 w-full max-w-md items-center justify-between rounded-full bg-white p-1.5 shadow-sm ring-1 ring-gray-200">
+            <div className="sticky top-14 z-20 -mx-3 bg-background-color/90 px-3 py-2 backdrop-blur-md sm:-mx-4 sm:px-4 md:static md:bg-transparent md:backdrop-blur-none">
+              <div className="mx-auto flex h-12 w-full items-center justify-between gap-1 rounded-2xl border border-gray-100 bg-white p-1 shadow-sm sm:h-14 sm:rounded-full sm:p-1.5">
                 {menuLists
                   .filter((m) => {
                     if (
@@ -81,29 +85,29 @@ function Index({ subjectId }: { subjectId: string }) {
                   })
                   .map((menu, index) => {
                     const isActive = menu.title === selectMenu;
+                    const label =
+                      menuSubjectDataLanguage[
+                        menu.title.toLowerCase() as keyof typeof menuSubjectDataLanguage
+                      ](language.data ?? "en");
                     return (
                       <button
+                        type="button"
                         onClick={() => {
                           window.scrollTo(0, 0);
                           setSelectMenu(menu.title);
                         }}
                         key={index}
-                        className={`flex h-full flex-1 items-center justify-center gap-1.5 rounded-full px-1 text-xs font-bold transition-all duration-300 ${
+                        aria-current={isActive ? "page" : undefined}
+                        className={`flex h-full min-w-0 flex-1 items-center justify-center gap-1 rounded-xl px-1 text-[11px] font-bold transition-all duration-200 sm:gap-1.5 sm:rounded-full sm:text-xs ${
                           isActive
                             ? "bg-primary-color text-white shadow-md"
                             : "text-gray-500 hover:bg-gray-50 hover:text-primary-color"
                         }`}
                       >
-                        <span className={isActive ? "text-base" : "text-sm"}>
+                        <span className="shrink-0 text-base sm:text-lg">
                           {menu.icon}
                         </span>
-                        <span
-                          className={`truncate ${isActive ? "block" : "hidden sm:block"}`}
-                        >
-                          {menuSubjectDataLanguage[
-                            menu.title.toLowerCase() as keyof typeof menuSubjectDataLanguage
-                          ](language.data ?? "en")}
-                        </span>
+                        <span className="truncate">{label}</span>
                       </button>
                     );
                   })}

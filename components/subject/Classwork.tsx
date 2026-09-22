@@ -93,7 +93,7 @@ function Classwork({ subjectId, allowStudentViewScoreOnAssignment }: Props) {
   }
 
   return (
-    <>
+    <div className="flex w-full flex-col gap-4 pb-4">
       {assignments.isLoading && <LoadingBar />}
       <AssignmentTagFilterBar
         uniqueTags={uniqueTags}
@@ -103,11 +103,11 @@ function Classwork({ subjectId, allowStudentViewScoreOnAssignment }: Props) {
         totalCount={sortedAssignments.length}
       />
       {announcements.data && announcements.data.length > 0 && student.data && (
-        <section className="mt-5 w-full p-0 md:p-2">
-          <h2 className="text-sm font-semibold text-gray-500">
+        <section className="w-full">
+          <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
             {announcementDataLanguage.sectionTitle(language.data ?? "en")}
           </h2>
-          <ul className="mt-2 flex flex-col gap-3">
+          <ul className="flex flex-col gap-3">
             {announcements.data.map((announcement) => (
               <AnnouncementCard
                 key={announcement.id}
@@ -119,7 +119,7 @@ function Classwork({ subjectId, allowStudentViewScoreOnAssignment }: Props) {
           </ul>
         </section>
       )}
-      <ul className="mt-5 flex h-max w-full flex-col gap-5 p-0 md:p-2">
+      <ul className="flex h-max w-full flex-col gap-3">
         {visibleAssignments.map((classwork, index) => {
           const fullIndex = sortedAssignments.findIndex(
             (a) => a.id === classwork.id,
@@ -145,7 +145,7 @@ function Classwork({ subjectId, allowStudentViewScoreOnAssignment }: Props) {
           );
         })}
       </ul>
-    </>
+    </div>
   );
 }
 

@@ -39,7 +39,7 @@ function AnnouncementCard({ announcement, subjectId, studentId }: Props) {
   return (
     <li
       id={`announcement-${announcement.id}`}
-      className="w-full rounded-2xl border border-primary-color/20 bg-white p-4 font-Anuphan shadow-sm"
+      className="w-full rounded-2xl border border-gray-100 bg-white p-4 font-Anuphan shadow-sm ring-1 ring-primary-color/10"
     >
       <div className="flex items-center gap-3">
         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-color/10 text-primary-color">

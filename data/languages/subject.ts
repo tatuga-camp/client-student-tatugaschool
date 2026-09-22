@@ -44,11 +44,11 @@ export const subjectDataLanguage = {
   buttonJoin: (language: Language) => {
     switch (language) {
       case "en":
-        return "join";
+        return "Join";
       case "th":
         return "เข้ารายวิชา";
       default:
-        return "join";
+        return "Join";
     }
   },
   teacher: (language: Language) => {
@@ -159,6 +159,106 @@ export const subjectDataLanguage = {
         return "ลองตรวจสอบการสะกดคำของคุณดูนะ!";
       default:
         return "Try checking your spelling!";
+    }
+  },
+  clearSearch: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "Clear search";
+      case "th":
+        return "ล้างคำค้นหา";
+      default:
+        return "Clear search";
+    }
+  },
+  loadingStudents: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "Loading students...";
+      case "th":
+        return "กำลังโหลดรายชื่อนักเรียน...";
+      default:
+        return "Loading students...";
+    }
+  },
+  noStudentsYet: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "No students in this subject yet";
+      case "th":
+        return "ยังไม่มีนักเรียนในรายวิชานี้";
+      default:
+        return "No students in this subject yet";
+    }
+  },
+  noStudentsYetDescription: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "Ask your teacher to add you to the subject, then try again.";
+      case "th":
+        return "แจ้งครูผู้สอนให้เพิ่มชื่อคุณในรายวิชา แล้วลองใหม่อีกครั้ง";
+      default:
+        return "Ask your teacher to add you to the subject, then try again.";
+    }
+  },
+  loadErrorTitle: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "Couldn't load the student list";
+      case "th":
+        return "โหลดรายชื่อนักเรียนไม่สำเร็จ";
+      default:
+        return "Couldn't load the student list";
+    }
+  },
+  loadErrorDescription: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "Check your connection and try again.";
+      case "th":
+        return "ตรวจสอบการเชื่อมต่ออินเทอร์เน็ตแล้วลองใหม่อีกครั้ง";
+      default:
+        return "Check your connection and try again.";
+    }
+  },
+  retry: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "Try again";
+      case "th":
+        return "ลองใหม่";
+      default:
+        return "Try again";
+    }
+  },
+  back: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "Back";
+      case "th":
+        return "ย้อนกลับ";
+      default:
+        return "Back";
+    }
+  },
+  wrongPassword: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "Incorrect password. Please try again.";
+      case "th":
+        return "รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง";
+      default:
+        return "Incorrect password. Please try again.";
+    }
+  },
+  passwordDescription: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "This account is protected. Enter the password your teacher gave you.";
+      case "th":
+        return "บัญชีนี้มีการตั้งรหัสผ่านไว้ กรุณาใส่รหัสผ่านที่ได้รับจากครูผู้สอน";
+      default:
+        return "This account is protected. Enter the password your teacher gave you.";
     }
   },
 } as const;

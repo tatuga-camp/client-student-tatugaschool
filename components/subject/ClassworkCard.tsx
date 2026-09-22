@@ -121,7 +121,7 @@ function AssignmentCard({
       onClick={() => {
         onSelect(assignment);
       }}
-      className={`relative h-max min-h-40 w-full rounded-xl bg-white p-5 ring-1 ring-${color}-200 ${
+      className={`relative h-max min-h-[8.5rem] w-full rounded-2xl border border-gray-100 bg-white p-4 text-left shadow-sm ring-1 ring-${color}-100 transition hover:border-primary-color/30 hover:shadow-md sm:p-5 ${
         locked ? "cursor-not-allowed opacity-50" : ""
       }`}
       key={assignment.id}
@@ -133,7 +133,7 @@ function AssignmentCard({
       )}
       <section className="flex w-full justify-between">
         <div
-          className={`flex h-14 w-14 items-center justify-center rounded-full bg-${color}-100 text-2xl text-${color}-500`}
+          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-${color}-100 text-xl text-${color}-500 sm:h-12 sm:w-12`}
         >
           <MdAssignment />
         </div>
@@ -144,9 +144,11 @@ function AssignmentCard({
           />
         </div>
       </section>
-      <h1 className="text-lg font-medium">{assignment.title}</h1>
+      <h1 className="mt-3 text-base font-semibold text-icon-color sm:text-lg">
+        {assignment.title}
+      </h1>
 
-      <p className="my-2 line-clamp-4 text-sm text-gray-500">
+      <p className="my-2 line-clamp-3 text-sm text-gray-500">
         {stripHtml(assignment.description)}
       </p>
       {assignment.tags && assignment.tags.length > 0 && (
@@ -161,7 +163,7 @@ function AssignmentCard({
       {allowStudentViewScoreOnAssignment && (
         <section className="flex w-full items-end justify-between">
           <div>
-            <span className="text-4xl font-bold text-blue-700">
+            <span className="text-3xl font-bold text-primary-color">
               {score.toFixed(2)}
             </span>
             <span className="text-base font-medium text-gray-400">
@@ -180,7 +182,7 @@ function AssignmentCard({
       )}
       {assignment.dueDate && (
         <section className="mt-5">
-          <div className="rounded-full bg-red-100 p-2 text-red-700">
+          <div className="rounded-full bg-error-color/10 px-3 py-2 text-sm font-medium text-error-color">
             {classworkCardDataLanguage.Deadline(language.data ?? "en")} :{" "}
             {new Date(assignment.dueDate).toLocaleDateString(undefined, {
               minute: "numeric",
@@ -219,7 +221,7 @@ function MaterialCard({
     <button
       disabled={locked}
       onClick={() => onSelect(material)}
-      className={`relative h-max min-h-40 w-full rounded-xl bg-white p-5 ring-1 ring-blue-200 ${
+      className={`relative h-max min-h-[8.5rem] w-full rounded-2xl border border-gray-100 bg-white p-4 text-left shadow-sm ring-1 ring-primary-color/15 transition hover:border-primary-color/30 hover:shadow-md sm:p-5 ${
         locked ? "cursor-not-allowed opacity-50" : ""
       }`}
       key={material.id}
@@ -230,17 +232,19 @@ function MaterialCard({
         </div>
       )}
       <section className="flex w-full justify-between">
-        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-blue-100 text-2xl text-blue-500">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary-color/10 text-xl text-primary-color sm:h-12 sm:w-12">
           <BiBook />
         </div>
 
-        <div className="flex w-max items-center justify-center rounded-full bg-blue-500 p-3 text-base text-white">
+        <div className="flex w-max items-center justify-center rounded-full bg-primary-color px-3 py-1.5 text-xs font-semibold text-white sm:text-sm">
           Material
         </div>
       </section>
-      <h1 className="text-lg font-medium">{material.title}</h1>
+      <h1 className="mt-3 text-base font-semibold text-icon-color sm:text-lg">
+        {material.title}
+      </h1>
 
-      <p className="my-2 line-clamp-4 text-sm text-gray-500">
+      <p className="my-2 line-clamp-3 text-sm text-gray-500">
         {stripHtml(material.description)}
       </p>
       {material.tags && material.tags.length > 0 && (
@@ -323,7 +327,7 @@ function AssignmentVideoCard({
       onClick={() => {
         onSelect(assignment);
       }}
-      className={`relative h-max min-h-40 w-full rounded-xl bg-white p-5 ring-1 ring-${color}-200 ${
+      className={`relative h-max min-h-[8.5rem] w-full rounded-2xl border border-gray-100 bg-white p-4 text-left shadow-sm ring-1 ring-${color}-100 transition hover:border-primary-color/30 hover:shadow-md sm:p-5 ${
         locked ? "cursor-not-allowed opacity-50" : ""
       }`}
       key={assignment.id}
@@ -346,7 +350,9 @@ function AssignmentVideoCard({
           />
         </div>
       </section>
-      <h1 className="text-lg font-medium">{assignment.title}</h1>
+      <h1 className="mt-3 text-base font-semibold text-icon-color sm:text-lg">
+        {assignment.title}
+      </h1>
       {assignment.tags && assignment.tags.length > 0 && (
         <div className="my-2">
           <TagChipList tags={assignment.tags} size="sm" />
@@ -359,7 +365,7 @@ function AssignmentVideoCard({
       {allowStudentViewScoreOnAssignment && (
         <section className="flex w-full items-end justify-between">
           <div>
-            <span className="text-4xl font-bold text-blue-700">
+            <span className="text-3xl font-bold text-primary-color">
               {score.toFixed(2)}
             </span>
             <span className="text-base font-medium text-gray-400">
@@ -378,7 +384,7 @@ function AssignmentVideoCard({
       )}
       {assignment.dueDate && (
         <section className="mt-5">
-          <div className="rounded-full bg-red-100 p-2 text-red-700">
+          <div className="rounded-full bg-error-color/10 px-3 py-2 text-sm font-medium text-error-color">
             {classworkCardDataLanguage.Deadline(language.data ?? "en")} :{" "}
             {new Date(assignment.dueDate).toLocaleDateString(undefined, {
               minute: "numeric",
