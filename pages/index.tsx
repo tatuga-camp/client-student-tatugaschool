@@ -4,7 +4,13 @@ import Image from "next/image";
 import { useRouter } from "next/router";
 import { Password as PasswordPrimereact } from "primereact/password";
 import React, { useEffect, useRef } from "react";
-import { FaSearch } from "react-icons/fa";
+import {
+  FaExclamationTriangle,
+  FaKeyboard,
+  FaSearch,
+  FaUserSlash,
+  FaUsers,
+} from "react-icons/fa";
 import Swal from "sweetalert2";
 import Footer from "../components/Footer";
 import HomepageLayout from "../components/layouts/HomepageLayout";
@@ -27,11 +33,66 @@ type IndexProps = {
   announcementId?: string;
   error?: any;
 };
+
+type PickerStateProps = {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  tone?: "neutral" | "error";
+  action?: React.ReactNode;
+};
+
+/** Centred message block used for the picker's loading/empty/error states. */
+function PickerState({
+  icon,
+  title,
+  description,
+  tone = "neutral",
+  action,
+}: PickerStateProps) {
+  return (
+    <div className="flex flex-col items-center justify-center px-4 py-10 text-center">
+      <div
+        className={`flex h-12 w-12 items-center justify-center rounded-full text-xl ${
+          tone === "error"
+            ? "bg-error-color/10 text-error-color"
+            : "bg-primary-color/10 text-primary-color"
+        }`}
+      >
+        {icon}
+      </div>
+      <p className="mt-3 text-base font-semibold text-icon-color">{title}</p>
+      <p className="mt-1 max-w-xs text-sm text-gray-500">{description}</p>
+      {action && <div className="mt-4">{action}</div>}
+    </div>
+  );
+}
+
+/** Placeholder rows shown while the student list is being prepared. */
+function PickerSkeleton({ label }: { label: string }) {
+  return (
+    <ul role="status" aria-label={label} className="animate-pulse space-y-1">
+      {Array.from({ length: 5 }).map((_, index) => (
+        <li key={index} className="flex items-center gap-3 px-2 py-2">
+          <div className="h-10 w-10 shrink-0 rounded-full bg-gray-200" />
+          <div className="flex-1 space-y-1.5">
+            <div className="h-3 w-1/2 rounded bg-gray-200" />
+            <div className="h-2.5 w-1/4 rounded bg-gray-100" />
+          </div>
+          <div className="h-9 w-20 rounded-2xl bg-gray-200" />
+        </li>
+      ))}
+      <li className="sr-only">{label}</li>
+    </ul>
+  );
+}
+
 function Index({ subjectData, code, announcementId, error }: IndexProps) {
   const subject = useGetSubjectByCode(code, {
     initialData: subjectData,
   });
   const language = useGetLanguage();
+  const lang = language.data ?? "en";
   const passwordInputRef = useRef<PasswordPrimereact>(null);
   const router = useRouter();
   const [search, setSearch] = React.useState("");
@@ -39,8 +100,16 @@ function Index({ subjectData, code, announcementId, error }: IndexProps) {
   const [selectStudentId, setSelectStudentId] = React.useState<string | null>(
     null,
   );
+  const [passwordError, setPasswordError] = React.useState<string | null>(
+    null,
+  );
 
   const signIn = useSignIn();
+
+  const closePasswordForm = () => {
+    setSelectStudentId(null);
+    setPasswordError(null);
+  };
 
   const handleSignInForm = async (e: React.FormEvent) => {
     try {
@@ -61,15 +130,22 @@ function Index({ subjectData, code, announcementId, error }: IndexProps) {
           : `/subject/${subject.data?.id}`,
       );
       Swal.fire({
-        title: requestDataLanguage.successTitle(language.data ?? "en"),
-        text: requestDataLanguage.successDesciption(language.data ?? "en"),
+        title: requestDataLanguage.successTitle(lang),
+        text: requestDataLanguage.successDesciption(lang),
         icon: "success",
       });
     } catch (error) {
-      Swal.fire({
-        ...errorSwalContent(error),
-        icon: "error",
-      });
+      // Wrong password stays inside the form as an inline message instead of
+      // a blocking alert, so the student can correct it in place.
+      // The server answers a wrong password with a 400 whose message names the
+      // password ("Password isn't correct"); show the localized copy for that
+      // case and fall back to the server text for anything else.
+      const { text } = errorSwalContent(error);
+      const isPasswordError = !text || /password/i.test(text);
+      setPasswordError(
+        isPasswordError ? subjectDataLanguage.wrongPassword(lang) : text,
+      );
+      passwordInputRef.current?.focus();
     }
   };
 
@@ -84,18 +160,12 @@ function Index({ subjectData, code, announcementId, error }: IndexProps) {
     }
   }, [subject.status]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch(e.target.value);
+  const applySearch = (value: string) => {
+    setSearch(value);
     if (subject.data) {
-      if (
-        subject.data.allowHideStudentList &&
-        e.target.value.trim().length <= 2
-      ) {
+      if (subject.data.allowHideStudentList && value.trim().length <= 2) {
         setStudents([]);
-      } else if (
-        !subject.data.allowHideStudentList &&
-        e.target.value.trim() === ""
-      ) {
+      } else if (!subject.data.allowHideStudentList && value.trim() === "") {
         setStudents(subject.data.studentOnSubjects);
       } else {
         setStudents(
@@ -103,22 +173,26 @@ function Index({ subjectData, code, announcementId, error }: IndexProps) {
             (student) =>
               student.firstName
                 .toLowerCase()
-                .includes(e.target.value.toLowerCase().trim()) ||
+                .includes(value.toLowerCase().trim()) ||
               student.lastName
                 .toLowerCase()
-                .includes(e.target.value.toLowerCase().trim()) ||
+                .includes(value.toLowerCase().trim()) ||
               `${student.firstName} ${student.lastName}`
                 .toLowerCase()
-                .includes(e.target.value.toLowerCase().trim()) ||
+                .includes(value.toLowerCase().trim()) ||
               `${student.firstName}${student.lastName}`
                 .toLowerCase()
                 .replace(/\s+/g, "")
-                .includes(e.target.value.toLowerCase().replace(/\s+/g, "")) ||
-              student.number.toString().includes(e.target.value.trim()),
+                .includes(value.toLowerCase().replace(/\s+/g, "")) ||
+              student.number.toString().includes(value.trim()),
           ),
         );
       }
     }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    applySearch(e.target.value);
   };
 
   const handleSignIn = async ({ studentId }: { studentId: string }) => {
@@ -135,6 +209,7 @@ function Index({ subjectData, code, announcementId, error }: IndexProps) {
       let result = error as ErrorMessages;
       console.error(error);
       if (result?.message === "Please enter your password") {
+        setPasswordError(null);
         setSelectStudentId(studentId);
         setTimeout(() => {
           passwordInputRef.current?.focus();
@@ -154,36 +229,140 @@ function Index({ subjectData, code, announcementId, error }: IndexProps) {
 
   if (error) {
     return (
-      <main className="flex h-screen w-screen flex-col items-center justify-center gap-5 bg-gradient-to-r from-rose-400 to-red-500 font-Anuphan">
-        <div className="flex items-center justify-center gap-1 rounded-full bg-white px-3 py-1 md:gap-2">
-          <div className="relative h-6 w-6 overflow-hidden rounded-2xl ring-1 ring-white transition duration-150 hover:scale-105 active:scale-110">
+      <main className="flex min-h-dvh w-full flex-col items-center justify-center gap-5 bg-gradient-to-r from-primary-color to-secondary-color px-4 font-Anuphan">
+        <div className="flex items-center gap-1.5 rounded-full bg-white px-2.5 py-1 shadow-sm sm:gap-2 sm:px-3">
+          <div className="relative h-6 w-6 shrink-0 overflow-hidden rounded-2xl ring-1 ring-white">
             <Image
               src="/favicon.ico"
               placeholder="blur"
               blurDataURL={defaultCanvas}
               fill
+              sizes="24px"
               alt="logo tatuga school"
             />
           </div>
-          <div className="block text-lg font-bold uppercase text-icon-color md:text-base">
+          <div className="text-sm font-bold uppercase text-icon-color sm:text-base">
             Tatuga School
           </div>
         </div>
-        <section className="rounded-2xl80 flex-col justify-around rounded-2xl bg-white p-2 md:w-96">
-          <h1 className="text-center text-lg font-semibold">
+        <section className="flex w-full max-w-sm flex-col items-center gap-4 rounded-2xl border border-gray-200 bg-white p-5 text-center sm:p-6">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-error-color/10 text-xl text-error-color">
+            <FaExclamationTriangle aria-hidden />
+          </div>
+          <h1 className="text-lg font-semibold text-icon-color">
             {error?.message ?? "Something went wrong"}
           </h1>
           <button
             onClick={() => router.push("/welcome")}
-            className="second-button w-full border"
+            className="main-button min-h-11 w-full"
           >
-            BACK
+            {subjectDataLanguage.back(lang)}
           </button>
         </section>
         <Footer />
       </main>
     );
   }
+
+  const hideList = subject.data?.allowHideStudentList === true;
+  const trimmedSearch = search.trim();
+
+  const renderPicker = () => {
+    if (subject.isError && !subject.data) {
+      return (
+        <PickerState
+          tone="error"
+          icon={<FaExclamationTriangle aria-hidden />}
+          title={subjectDataLanguage.loadErrorTitle(lang)}
+          description={subjectDataLanguage.loadErrorDescription(lang)}
+          action={
+            <button
+              type="button"
+              onClick={() => subject.refetch()}
+              className="main-button min-h-10 px-5 text-sm"
+            >
+              {subjectDataLanguage.retry(lang)}
+            </button>
+          }
+        />
+      );
+    }
+
+    if (subject.isLoading || students === undefined) {
+      return (
+        <PickerSkeleton label={subjectDataLanguage.loadingStudents(lang)} />
+      );
+    }
+
+    if (hideList && trimmedSearch === "") {
+      return (
+        <PickerState
+          icon={<FaSearch aria-hidden />}
+          title={subjectDataLanguage.whoAreYou(lang)}
+          description={subjectDataLanguage.typeYourName(lang)}
+        />
+      );
+    }
+
+    if (hideList && trimmedSearch.length <= 2) {
+      return (
+        <PickerState
+          icon={<FaKeyboard aria-hidden />}
+          title={subjectDataLanguage.keepTyping(lang)}
+          description={subjectDataLanguage.typeMoreThan3(lang)}
+        />
+      );
+    }
+
+    if (students.length > 0) {
+      return (
+        <ul className="flex flex-col gap-0.5">
+          {[...students]
+            .sort((a, b) => Number(a.number) - Number(b.number))
+            .map((student, index) => (
+              <ListStudent
+                key={student.id}
+                odd={index % 2 === 0}
+                student={student}
+                buttonText={subjectDataLanguage.buttonJoin(lang)}
+                onClick={(data) => {
+                  handleSignIn({
+                    studentId: data.studentId,
+                  });
+                }}
+              />
+            ))}
+        </ul>
+      );
+    }
+
+    if (trimmedSearch !== "") {
+      return (
+        <PickerState
+          icon={<FaUserSlash aria-hidden />}
+          title={subjectDataLanguage.noStudentsFound(lang)}
+          description={subjectDataLanguage.checkSpelling(lang)}
+          action={
+            <button
+              type="button"
+              onClick={() => applySearch("")}
+              className="second-button min-h-10 border border-gray-200 px-5 text-sm"
+            >
+              {subjectDataLanguage.clearSearch(lang)}
+            </button>
+          }
+        />
+      );
+    }
+
+    return (
+      <PickerState
+        icon={<FaUsers aria-hidden />}
+        title={subjectDataLanguage.noStudentsYet(lang)}
+        description={subjectDataLanguage.noStudentsYetDescription(lang)}
+      />
+    );
+  };
 
   return (
     <>
@@ -206,103 +385,48 @@ function Index({ subjectData, code, announcementId, error }: IndexProps) {
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
       </Head>
       {selectStudentId && (
-        <PopupLayout
-          onClose={() => {
-            setSelectStudentId(null);
-          }}
-        >
+        <PopupLayout onClose={closePasswordForm}>
           <SignInStudentForm
-            onClose={() => setSelectStudentId(null)}
+            onClose={closePasswordForm}
             onSubmit={handleSignInForm}
             isPending={signIn.isPending}
             passwordInputRef={passwordInputRef}
+            errorMessage={passwordError}
+            onPasswordChange={() => setPasswordError(null)}
           />
         </PopupLayout>
       )}
 
       <HomepageLayout subject={subject}>
-        <main className="w-full max-w-3xl overflow-hidden rounded-3xl border-2 border-pink-100 bg-white shadow-xl xl:w-8/12">
-          <div className="bg-gradient-to-r from-pink-400 via-purple-400 to-indigo-400 p-6 text-white shadow-sm">
-            <h2 className="flex items-center gap-2 text-2xl font-bold tracking-wide">
-              ✨ {subjectDataLanguage.choose(language.data ?? "en")}
+        <section className="w-full min-w-0 rounded-2xl border border-gray-200 bg-white">
+          <div className="border-b border-gray-100 p-4 sm:p-5">
+            <h2 className="text-base font-semibold text-icon-color">
+              {subjectDataLanguage.choose(lang)}
             </h2>
-            <p className="mt-1 text-white/90">
-              {subjectDataLanguage.joinDescription(language.data ?? "en")}
+            <p className="text-sm text-gray-500">
+              {subjectDataLanguage.joinDescription(lang)}
             </p>
-          </div>
-          <div className="p-4 md:p-6">
-            <div className="relative mb-4 md:mb-6">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                <FaSearch className="text-pink-400" />
-              </div>
+            <label className="relative mt-3 block">
+              <span className="sr-only">
+                {subjectDataLanguage.searchPlaceholder(lang)}
+              </span>
+              <FaSearch
+                aria-hidden
+                className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gray-400"
+              />
               <input
                 value={search}
                 onChange={handleChange}
-                type="text"
-                placeholder={subjectDataLanguage.searchPlaceholder(
-                  language.data ?? "en",
-                )}
-                className="w-full rounded-full border-2 border-pink-200 bg-pink-50 py-3 pl-12 pr-6 text-gray-700 transition-all focus:border-pink-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-pink-100"
+                type="search"
+                autoComplete="off"
+                inputMode="search"
+                placeholder={subjectDataLanguage.searchPlaceholder(lang)}
+                className="main-input min-h-11 w-full border-gray-200 bg-background-color pl-10 text-sm text-icon-color placeholder:text-gray-400 focus:bg-white"
               />
-            </div>
-
-            {subject.data?.allowHideStudentList && search.trim() === "" ? (
-              <div className="flex flex-col items-center justify-center py-10 text-gray-400">
-                <div className="mb-3 text-6xl">🙈</div>
-                <p className="text-xl font-medium text-pink-400">
-                  {subjectDataLanguage.whoAreYou(language.data ?? "en")}
-                </p>
-                <p className="mt-1 text-center text-sm">
-                  {subjectDataLanguage.typeYourName(language.data ?? "en")}
-                </p>
-              </div>
-            ) : subject.data?.allowHideStudentList &&
-              search.trim().length <= 2 ? (
-              <div className="flex flex-col items-center justify-center py-10 text-gray-400">
-                <div className="mb-3 text-6xl">⌨️</div>
-                <p className="text-xl font-medium text-pink-400">
-                  {subjectDataLanguage.keepTyping(language.data ?? "en")}
-                </p>
-                <p className="mt-1 text-center text-sm">
-                  {subjectDataLanguage.typeMoreThan3(language.data ?? "en")}
-                </p>
-              </div>
-            ) : students && students.length > 0 ? (
-              <ul className="grid max-h-96 grid-cols-1 gap-1 overflow-y-auto rounded-2xl pr-2">
-                {students
-                  ?.sort((a, b) => Number(a.number) - Number(b.number))
-                  .map((student, index) => {
-                    const odd = index % 2 === 0;
-                    return (
-                      <ListStudent
-                        key={index}
-                        odd={odd}
-                        student={student}
-                        buttonText={subjectDataLanguage.buttonJoin(
-                          language.data ?? "en",
-                        )}
-                        onClick={(data) => {
-                          handleSignIn({
-                            studentId: data.studentId,
-                          });
-                        }}
-                      />
-                    );
-                  })}
-              </ul>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-10 text-gray-400">
-                <div className="mb-3 text-6xl">🥺</div>
-                <p className="text-xl font-medium text-purple-400">
-                  {subjectDataLanguage.noStudentsFound(language.data ?? "en")}
-                </p>
-                <p className="mt-1 text-sm">
-                  {subjectDataLanguage.checkSpelling(language.data ?? "en")}
-                </p>
-              </div>
-            )}
+            </label>
           </div>
-        </main>
+          <div className="p-2 sm:p-3">{renderPicker()}</div>
+        </section>
       </HomepageLayout>
     </>
   );

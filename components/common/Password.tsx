@@ -11,6 +11,9 @@ type Props = {
   placeholder?: string;
   inputRef?: LegacyRef<PasswordPrimereact>;
   required?: boolean;
+  /** Marks the field as invalid (error border + aria-invalid). */
+  invalid?: boolean;
+  ariaDescribedBy?: string;
 };
 
 const TRANSITIONS = {
@@ -50,7 +53,12 @@ function Password(props: Props) {
           className: "p-5 bg-white  text-gray-700  shadow-md rounded-2xl",
         },
         input: {
-          className: "main-input w-full",
+          className: classNames("main-input w-full", {
+            "border-error-color hover:border-error-color focus:shadow-[0_0_0_0.2rem_rgba(240,68,56,0.2)]":
+              props.invalid,
+          }),
+          "aria-invalid": props.invalid ? true : undefined,
+          "aria-describedby": props.ariaDescribedBy,
         },
         meter: {
           className: "mb-2 bg-gray-300  h-3",

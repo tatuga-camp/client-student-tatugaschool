@@ -12,22 +12,20 @@ type Props = {
 function TeacherList({ teachers }: Props) {
   const language = useGetLanguage();
   return (
-    <div className="h-max w-full rounded-none bg-white p-2 md:rounded-2xl md:border">
-      <h2 className="p-2 text-xl font-semibold text-primary-color">
+    <div className="w-full rounded-2xl border border-gray-200 bg-white p-4 sm:p-5">
+      <h2 className="text-base font-semibold text-icon-color">
         {subjectDataLanguage.teacher(language.data ?? "en")}
       </h2>
-      <ul className="grid max-h-60 gap-2 overflow-y-auto p-2">
+      <ul className="mt-3 divide-y divide-gray-100">
         {teachers.map((teacher) => {
           return (
-            <li
-              key={teacher.id}
-              className="flex items-center gap-2 rounded-2xl bg-white p-2 ring-1"
-            >
-              <div className="relative h-10 w-10 overflow-hidden rounded-full ring-1 ring-white">
+            <li key={teacher.id} className="flex items-center gap-3 py-2.5">
+              <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full ring-1 ring-gray-200">
                 <Image
                   src={teacher.photo}
-                  alt="user avatar"
+                  alt={`${teacher.firstName} ${teacher.lastName}`}
                   fill
+                  sizes="40px"
                   placeholder="blur"
                   blurDataURL={decodeBlurhashToCanvas(
                     teacher.blurHash ?? defaultBlurHash,
@@ -35,11 +33,16 @@ function TeacherList({ teachers }: Props) {
                   className="object-cover"
                 />
               </div>
-              <div className="flex flex-col gap-0 leading-3">
-                <h3 className="text-lg font-semibold">
+              <div className="flex min-w-0 flex-col">
+                <h3 className="truncate text-sm font-semibold text-icon-color">
                   {teacher.firstName} {teacher.lastName}
                 </h3>
-                <p className="text-sm text-primary-color">{teacher.email}</p>
+                <a
+                  href={`mailto:${teacher.email}`}
+                  className="truncate text-xs text-primary-color hover:underline"
+                >
+                  {teacher.email}
+                </a>
               </div>
             </li>
           );
