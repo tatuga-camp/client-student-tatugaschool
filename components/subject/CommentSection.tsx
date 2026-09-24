@@ -3,10 +3,12 @@ import { ProgressSpinner } from "primereact/progressspinner";
 import React from "react";
 import Swal from "sweetalert2";
 import { defaultBlurHash } from "../../data";
+import { commentDataLanguage } from "../../data/languages";
 import { errorSwalContent } from "../../utils";
 import {
   useCreateComment,
   useGetComments,
+  useGetLanguage,
   useGetStudent,
 } from "../../react-query";
 import TextEditor from "../common/TextEditor";
@@ -20,6 +22,7 @@ function CommentSection({ studentOnAssignmentId }: Props) {
     refetchInterval: 1000 * 10,
   });
   const student = useGetStudent();
+  const language = useGetLanguage();
   const [comment, setComment] = React.useState("");
   const create = useCreateComment();
   const [loadingComments, setLoadingComments] = React.useState(false);
@@ -48,7 +51,9 @@ function CommentSection({ studentOnAssignmentId }: Props) {
   return (
     <div className="flex h-max w-full flex-col gap-2 rounded-2xl border bg-white p-2">
       <header className="h-10 border-b">
-        <h1 className="text-lg font-semibold">Comments</h1>
+        <h1 className="text-lg font-semibold">
+          {commentDataLanguage.title(language.data ?? "en")}
+        </h1>
       </header>
       <ul ref={commentBodyRef} className="h-max max-h-40 w-full overflow-auto">
         {comments.data?.map((comment, index) => (
@@ -95,7 +100,7 @@ function CommentSection({ studentOnAssignmentId }: Props) {
                 strokeWidth="8"
               />
             ) : (
-              "Comment"
+              commentDataLanguage.send(language.data ?? "en")
             )}
           </button>
         </div>

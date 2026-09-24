@@ -12,13 +12,13 @@ import LoadingBar from "../common/LoadingBar";
 import AnnouncementCard from "./AnnouncementCard";
 import ClassworkCard from "./ClassworkCard";
 import AssignmentTagFilterBar from "./AssignmentTagFilterBar";
+import { canStudentViewScore } from "../../utils";
 
 type Props = {
   subjectId: string;
-  allowStudentViewScoreOnAssignment: boolean;
 };
 
-function Classwork({ subjectId, allowStudentViewScoreOnAssignment }: Props) {
+function Classwork({ subjectId }: Props) {
   const router = useRouter();
   const subject = useGetSubjectById({ id: subjectId });
   const assignments = useGetAssignments({ subjectId });
@@ -133,9 +133,7 @@ function Classwork({ subjectId, allowStudentViewScoreOnAssignment }: Props) {
             <ClassworkCard
               key={classwork.id || index}
               locked={isLocked}
-              allowStudentViewScoreOnAssignment={
-                allowStudentViewScoreOnAssignment
-              }
+              canViewScore={canStudentViewScore(subject.data, classwork)}
               onSelect={(a) => {
                 router.push(`/subject/${subjectId}/assignment/${a.id}`);
               }}

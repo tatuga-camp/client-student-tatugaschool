@@ -71,6 +71,16 @@ export const classworkCardDataLanguage = {
         return "Weight";
     }
   },
+  scoreHidden: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "Score hidden";
+      case "th":
+        return "ซ่อนคะแนน";
+      default:
+        return "Score hidden";
+    }
+  },
   Deadline: (language: Language) => {
     switch (language) {
       case "en":

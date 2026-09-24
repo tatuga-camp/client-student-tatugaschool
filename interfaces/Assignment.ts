@@ -14,6 +14,7 @@ export interface Assignment {
   status: AssignmentStatus;
   type: AssignmentType;
   preventFastForward?: boolean;
+  allowStudentViewScore?: boolean;
   videoURL?: string;
   tags: string[];
 }

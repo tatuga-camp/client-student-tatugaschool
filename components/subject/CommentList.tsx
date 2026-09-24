@@ -6,7 +6,11 @@ import Image from "next/image";
 import { errorSwalContent, timeAgo } from "../../utils";
 import parse from "html-react-parser";
 import Swal from "sweetalert2";
-import { useDeleteComment, useGetComments } from "../../react-query";
+import {
+  useDeleteComment,
+  useGetComments,
+  useGetLanguage,
+} from "../../react-query";
 type Props = {
   comment: CommentOnAssignment;
   index: number;
@@ -16,6 +20,7 @@ function CommentList({ comment, index, studentOnAssignmentId }: Props) {
   const [isDelete, setIsDelete] = React.useState(false);
   const comments = useGetComments({ studentOnAssignmentId });
   const deleteComment = useDeleteComment();
+  const language = useGetLanguage();
 
   const handleDeleteComment = async (commentId: string) => {
     try {
@@ -75,7 +80,10 @@ function CommentList({ comment, index, studentOnAssignmentId }: Props) {
             {comment.firstName} {comment.lastName}
           </h1>
           <span className="font-normal text-gray-400 text-sm">
-            {timeAgo({ pastTime: comment.createAt })}
+            {timeAgo({
+              pastTime: comment.createAt,
+              language: language.data ?? "en",
+            })}
           </span>
         </div>
         <p>{parse(comment.content)}</p>
