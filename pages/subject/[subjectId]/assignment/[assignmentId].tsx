@@ -30,6 +30,7 @@ import AssignmentText from "../../../../components/subject/AssignmentText";
 import AssignmentUploadFile from "../../../../components/subject/AssignmentUploadFile";
 import CommentSection from "../../../../components/subject/CommentSection";
 import FileStudentAssignmentCard from "../../../../components/subject/FileStudentAssignmentCard";
+import ScoreHiddenBadge from "../../../../components/subject/ScoreHiddenBadge";
 import {
   classworkDataLanguage,
   sidebarDataLanguage,
@@ -51,6 +52,7 @@ import {
   useUpdateStudentOnAssignment,
 } from "../../../../react-query";
 import {
+  canStudentViewScore,
   errorSwalContent,
   hasUnconfirmedWork,
   timeAgo,
@@ -422,9 +424,9 @@ function Index({
               />
             </div>
           </li>
-          {(subject.data?.allowStudentViewScoreOnAssignment ?? true) && (
-            <li className="flex h-max items-center justify-start gap-1 border-b p-2">
-              <div className="w-40 font-semibold">Score :</div>
+          <li className="flex h-max items-center justify-start gap-1 border-b p-2">
+            <div className="w-40 font-semibold">Score :</div>
+            {canStudentViewScore(subject.data, assignment) ? (
               <div className="w-max max-w-40 text-2xl font-semibold">
                 {assignment.studentOnAssignment.score !== null ? (
                   <span>
@@ -435,8 +437,10 @@ function Index({
                   "Not Graded"
                 )}
               </div>
-            </li>
-          )}
+            ) : (
+              <ScoreHiddenBadge size="md" />
+            )}
+          </li>
 
           {assignment.studentOnAssignment.completedAt && (
             <li className="flex h-max items-center justify-start gap-1 border-b p-2">
