@@ -14,6 +14,7 @@ import { FaRegFile, FaRegFileImage } from "react-icons/fa";
 import { LuLink } from "react-icons/lu";
 import { TagChipList } from "./AssignmentTagEditor";
 import RubricBreakdown from "./RubricBreakdown";
+import ScoreHiddenBadge from "./ScoreHiddenBadge";
 
 type PropsClassworkCard = {
   classwork: Assignment & {
@@ -22,14 +23,14 @@ type PropsClassworkCard = {
   };
   subjectId: string;
   onSelect: (classwork: Assignment) => void;
-  allowStudentViewScoreOnAssignment: boolean;
+  canViewScore: boolean;
   locked?: boolean;
 };
 function ClassworkCard({
   classwork,
   subjectId,
   onSelect,
-  allowStudentViewScoreOnAssignment,
+  canViewScore,
   locked,
 }: PropsClassworkCard) {
   return (
@@ -37,7 +38,7 @@ function ClassworkCard({
       {classwork.type === "Assignment" && (
         <AssignmentCard
           locked={locked}
-          allowStudentViewScoreOnAssignment={allowStudentViewScoreOnAssignment}
+          canViewScore={canViewScore}
           subjectId={subjectId}
           onSelect={(a) => {
             onSelect(a);
@@ -60,7 +61,7 @@ function ClassworkCard({
       {classwork.type === "VideoQuiz" && (
         <AssignmentVideoCard
           locked={locked}
-          allowStudentViewScoreOnAssignment={allowStudentViewScoreOnAssignment}
+          canViewScore={canViewScore}
           subjectId={subjectId}
           assignment={classwork}
           onSelect={(a) => {
@@ -86,14 +87,14 @@ type PropsAssignmentCard = {
   };
   subjectId: string;
   onSelect: (classwork: Assignment) => void;
-  allowStudentViewScoreOnAssignment: boolean;
+  canViewScore: boolean;
   locked?: boolean;
 };
 function AssignmentCard({
   assignment,
   subjectId,
   onSelect,
-  allowStudentViewScoreOnAssignment,
+  canViewScore,
   locked,
 }: PropsAssignmentCard) {
   const language = useGetLanguage();
@@ -160,8 +161,8 @@ function AssignmentCard({
         {classworkCardDataLanguage.pubishAt(language.data ?? "en")} :{" "}
         {new Date(assignment.beginDate).toLocaleDateString(undefined)}
       </span>
-      {allowStudentViewScoreOnAssignment && (
-        <section className="flex w-full items-end justify-between">
+      <section className="flex w-full items-end justify-between">
+        {canViewScore ? (
           <div>
             <span className="text-3xl font-bold text-primary-color">
               {score.toFixed(2)}
@@ -171,15 +172,19 @@ function AssignmentCard({
               {classworkCardDataLanguage.yourscore(language.data ?? "en")}
             </span>
           </div>
-          {assignment.weight && (
-            <span className={`text-${color}-400`}>
-              {" "}
-              {assignment.weight}%{" "}
-              {classworkCardDataLanguage.weight(language.data ?? "en")}
-            </span>
-          )}
-        </section>
-      )}
+        ) : (
+          <div className="py-2">
+            <ScoreHiddenBadge size="sm" />
+          </div>
+        )}
+        {assignment.weight && (
+          <span className={`text-${color}-400`}>
+            {" "}
+            {assignment.weight}%{" "}
+            {classworkCardDataLanguage.weight(language.data ?? "en")}
+          </span>
+        )}
+      </section>
       {assignment.dueDate && (
         <section className="mt-5">
           <div className="rounded-full bg-error-color/10 px-3 py-2 text-sm font-medium text-error-color">
@@ -192,7 +197,7 @@ function AssignmentCard({
         </section>
       )}
 
-      {assignment.studentOnAssignment.status === "REVIEWD" && (
+      {canViewScore && assignment.studentOnAssignment.status === "REVIEWD" && (
         <RubricBreakdown
           studentOnAssignmentId={assignment.studentOnAssignment.id}
         />
@@ -292,14 +297,14 @@ type PropsAssignmentVideoCard = {
   };
   subjectId: string;
   onSelect: (classwork: Assignment) => void;
-  allowStudentViewScoreOnAssignment: boolean;
+  canViewScore: boolean;
   locked?: boolean;
 };
 function AssignmentVideoCard({
   assignment,
   subjectId,
   onSelect,
-  allowStudentViewScoreOnAssignment,
+  canViewScore,
   locked,
 }: PropsAssignmentVideoCard) {
   const language = useGetLanguage();
@@ -362,8 +367,8 @@ function AssignmentVideoCard({
         {classworkCardDataLanguage.pubishAt(language.data ?? "en")} :{" "}
         {new Date(assignment.beginDate).toLocaleDateString(undefined)}
       </span>
-      {allowStudentViewScoreOnAssignment && (
-        <section className="flex w-full items-end justify-between">
+      <section className="flex w-full items-end justify-between">
+        {canViewScore ? (
           <div>
             <span className="text-3xl font-bold text-primary-color">
               {score.toFixed(2)}
@@ -373,15 +378,19 @@ function AssignmentVideoCard({
               {classworkCardDataLanguage.yourscore(language.data ?? "en")}
             </span>
           </div>
-          {assignment.weight && (
-            <span className={`text-${color}-400`}>
-              {" "}
-              {assignment.weight}%{" "}
-              {classworkCardDataLanguage.weight(language.data ?? "en")}
-            </span>
-          )}
-        </section>
-      )}
+        ) : (
+          <div className="py-2">
+            <ScoreHiddenBadge size="sm" />
+          </div>
+        )}
+        {assignment.weight && (
+          <span className={`text-${color}-400`}>
+            {" "}
+            {assignment.weight}%{" "}
+            {classworkCardDataLanguage.weight(language.data ?? "en")}
+          </span>
+        )}
+      </section>
       {assignment.dueDate && (
         <section className="mt-5">
           <div className="rounded-full bg-error-color/10 px-3 py-2 text-sm font-medium text-error-color">
