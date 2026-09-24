@@ -1,9 +1,20 @@
 import { useEffect, useState } from "react";
 import { FaTrophy } from "react-icons/fa";
 import { MdAssignment, MdStar } from "react-icons/md";
-import { useGetOverviewScore, useGetSubjectById } from "../../react-query";
-import { calulateGrade, defaultGradeRule } from "../../utils";
+import { gradeDataLanguage } from "../../data/languages";
+import {
+  useGetLanguage,
+  useGetOverviewScore,
+  useGetSubjectById,
+} from "../../react-query";
+import {
+  calulateGrade,
+  canStudentViewScore,
+  defaultGradeRule,
+  summarizeAssignmentScores,
+} from "../../utils";
 import Image from "next/image";
+import ScoreHiddenBadge from "./ScoreHiddenBadge";
 
 type Props = {
   subjectId: string;
@@ -22,27 +33,26 @@ function Grade({ subjectId, studentId }: Props) {
     studentId,
   });
 
-  const totalMaxScore =
-    overview.data?.assignments.reduce((acc, curr) => {
-      return acc + curr.assignment.maxScore;
-    }, 0) ?? 0;
+  const language = useGetLanguage();
+
+  const assignmentSummary = summarizeAssignmentScores(
+    overview.data?.assignments ?? [],
+    subject.data,
+  );
+  const totalMaxScore = assignmentSummary.max;
+  const hiddenCount = assignmentSummary.hiddenCount;
 
   useEffect(() => {
     if (overview.data) {
       handleCalulateScore();
     }
-  }, [overview.data]);
+  }, [overview.data, subject.data]);
 
   const handleCalulateScore = () => {
-    const totalAssignment =
-      overview.data?.assignments.reduce((prev, current) => {
-        let score = current.studentOnAssignment.score ?? 0;
-        if (current.assignment.weight !== null) {
-          const originalScore = score / current.assignment.maxScore;
-          score = originalScore * current.assignment.weight;
-        }
-        return prev + score;
-      }, 0) ?? 0;
+    const totalAssignment = summarizeAssignmentScores(
+      overview.data?.assignments ?? [],
+      subject.data,
+    ).earned;
 
     const totalSpecial =
       overview.data?.scoreOnSubjects.reduce((prev, scoreOnSubject) => {
@@ -153,6 +163,7 @@ function Grade({ subjectId, studentId }: Props) {
             </h3>
             <ul className="flex flex-col gap-3">
               {overview.data.assignments.map((a) => {
+                const visible = canStudentViewScore(subject.data, a.assignment);
                 const score = a.studentOnAssignment.score ?? 0;
                 const max = a.assignment.maxScore;
                 const percent =
@@ -167,26 +178,38 @@ function Grade({ subjectId, studentId }: Props) {
                       <span className="line-clamp-2 font-semibold text-gray-800">
                         {a.assignment.title}
                       </span>
-                      <div className="flex shrink-0 flex-col items-end">
-                        <span className="text-lg font-bold text-primary-color">
-                          {score}
-                        </span>
-                        <span className="text-xs font-medium text-gray-400">
-                          / {max}
-                        </span>
+                      {visible ? (
+                        <div className="flex shrink-0 flex-col items-end">
+                          <span className="text-lg font-bold text-primary-color">
+                            {score}
+                          </span>
+                          <span className="text-xs font-medium text-gray-400">
+                            / {max}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="shrink-0">
+                          <ScoreHiddenBadge size="sm" />
+                        </div>
+                      )}
+                    </div>
+                    {visible && (
+                      <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-gray-100">
+                        <div
+                          className="h-full rounded-full bg-primary-color transition-all duration-1000"
+                          style={{ width: `${percent}%` }}
+                        ></div>
                       </div>
-                    </div>
-                    {/* Progress Bar */}
-                    <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-gray-100">
-                      <div
-                        className="h-full rounded-full bg-primary-color transition-all duration-1000"
-                        style={{ width: `${percent}%` }}
-                      ></div>
-                    </div>
+                    )}
                   </li>
                 );
               })}
             </ul>
+            {hiddenCount > 0 && (
+              <p className="px-1 text-xs text-gray-400">
+                {gradeDataLanguage.hiddenNote(language.data ?? "en")}
+              </p>
+            )}
           </section>
         )}
 
