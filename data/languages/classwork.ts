@@ -151,7 +151,7 @@ export const classworkDataLanguage = {
       case "en":
         return "Deadline";
       case "th":
-        return "กดหนดส่ง";
+        return "กำหนดส่ง";
       default:
         return "Deadline";
     }
@@ -266,6 +266,69 @@ export const classworkDataLanguage = {
         return "ไม่สามารถอ่านไฟล์ที่เลือกได้ กรุณาเลือกไฟล์ใหม่อีกครั้ง";
       default:
         return "Could not read the selected file. Please select the file again.";
+    }
+  },
+  notGraded: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "Not graded yet";
+      case "th":
+        return "ยังไม่ได้ตรวจ";
+      default:
+        return "Not graded yet";
+    }
+  },
+  ago: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "ago";
+      case "th":
+        return "ที่ผ่านมา";
+      default:
+        return "ago";
+    }
+  },
+  left: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "left";
+      case "th":
+        return "คงเหลือ";
+      default:
+        return "left";
+    }
+  },
+  assignmentFiles: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "Assignment files";
+      case "th":
+        return "ไฟล์ประกอบงาน";
+      default:
+        return "Assignment files";
+    }
+  },
+} as const;
+
+export const commentDataLanguage = {
+  title: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "Comments";
+      case "th":
+        return "ความคิดเห็น";
+      default:
+        return "Comments";
+    }
+  },
+  send: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "Comment";
+      case "th":
+        return "ส่ง";
+      default:
+        return "Comment";
     }
   },
 } as const;

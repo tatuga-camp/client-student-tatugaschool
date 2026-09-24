@@ -413,11 +413,13 @@ function Index({
     return (
       <div className="h-max w-full rounded-2xl border bg-white p-2">
         <div className="flex w-full items-center justify-between p-2 text-xl font-semibold">
-          Assignment{" "}
+          {classworkDataLanguage.assignment(language.data ?? "en")}
         </div>
         <ul className="mt-2 grid w-full">
           <li className="flex h-max items-center justify-start gap-1 border-b p-2">
-            <div className="w-40 font-semibold">Status:</div>
+            <div className="w-40 font-semibold">
+              {classworkDataLanguage.status(language.data ?? "en")}:
+            </div>
             <div className="w-max max-w-40">
               <AssignmentStatusCard
                 status={assignment.studentOnAssignment.status}
@@ -425,7 +427,9 @@ function Index({
             </div>
           </li>
           <li className="flex h-max items-center justify-start gap-1 border-b p-2">
-            <div className="w-40 font-semibold">Score :</div>
+            <div className="w-40 font-semibold">
+              {classworkDataLanguage.score(language.data ?? "en")}:
+            </div>
             {canStudentViewScore(subject.data, assignment) ? (
               <div className="w-max max-w-40 text-2xl font-semibold">
                 {assignment.studentOnAssignment.score !== null ? (
@@ -434,7 +438,7 @@ function Index({
                     {assignment.maxScore}{" "}
                   </span>
                 ) : (
-                  "Not Graded"
+                  classworkDataLanguage.notGraded(language.data ?? "en")
                 )}
               </div>
             ) : (
@@ -444,7 +448,9 @@ function Index({
 
           {assignment.studentOnAssignment.completedAt && (
             <li className="flex h-max items-center justify-start gap-1 border-b p-2">
-              <div className="w-40 font-semibold">Summit Work At:</div>
+              <div className="w-40 font-semibold">
+                {classworkDataLanguage.summitAt(language.data ?? "en")}:
+              </div>
               <div className="flex flex-col items-start gap-1">
                 <span className="font-semibold text-blue-600">
                   {new Date(
@@ -467,7 +473,9 @@ function Index({
           )}
           {assignment.studentOnAssignment.reviewdAt && (
             <li className="flex h-max items-center justify-start gap-1 border-b p-2">
-              <div className="w-40 font-semibold">Review Work At:</div>
+              <div className="w-40 font-semibold">
+                {classworkDataLanguage.reviewAt(language.data ?? "en")}:
+              </div>
               <div className="flex flex-col items-start gap-1">
                 <span className="font-semibold text-green-600">
                   {new Date(
@@ -490,22 +498,26 @@ function Index({
           )}
           {assignment.dueDate && (
             <li className="flex h-max items-center justify-start gap-1 border-b p-2">
-              <div className="w-40 font-semibold">Deadline:</div>
+              <div className="w-40 font-semibold">
+                {classworkDataLanguage.deadline(language.data ?? "en")}:
+              </div>
               <div>
                 {new Date(assignment.dueDate).getTime() <=
                 new Date().getTime() ? (
                   <span className="flex items-center gap-1 font-semibold text-red-600">
                     {timeAgo({
                       pastTime: new Date(assignment.dueDate).toISOString(),
+                      language: language.data ?? "en",
                     })}{" "}
-                    ago <FaRegSadTear />
+                    {classworkDataLanguage.ago(language.data ?? "en")} <FaRegSadTear />
                   </span>
                 ) : (
                   <span className="flex items-center gap-1 font-semibold text-green-600">
                     {timeLeft({
                       targetTime: new Date(assignment.dueDate).toISOString(),
+                      language: language.data ?? "en",
                     })}{" "}
-                    left <RiEmotionHappyFill />
+                    {classworkDataLanguage.left(language.data ?? "en")} <RiEmotionHappyFill />
                   </span>
                 )}{" "}
                 <span className="text-xs">
@@ -528,7 +540,7 @@ function Index({
     return (
       <div className="h-max w-full rounded-2xl border bg-white p-2">
         <div className="flex w-full items-center justify-between p-2 text-xl font-semibold">
-          Assignment Files
+          {classworkDataLanguage.assignmentFiles(language.data ?? "en")}
         </div>
         <ul className="grid w-full gap-2">
           {assignment.files?.map((file, index) => {
