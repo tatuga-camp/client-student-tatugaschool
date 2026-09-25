@@ -7,13 +7,6 @@ import {
 } from "../../interfaces";
 import { formatScore } from "../../utils";
 
-const PILL: Record<Exclude<PublicProgressCellStatus, "NONE">, string> = {
-  REVIEWD: "bg-success-color/10 text-success-color",
-  SUBMITTED: "bg-info-color/10 text-info-color",
-  IMPROVED: "bg-warning-color/20 text-amber-700",
-  PENDDING: "bg-error-color/10 text-error-color",
-};
-
 function statusLabel(
   status: Exclude<PublicProgressCellStatus, "NONE">,
   language: Language,
@@ -59,7 +52,7 @@ function ProgressCell({
   return (
     <div className="flex h-14 flex-col items-center justify-center gap-1 px-2">
       <span
-        className={`inline-flex w-max items-center rounded-full px-2 py-0.5 text-xs font-medium ${PILL[cell.status]}`}
+        className={`inline-flex w-max items-center rounded-full px-2 py-0.5 text-xs font-medium`}
       >
         {statusLabel(cell.status, language)}
       </span>

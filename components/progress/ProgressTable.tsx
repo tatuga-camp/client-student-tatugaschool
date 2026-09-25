@@ -5,6 +5,7 @@ import { progressLanguage } from "../../data/languages";
 import {
   Language,
   PublicProgress,
+  PublicProgressCellStatus,
   PublicProgressStudent,
 } from "../../interfaces";
 import {
@@ -19,6 +20,19 @@ import ProgressCell from "./ProgressCell";
 const TINT = "bg-[#F4F8FD]";
 const HEAD =
   "border-b border-r border-gray-100 bg-background-color p-0 text-left align-bottom font-normal";
+const PILL: Record<Exclude<PublicProgressCellStatus, "NONE">, string> = {
+  REVIEWD: "bg-success-color/10 text-success-color",
+  SUBMITTED: "bg-info-color/10 text-info-color",
+  IMPROVED: "bg-warning-color/20 text-amber-700",
+  PENDDING: "bg-error-color text-white",
+};
+
+// A student may have no entry for a column, and "NONE" has no tint.
+function cellBackground(status: PublicProgressCellStatus | undefined): string {
+  return status && status !== "NONE"
+    ? PILL[status]
+    : "bg-white group-hover:bg-background-color";
+}
 
 function ProgressTable({
   data,
@@ -122,10 +136,18 @@ function ProgressTable({
                     className="flex w-full items-center gap-1 px-3 py-1.5 text-xs font-semibold text-primary-color enabled:hover:bg-gray-100"
                   >
                     {showScores &&
-                      (segment.collapsed ? <TbChevronRight /> : <TbChevronDown />)}
+                      (segment.collapsed ? (
+                        <TbChevronRight />
+                      ) : (
+                        <TbChevronDown />
+                      ))}
                     <span className="truncate">{segment.tag}</span>
                     <span className="shrink-0 font-normal text-gray-500">
-                      · {progressLanguage.assignmentsCount(language, segment.assignmentCount)}
+                      ·{" "}
+                      {progressLanguage.assignmentsCount(
+                        language,
+                        segment.assignmentCount,
+                      )}
                     </span>
                   </button>
                 </th>
@@ -141,7 +163,8 @@ function ProgressTable({
                     {progressLanguage.total(language)}
                   </span>
                   <span className="text-[11px] tabular-nums text-gray-500">
-                    {formatScore(data.maxTotal ?? 0)} {progressLanguage.points(language)}
+                    {formatScore(data.maxTotal ?? 0)}{" "}
+                    {progressLanguage.points(language)}
                   </span>
                 </div>
               </th>
@@ -166,84 +189,86 @@ function ProgressTable({
           )}
         </thead>
         <tbody>
-          {students.map((student) => (
-            <tr key={student.id} className="group">
-              <td className="sticky left-0 z-20 border-b border-r border-gray-100 bg-white p-0 group-hover:bg-background-color">
-                <div className="flex h-14 w-52 items-center gap-3 px-3 md:w-72">
-                  <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full ring-1 ring-gray-200">
-                    <Image
-                      src={student.photo}
-                      alt={student.firstName}
-                      fill
-                      sizes="36px"
-                      placeholder="blur"
-                      blurDataURL={decodeBlurhashToCanvas(
-                        student.blurHash ?? defaultBlurHash,
-                      )}
-                      className="object-cover"
-                    />
+          {students.map((student) => {
+            return (
+              <tr key={student.id} className="group">
+                <td className="sticky left-0 z-20 border-b border-r border-gray-100 bg-white p-0 group-hover:bg-background-color">
+                  <div className="flex h-14 w-52 items-center gap-3 px-3 md:w-72">
+                    <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full ring-1 ring-gray-200">
+                      <Image
+                        src={student.photo}
+                        alt={student.firstName}
+                        fill
+                        sizes="36px"
+                        placeholder="blur"
+                        blurDataURL={decodeBlurhashToCanvas(
+                          student.blurHash ?? defaultBlurHash,
+                        )}
+                        className="object-cover"
+                      />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-icon-color">
+                        {student.firstName} {student.lastName}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {progressLanguage.number(language)} {student.number}
+                        {!showScores &&
+                          ` · ${progressLanguage.submittedOf(language, student.submittedCount, student.assignedCount)}`}
+                      </p>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-icon-color">
-                      {student.firstName} {student.lastName}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {progressLanguage.number(language)} {student.number}
-                      {!showScores &&
-                        ` · ${progressLanguage.submittedOf(language, student.submittedCount, student.assignedCount)}`}
-                    </p>
-                  </div>
-                </div>
-              </td>
-              {columns.map((column) =>
-                column.kind === "subtotal" ? (
+                </td>
+                {columns.map((column) =>
+                  column.kind === "subtotal" ? (
+                    <td
+                      key={column.key}
+                      className={`border-b border-r border-gray-100 p-0 ${TINT}`}
+                    >
+                      <div className="flex h-14 items-center justify-center text-sm font-semibold tabular-nums text-primary-color">
+                        {formatScore(student.groupTotals?.[column.tag] ?? 0)}
+                      </div>
+                    </td>
+                  ) : (
+                    <td
+                      key={column.key}
+                      className={`border-b border-r border-gray-100 p-0 ${cellBackground(student.cells[column.column.id]?.status)}`}
+                    >
+                      <ProgressCell
+                        cell={student.cells[column.column.id]}
+                        // At STATUS nothing is scored, so don't single out
+                        // the assignments the teacher hid.
+                        scoreHidden={
+                          showScores &&
+                          column.kind === "assignment" &&
+                          column.column.scoreHidden
+                        }
+                        language={language}
+                      />
+                    </td>
+                  ),
+                )}
+                {showScores && (
                   <td
-                    key={column.key}
-                    className={`border-b border-r border-gray-100 p-0 ${TINT}`}
+                    className={`z-20 border-b border-r border-gray-100 p-0 lg:sticky ${showGrade ? "lg:right-20" : "lg:right-0"} ${TINT}`}
                   >
-                    <div className="flex h-14 items-center justify-center text-sm font-semibold tabular-nums text-primary-color">
-                      {formatScore(student.groupTotals?.[column.tag] ?? 0)}
+                    <div className="flex h-14 w-24 items-center justify-center text-sm font-semibold tabular-nums text-icon-color">
+                      {formatScore(student.total ?? 0)}
                     </div>
                   </td>
-                ) : (
+                )}
+                {showGrade && (
                   <td
-                    key={column.key}
-                    className="border-b border-r border-gray-100 bg-white p-0 group-hover:bg-background-color"
+                    className={`z-20 w-20 min-w-20 border-b border-gray-100 p-0 lg:sticky lg:right-0 ${TINT}`}
                   >
-                    <ProgressCell
-                      cell={student.cells[column.column.id]}
-                      // At STATUS nothing is scored, so don't single out
-                      // the assignments the teacher hid.
-                      scoreHidden={
-                        showScores &&
-                        column.kind === "assignment" &&
-                        column.column.scoreHidden
-                      }
-                      language={language}
-                    />
+                    <div className="flex h-14 items-center justify-center text-sm font-semibold text-icon-color">
+                      {student.grade ?? "N/A"}
+                    </div>
                   </td>
-                ),
-              )}
-              {showScores && (
-                <td
-                  className={`z-20 border-b border-r border-gray-100 p-0 lg:sticky ${showGrade ? "lg:right-20" : "lg:right-0"} ${TINT}`}
-                >
-                  <div className="flex h-14 w-24 items-center justify-center text-sm font-semibold tabular-nums text-icon-color">
-                    {formatScore(student.total ?? 0)}
-                  </div>
-                </td>
-              )}
-              {showGrade && (
-                <td
-                  className={`z-20 w-20 min-w-20 border-b border-gray-100 p-0 lg:sticky lg:right-0 ${TINT}`}
-                >
-                  <div className="flex h-14 items-center justify-center text-sm font-semibold text-icon-color">
-                    {student.grade ?? "N/A"}
-                  </div>
-                </td>
-              )}
-            </tr>
-          ))}
+                )}
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
