@@ -136,7 +136,7 @@ function PublicProgressPage({ token }: { token: string }) {
                     </button>
                   ))}
                 </div>
-                <LanguageSelect />
+                <LanguageSelect className="w-auto max-w-[10.5rem] shrink-0" />
               </div>
             </header>
 

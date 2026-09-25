@@ -212,8 +212,12 @@ function ProgressTable({
                   >
                     <ProgressCell
                       cell={student.cells[column.column.id]}
+                      // At STATUS nothing is scored, so don't single out
+                      // the assignments the teacher hid.
                       scoreHidden={
-                        column.kind === "assignment" && column.column.scoreHidden
+                        showScores &&
+                        column.kind === "assignment" &&
+                        column.column.scoreHidden
                       }
                       language={language}
                     />
