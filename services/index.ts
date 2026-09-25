@@ -9,3 +9,4 @@ export * from "./commentOnAssignment";
 export * from "./attendance";
 export * from "./word-cloud";
 export * from "./word-cloud-set";
+export * from "./public-progress";
