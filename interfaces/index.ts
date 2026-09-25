@@ -36,3 +36,4 @@ export * from "./Grade";
 export * from "./QuestionOnVideo";
 export * from "./Rubric";
 export * from "./WordCloud";
+export * from "./PublicProgress";
