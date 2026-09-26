@@ -57,7 +57,12 @@ export type PublicProgressStudent = {
 };
 
 export type PublicProgress = {
-  subject: { title: string; educationYear: string; className: string };
+  subject: {
+    title: string;
+    educationYear: string;
+    className: string;
+    backgroundImage: string | null;
+  };
   level: PublicProgressLevel;
   columns: PublicProgressColumn[];
   groups: PublicProgressGroup[];
