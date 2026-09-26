@@ -10,7 +10,12 @@ import type { PublicProgress, PublicProgressStudent } from "../interfaces";
 
 function data(level: PublicProgress["level"]): PublicProgress {
   return {
-    subject: { title: "Math", educationYear: "1/2026", className: "M.1" },
+    subject: {
+      title: "Math",
+      educationYear: "1/2026",
+      className: "M.1",
+      backgroundImage: null,
+    },
     level,
     columns: [
       { kind: "assignment", id: "a1", title: "A1", tag: "Unit 1", scoreHidden: false },

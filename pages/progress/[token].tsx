@@ -7,6 +7,7 @@ import LanguageSelect from "../../components/LanguageSelect";
 import ProgressTable from "../../components/progress/ProgressTable";
 import { progressLanguage } from "../../data/languages";
 import { useGetLanguage, useGetPublicProgress } from "../../react-query";
+import { GetPublicProgressByTokenService } from "../../services";
 import {
   buildProgressColumns,
   filterStudents,
@@ -14,7 +15,22 @@ import {
   ProgressViewMode,
 } from "../../utils";
 
-function PublicProgressPage({ token }: { token: string }) {
+// Social crawlers (LINE, Facebook) don't run JS, so the link preview is
+// built from subject info fetched in getServerSideProps.
+type ShareMeta = {
+  title: string;
+  className: string;
+  educationYear: string;
+  image: string | null;
+};
+
+type Props = {
+  token: string;
+  origin: string;
+  share: ShareMeta | null;
+};
+
+function PublicProgressPage({ token, origin, share }: Props) {
   const language = useGetLanguage();
   const lang = language.data ?? "en";
   const progress = useGetPublicProgress({ token });
@@ -43,15 +59,38 @@ function PublicProgressPage({ token }: { token: string }) {
   // A revoked link must replace any stale data already on screen.
   const unavailable = progress.isError && isUnavailableError(progress.error);
 
+  const subjectTitle = data?.subject.title ?? share?.title;
+  const shareTitle = share
+    ? `${share.title} · ${progressLanguage.pageTitle("en")}`
+    : `${progressLanguage.pageTitle("en")} · Tatuga School`;
+  const shareDescription = share
+    ? `Class ${share.className} · ${share.educationYear} — read-only progress shared by the teacher`
+    : "Read-only class progress shared by the teacher";
+  const shareImage = share?.image ?? `${origin}/icons/icon-512.png`;
+
   return (
     <>
       <Head>
         <title>
-          {data
-            ? `${data.subject.title} · ${progressLanguage.pageTitle(lang)}`
+          {subjectTitle
+            ? `${subjectTitle} · ${progressLanguage.pageTitle(lang)}`
             : progressLanguage.pageTitle(lang)}
         </title>
         <meta name="robots" content="noindex" />
+        <meta name="description" content={shareDescription} />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="Tatuga School" />
+        <meta property="og:url" content={`${origin}/progress/${token}`} />
+        <meta property="og:title" content={shareTitle} />
+        <meta property="og:description" content={shareDescription} />
+        <meta property="og:image" content={shareImage} />
+        <meta
+          name="twitter:card"
+          content={share?.image ? "summary_large_image" : "summary"}
+        />
+        <meta name="twitter:title" content={shareTitle} />
+        <meta name="twitter:description" content={shareDescription} />
+        <meta name="twitter:image" content={shareImage} />
       </Head>
       <main className="min-h-dvh w-full bg-background-color font-Anuphan">
         {unavailable ? (
@@ -165,12 +204,38 @@ function PublicProgressPage({ token }: { token: string }) {
   );
 }
 
-export const getServerSideProps: GetServerSideProps = async (ctx) => {
+export const getServerSideProps: GetServerSideProps<Props> = async (ctx) => {
   const token = ctx.query.token;
   if (typeof token !== "string" || !/^[a-f0-9]{32}$/.test(token)) {
     return { notFound: true };
   }
-  return { props: { token } };
+
+  const forwardedProto = ctx.req.headers["x-forwarded-proto"];
+  const proto =
+    (Array.isArray(forwardedProto) ? forwardedProto[0] : forwardedProto)
+      ?.split(",")[0]
+      .trim() || "http";
+  const origin = `${proto}://${ctx.req.headers.host}`;
+
+  // Best effort: a revoked link or slow API still renders the page (the client
+  // shows its own error state) with a generic preview.
+  let share: ShareMeta | null = null;
+  try {
+    const { subject } = await GetPublicProgressByTokenService({
+      token,
+      timeout: 3000,
+    });
+    share = {
+      title: subject.title,
+      className: subject.className,
+      educationYear: subject.educationYear,
+      image: subject.backgroundImage
+        ? new URL(subject.backgroundImage, origin).toString()
+        : null,
+    };
+  } catch {}
+
+  return { props: { token, origin, share } };
 };
 
 export default PublicProgressPage;
