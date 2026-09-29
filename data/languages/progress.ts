@@ -35,6 +35,9 @@ export const progressLanguage = {
     language === "th" ? "รอตรวจ" : "Waiting review",
   needsImprovement: (language: Language) =>
     language === "th" ? "ต้องแก้ไข" : "Needs improvement",
+  // Narrow-column (phone) label; "improvement" alone is wider than a cell.
+  needsImprovementShort: (language: Language) =>
+    language === "th" ? "ต้องแก้ไข" : "Revise",
   noWork: (language: Language) =>
     language === "th" ? "ยังไม่ส่ง" : "No work",
   notAssigned: (language: Language) =>

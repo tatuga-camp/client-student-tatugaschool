@@ -36,7 +36,7 @@ function ProgressCell({
     return (
       <div
         title={progressLanguage.notAssigned(language)}
-        className="flex h-14 items-center justify-center text-sm text-gray-300"
+        className="flex h-11 items-center justify-center text-sm text-gray-300 md:h-14"
       >
         —
       </div>
@@ -44,20 +44,28 @@ function ProgressCell({
   }
   if (cell.score !== undefined) {
     return (
-      <div className="flex h-14 items-center justify-center text-sm font-semibold tabular-nums text-icon-color">
+      <div className="flex h-11 items-center justify-center text-xs font-semibold tabular-nums text-icon-color md:h-14 md:text-sm">
         {formatScore(cell.score)}
       </div>
     );
   }
   return (
-    <div className="flex h-14 flex-col items-center justify-center gap-1 px-2">
+    <div className="flex h-11 flex-col items-center justify-center gap-0.5 px-1 md:h-14 md:gap-1 md:px-2">
       <span
-        className={`inline-flex w-max items-center rounded-full px-2 py-0.5 text-xs font-medium`}
+        title={statusLabel(cell.status, language)}
+        className={`inline-flex max-w-full items-center text-center text-[10px] font-medium leading-tight md:w-max md:rounded-full md:px-2 md:py-0.5 md:text-xs`}
       >
-        {statusLabel(cell.status, language)}
+        <span className="md:hidden">
+          {cell.status === "IMPROVED"
+            ? progressLanguage.needsImprovementShort(language)
+            : statusLabel(cell.status, language)}
+        </span>
+        <span className="hidden md:inline">
+          {statusLabel(cell.status, language)}
+        </span>
       </span>
       {scoreHidden && cell.status === "REVIEWD" && (
-        <span className="inline-flex items-center gap-1 text-[11px] text-gray-400">
+        <span className="hidden items-center gap-1 text-[11px] text-gray-400 md:inline-flex">
           <TbEyeOff />
           {progressLanguage.scoreHidden(language)}
         </span>
