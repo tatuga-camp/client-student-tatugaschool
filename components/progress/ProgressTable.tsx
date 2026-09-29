@@ -62,11 +62,11 @@ function ProgressTable({
           rowSpan={span}
           className={`border-b border-r border-gray-100 p-0 text-left align-bottom font-normal ${TINT}`}
         >
-          <div className="flex w-28 flex-col gap-0.5 px-3 py-2">
-            <span className="truncate text-xs font-semibold text-primary-color">
+          <div className="flex w-14 flex-col gap-0.5 px-1.5 py-1.5 md:w-28 md:px-3 md:py-2">
+            <span className="truncate text-[11px] font-semibold text-primary-color md:text-xs">
               {column.tag} {progressLanguage.groupTotal(language)}
             </span>
-            <span className="text-[11px] tabular-nums text-gray-500">
+            <span className="truncate text-[10px] tabular-nums text-gray-500 md:text-[11px]">
               {formatScore(column.maxTotal)} {progressLanguage.points(language)}
             </span>
           </div>
@@ -76,8 +76,8 @@ function ProgressTable({
     const c = column.column;
     return (
       <th key={column.key} rowSpan={span} className={HEAD}>
-        <div className="flex w-36 flex-col gap-0.5 px-3 py-2">
-          <span className="flex items-center gap-1 text-xs font-semibold text-icon-color">
+        <div className="flex w-14 flex-col gap-0.5 px-1.5 py-1.5 md:w-36 md:px-3 md:py-2">
+          <span className="flex items-center gap-1 text-[11px] font-semibold text-icon-color md:text-xs">
             <span className="truncate" title={c.title}>
               {c.title}
             </span>
@@ -86,12 +86,12 @@ function ProgressTable({
             )}
           </span>
           {c.kind === "special" && (
-            <span className="text-[11px] text-gray-500">
+            <span className="truncate text-[10px] text-gray-500 md:text-[11px]">
               {progressLanguage.special(language)}
             </span>
           )}
           {c.kind === "assignment" && c.maxScore !== undefined && (
-            <span className="text-[11px] tabular-nums text-gray-500">
+            <span className="truncate text-[10px] tabular-nums text-gray-500 md:text-[11px]">
               {c.maxScore} {progressLanguage.points(language)}
               {c.weight !== null && c.weight !== undefined && ` · ${c.weight}%`}
             </span>
@@ -103,12 +103,17 @@ function ProgressTable({
 
   return (
     <div className="relative max-h-[70dvh] w-full overflow-auto rounded-2xl border border-gray-200 bg-white">
-      <table className="min-w-full border-separate border-spacing-0">
+      {/* cellPadding opts out of the global TinyMCE rule
+          `table:not([cellpadding]) td { padding }` that outranks p-0. */}
+      <table
+        cellPadding={0}
+        className="min-w-full border-separate border-spacing-0"
+      >
         <thead className="sticky top-0 z-30">
           <tr>
             <th
               rowSpan={rowSpan}
-              className={`sticky left-0 z-40 ${HEAD} px-3 py-2 align-middle text-xs font-medium text-gray-500`}
+              className={`sticky left-0 z-40 ${HEAD} px-1.5 py-1.5 align-middle text-[11px] font-medium text-gray-500 md:px-3 md:py-2 md:text-xs`}
             >
               {progressLanguage.student(language)}
             </th>
@@ -156,13 +161,13 @@ function ProgressTable({
             {showScores && (
               <th
                 rowSpan={rowSpan}
-                className={`z-30 border-b border-r border-gray-100 px-3 py-2 text-left align-bottom font-normal lg:sticky ${showGrade ? "lg:right-20" : "lg:right-0"} ${TINT}`}
+                className={`z-30 border-b border-r border-gray-100 px-1.5 py-1.5 text-left align-bottom font-normal md:px-3 md:py-2 lg:sticky ${showGrade ? "lg:right-20" : "lg:right-0"} ${TINT}`}
               >
-                <div className="flex w-24 flex-col gap-0.5">
-                  <span className="text-xs font-semibold text-icon-color">
+                <div className="flex w-12 flex-col gap-0.5 md:w-24">
+                  <span className="text-[11px] font-semibold text-icon-color md:text-xs">
                     {progressLanguage.total(language)}
                   </span>
-                  <span className="text-[11px] tabular-nums text-gray-500">
+                  <span className="truncate text-[10px] tabular-nums text-gray-500 md:text-[11px]">
                     {formatScore(data.maxTotal ?? 0)}{" "}
                     {progressLanguage.points(language)}
                   </span>
@@ -172,7 +177,7 @@ function ProgressTable({
             {showGrade && (
               <th
                 rowSpan={rowSpan}
-                className={`z-30 w-20 min-w-20 border-b border-gray-100 px-3 py-2 text-left align-bottom text-xs font-semibold text-icon-color lg:sticky lg:right-0 ${TINT}`}
+                className={`z-30 w-12 min-w-12 border-b border-gray-100 px-1.5 py-1.5 text-left align-bottom text-[11px] font-semibold text-icon-color md:w-20 md:min-w-20 md:px-3 md:py-2 md:text-xs lg:sticky lg:right-0 ${TINT}`}
               >
                 {progressLanguage.grade(language)}
               </th>
@@ -193,8 +198,11 @@ function ProgressTable({
             return (
               <tr key={student.id} className="group">
                 <td className="sticky left-0 z-20 border-b border-r border-gray-100 bg-white p-0 group-hover:bg-background-color">
-                  <div className="flex h-14 w-52 items-center gap-3 px-3 md:w-72">
-                    <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full ring-1 ring-gray-200">
+                  <div
+                    className="flex h-11 w-24 items-center gap-3 px-1.5 md:h-14 md:w-72 md:px-3"
+                    title={`${student.firstName} ${student.lastName}`}
+                  >
+                    <div className="relative hidden h-9 w-9 shrink-0 overflow-hidden rounded-full ring-1 ring-gray-200 md:block">
                       <Image
                         src={student.photo}
                         alt={student.firstName}
@@ -208,10 +216,10 @@ function ProgressTable({
                       />
                     </div>
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-icon-color">
+                      <p className="truncate text-xs font-semibold text-icon-color md:text-sm">
                         {student.firstName} {student.lastName}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="truncate text-[11px] text-gray-500 md:text-xs">
                         {progressLanguage.number(language)} {student.number}
                         {!showScores &&
                           ` · ${progressLanguage.submittedOf(language, student.submittedCount, student.assignedCount)}`}
@@ -225,7 +233,7 @@ function ProgressTable({
                       key={column.key}
                       className={`border-b border-r border-gray-100 p-0 ${TINT}`}
                     >
-                      <div className="flex h-14 items-center justify-center text-sm font-semibold tabular-nums text-primary-color">
+                      <div className="flex h-11 items-center justify-center text-xs font-semibold tabular-nums text-primary-color md:h-14 md:text-sm">
                         {formatScore(student.groupTotals?.[column.tag] ?? 0)}
                       </div>
                     </td>
@@ -252,16 +260,16 @@ function ProgressTable({
                   <td
                     className={`z-20 border-b border-r border-gray-100 p-0 lg:sticky ${showGrade ? "lg:right-20" : "lg:right-0"} ${TINT}`}
                   >
-                    <div className="flex h-14 w-24 items-center justify-center text-sm font-semibold tabular-nums text-icon-color">
+                    <div className="flex h-11 w-12 items-center justify-center text-xs font-semibold tabular-nums text-icon-color md:h-14 md:w-24 md:text-sm">
                       {formatScore(student.total ?? 0)}
                     </div>
                   </td>
                 )}
                 {showGrade && (
                   <td
-                    className={`z-20 w-20 min-w-20 border-b border-gray-100 p-0 lg:sticky lg:right-0 ${TINT}`}
+                    className={`z-20 w-12 min-w-12 border-b border-gray-100 p-0 md:w-20 md:min-w-20 lg:sticky lg:right-0 ${TINT}`}
                   >
-                    <div className="flex h-14 items-center justify-center text-sm font-semibold text-icon-color">
+                    <div className="flex h-11 items-center justify-center text-xs font-semibold text-icon-color md:h-14 md:text-sm">
                       {student.grade ?? "N/A"}
                     </div>
                   </td>
