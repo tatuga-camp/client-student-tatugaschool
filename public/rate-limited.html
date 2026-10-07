@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Tatuga School</title>
+    <!--
+      Shown by netlify/edge-functions/rate-limit.ts (action: "rewrite") when
+      one IP sends too many requests. Static and self-contained on purpose:
+      serving it must not invoke a function. The URL stays the original page,
+      so reloading retries it — an early tap while still limited just shows
+      this page again, at no function cost. Colors are tailwind.config.ts
+      theme tokens.
+    -->
+    <style>
+      :root {
+        --primary-color: #2c7cd1;
+        --primary-color-hover: #2d6fb5;
+        --secondary-color: #569df8;
+        --icon-color: #383767;
+        --background-color: #f7f8fa;
+        --warning-color: #ffcd1b;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100dvh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+        background: linear-gradient(
+          to right,
+          var(--primary-color),
+          var(--secondary-color)
+        );
+        font-family:
+          "Anuphan", "Prompt", "Noto Sans Thai", "Leelawadee UI", Tahoma,
+          system-ui, -apple-system, "Segoe UI", sans-serif;
+        color: var(--icon-color);
+      }
+      main {
+        width: 100%;
+        max-width: 24rem;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 1rem;
+        padding: 2rem 1.5rem 1.5rem;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(56, 55, 103, 0.15);
+      }
+      .art {
+        width: 132px;
+        height: 132px;
+        margin: 0 auto 1.25rem;
+        border-radius: 9999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--background-color);
+      }
+      .sand {
+        transform-origin: 60px 60px;
+        animation: flip 6s ease-in-out infinite;
+      }
+      @keyframes flip {
+        0%,
+        85% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(180deg);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .sand {
+          animation: none;
+        }
+      }
+      h1 {
+        margin: 0 0 0.5rem;
+        font-size: 1.25rem;
+        line-height: 1.4;
+        text-wrap: balance;
+      }
+      p {
+        margin: 0 0 1.5rem;
+        font-size: 0.9rem;
+        line-height: 1.6;
+        color: rgba(56, 55, 103, 0.7);
+        text-wrap: pretty;
+      }
+      button {
+        width: 100%;
+        border: 0;
+        border-radius: 0.75rem;
+        padding: 0.75rem 1rem;
+        font: inherit;
+        font-weight: 600;
+        color: #fff;
+        background: var(--primary-color);
+        cursor: pointer;
+      }
+      button:hover {
+        background: var(--primary-color-hover);
+      }
+      .progress {
+        height: 4px;
+        margin-top: 1rem;
+        border-radius: 9999px;
+        background: rgba(44, 124, 209, 0.12);
+        overflow: hidden;
+      }
+      .progress > div {
+        height: 100%;
+        width: 0%;
+        background: var(--primary-color);
+        transition: width 1s linear;
+      }
+      .status {
+        margin: 0.5rem 0 0;
+        font-size: 0.75rem;
+        color: rgba(56, 55, 103, 0.6);
+      }
+      .brand {
+        margin-top: 1.25rem;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.15em;
+        color: rgba(56, 55, 103, 0.4);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="art" aria-hidden="true">
+        <!-- Hourglass in theme colors; gently flips (off for reduced motion). -->
+        <svg width="84" height="84" viewBox="0 0 120 120">
+          <g class="sand">
+            <rect x="30" y="16" width="60" height="10" rx="5" fill="#383767" />
+            <rect x="30" y="94" width="60" height="10" rx="5" fill="#383767" />
+            <path
+              d="M38 26h44c0 18-14 26-18 34 4 8 18 16 18 34H38c0-18 14-26 18-34-4-8-18-16-18-34z"
+              fill="#fff"
+              stroke="#2c7cd1"
+              stroke-width="4"
+              stroke-linejoin="round"
+            />
+            <path d="M46 34h28c-2 8-9 13-14 19-5-6-12-11-14-19z" fill="#569df8" />
+            <path d="M44 90c2-9 10-14 16-17 6 3 14 8 16 17z" fill="#ffcd1b" />
+            <circle cx="60" cy="64" r="2" fill="#ffcd1b" />
+          </g>
+        </svg>
+      </div>
+      <h1 id="title">มีผู้ใช้งานจำนวนมากในขณะนี้</h1>
+      <p id="body">
+        ไม่ใช่ความผิดของคุณ — มีคนจากเครือข่ายเดียวกันเข้าใช้งานพร้อมกันเยอะมาก
+        หน้านี้จะลองโหลดใหม่ให้อัตโนมัติในอีกสักครู่
+      </p>
+      <button id="retry" type="button">ลองอีกครั้ง</button>
+      <div class="progress" aria-hidden="true"><div id="bar"></div></div>
+      <p class="status" id="status" aria-live="polite"></p>
+      <div class="brand">TATUGA SCHOOL</div>
+    </main>
+    <script>
+      (function () {
+        var text = {
+          th: {
+            title: "มีผู้ใช้งานจำนวนมากในขณะนี้",
+            body: "ไม่ใช่ความผิดของคุณ — มีคนจากเครือข่ายเดียวกันเข้าใช้งานพร้อมกันเยอะมาก หน้านี้จะลองโหลดใหม่ให้อัตโนมัติในอีกสักครู่",
+            wait: function (s) {
+              return "จะลองใหม่อัตโนมัติใน " + s + " วินาที";
+            },
+            retrying: "กำลังลองใหม่…",
+            retry: "ลองอีกครั้ง",
+          },
+          en: {
+            title: "Lots of people are online right now",
+            body: "It's not you — many people on your network are using Tatuga School at the same time. This page will try again on its own in a moment.",
+            wait: function (s) {
+              return "Retrying automatically in " + s + "s";
+            },
+            retrying: "Retrying…",
+            retry: "Try again",
+          },
+        };
+
+        // Same detection as react-query/language.ts.
+        var lang = "en";
+        try {
+          var stored = localStorage.getItem("language");
+          if (stored === "th" || stored === "en") lang = stored;
+          else if ((navigator.language || "").toLowerCase().indexOf("th") === 0)
+            lang = "th";
+        } catch (e) {}
+        var t = text[lang];
+        document.documentElement.lang = lang;
+        document.getElementById("title").textContent = t.title;
+        document.getElementById("body").textContent = t.body;
+
+        var button = document.getElementById("retry");
+        var status = document.getElementById("status");
+        var bar = document.getElementById("bar");
+        button.textContent = t.retry;
+
+        function retry() {
+          status.textContent = t.retrying;
+          location.reload();
+        }
+        button.onclick = retry;
+
+        // The limit window is 60s. Jitter so a whole classroom that got
+        // limited together doesn't reload in the same second and re-trip it.
+        var total = 60 + Math.floor(Math.random() * 30);
+        var left = total;
+        function tick() {
+          if (left <= 0) return retry();
+          status.textContent = t.wait(left);
+          bar.style.width = ((total - left + 1) / total) * 100 + "%";
+          left -= 1;
+          setTimeout(tick, 1000);
+        }
+        tick();
+      })();
+    </script>
+  </body>
+</html>
