@@ -1,4 +1,3 @@
-import { GetServerSideProps } from "next";
 import Head from "next/head";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
@@ -40,6 +39,9 @@ import {
   setLocalStorage,
 } from "../../utils";
 import { Password as PasswordPrimereact } from "primereact/password";
+import RouteParamsGate, {
+  queryString,
+} from "../../components/common/RouteParamsGate";
 
 function Index({ id }: { id: string }) {
   const [selectStudent, setSelectStudent] = useState<
@@ -666,27 +668,17 @@ function Index({ id }: { id: string }) {
   );
 }
 
-export default Index;
+function Page() {
+  return (
+    <RouteParamsGate
+      read={(query) => {
+        const id = queryString(query.attendanceRowId);
+        return id ? { id } : null;
+      }}
+    >
+      {(params) => <Index {...params} />}
+    </RouteParamsGate>
+  );
+}
 
-export const getServerSideProps: GetServerSideProps = async (ctx) => {
-  const query = ctx.query;
-
-  if (!query.attendanceRowId) {
-    return {
-      notFound: true,
-    };
-  }
-
-  try {
-    return {
-      props: {
-        id: query.attendanceRowId,
-      },
-    };
-  } catch (error) {
-    console.log(error);
-    return {
-      props: {},
-    };
-  }
-};
+export default Page;
