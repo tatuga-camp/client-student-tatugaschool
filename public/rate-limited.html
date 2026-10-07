@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Tatuga School</title>
+    <!--
+      Shown by netlify/edge-functions/rate-limit.ts (action: "rewrite") when
+      one IP sends too many requests. Static and self-contained on purpose:
+      serving it must not invoke a function. The URL stays the original page,
+      so reloading retries it. Colors are tailwind.config.ts theme tokens.
+    -->
+    <style>
+      :root {
+        --primary-color: #2c7cd1;
+        --primary-color-hover: #2d6fb5;
+        --secondary-color: #569df8;
+        --icon-color: #383767;
+        --background-color: #f7f8fa;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100dvh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+        background: linear-gradient(
+          to right,
+          var(--primary-color),
+          var(--secondary-color)
+        );
+        font-family:
+          "Anuphan", "Prompt", "Noto Sans Thai", "Leelawadee UI", Tahoma,
+          system-ui, -apple-system, "Segoe UI", sans-serif;
+        color: var(--icon-color);
+      }
+      main {
+        width: 100%;
+        max-width: 24rem;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 1rem;
+        padding: 2rem 1.5rem;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(56, 55, 103, 0.15);
+      }
+      .icon {
+        width: 56px;
+        height: 56px;
+        margin: 0 auto 1rem;
+        border-radius: 9999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(44, 124, 209, 0.1);
+        color: var(--primary-color);
+      }
+      h1 {
+        margin: 0 0 0.5rem;
+        font-size: 1.25rem;
+        line-height: 1.4;
+        text-wrap: balance;
+      }
+      p {
+        margin: 0 0 1.5rem;
+        font-size: 0.9rem;
+        line-height: 1.6;
+        color: rgba(56, 55, 103, 0.7);
+      }
+      button {
+        width: 100%;
+        border: 0;
+        border-radius: 0.75rem;
+        padding: 0.75rem 1rem;
+        font: inherit;
+        font-weight: 600;
+        color: #fff;
+        background: var(--primary-color);
+        cursor: pointer;
+      }
+      button:hover {
+        background: var(--primary-color-hover);
+      }
+      button:disabled {
+        opacity: 0.6;
+        cursor: default;
+      }
+      .brand {
+        margin-top: 1.25rem;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.15em;
+        color: rgba(56, 55, 103, 0.4);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="icon" aria-hidden="true">
+        <svg
+          width="28"
+          height="28"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 7v5l3 2" />
+        </svg>
+      </div>
+      <h1 id="title">มีผู้ใช้งานจำนวนมากในขณะนี้</h1>
+      <p id="body">
+        ระบบกำลังรับคำขอจำนวนมากจากเครือข่ายของคุณ กรุณารอสักครู่
+        แล้วหน้านี้จะลองโหลดใหม่ให้อัตโนมัติ
+      </p>
+      <button id="retry" type="button" disabled>ลองใหม่</button>
+      <div class="brand">TATUGA SCHOOL</div>
+    </main>
+    <script>
+      (function () {
+        var text = {
+          th: {
+            title: "มีผู้ใช้งานจำนวนมากในขณะนี้",
+            body: "ระบบกำลังรับคำขอจำนวนมากจากเครือข่ายของคุณ กรุณารอสักครู่ แล้วหน้านี้จะลองโหลดใหม่ให้อัตโนมัติ",
+            wait: function (s) {
+              return "ลองใหม่ใน " + s + " วินาที";
+            },
+            retry: "ลองใหม่",
+          },
+          en: {
+            title: "Lots of people are online right now",
+            body: "We're getting a lot of requests from your network. Please wait a moment — this page will try again on its own.",
+            wait: function (s) {
+              return "Retrying in " + s + "s";
+            },
+            retry: "Try again",
+          },
+        };
+
+        // Same detection as react-query/language.ts.
+        var lang = "en";
+        try {
+          var stored = localStorage.getItem("language");
+          if (stored === "th" || stored === "en") lang = stored;
+          else if ((navigator.language || "").toLowerCase().indexOf("th") === 0)
+            lang = "th";
+        } catch (e) {}
+        var t = text[lang];
+        document.documentElement.lang = lang;
+        document.getElementById("title").textContent = t.title;
+        document.getElementById("body").textContent = t.body;
+
+        var button = document.getElementById("retry");
+        button.onclick = function () {
+          location.reload();
+        };
+
+        // The limit window is 60s. Jitter so a whole classroom that got
+        // limited together doesn't reload in the same second and re-trip it.
+        var left = 60 + Math.floor(Math.random() * 30);
+        function tick() {
+          if (left <= 0) {
+            location.reload();
+            return;
+          }
+          button.textContent = t.wait(left);
+          left -= 1;
+          setTimeout(tick, 1000);
+        }
+        tick();
+      })();
+    </script>
+  </body>
+</html>

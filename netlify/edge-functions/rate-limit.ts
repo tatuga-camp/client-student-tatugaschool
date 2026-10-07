@@ -1,8 +1,9 @@
 // Pass-through edge function whose only job is to carry a Netlify rate-limit
 // rule in front of the Next.js server handler (which the Next adapter
 // generates without one). Netlify enforces `rateLimit` before edge functions
-// and the edge/durable cache run, so a flood from one IP is answered with a
-// 429 instead of invoking serverless functions.
+// and the edge/durable cache run, so a flood from one IP gets the static
+// public/rate-limited.html (bilingual, auto-retries) instead of invoking
+// serverless functions.
 // Docs: https://docs.netlify.com/manage/security/secure-access-to-sites/rate-limiting/
 //
 // No imports on purpose: this file is also picked up by the app's tsc run,
@@ -25,6 +26,8 @@ export const config = {
     "/sw.js",
     "/robots.txt",
     "/sitemap.xml",
+    // The rewrite target itself must never be limited.
+    "/rate-limited.html",
   ],
   rateLimit: {
     // 6000/min (100 req/s) per IP, counted across every matched path.
@@ -37,5 +40,9 @@ export const config = {
     windowLimit: 6000,
     windowSize: 60,
     aggregateBy: ["ip", "domain"],
+    // A friendly page beats a bare 429 for a real student caught in a spike.
+    // The URL is unchanged, so the page's reload retries the original route.
+    action: "rewrite",
+    to: "/rate-limited.html",
   },
 };
