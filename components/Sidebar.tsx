@@ -89,9 +89,13 @@ function Sidebar({ active, menuList }: Props) {
                 if (menu.url) {
                   router.push(menu.url);
                 } else {
-                  router.replace({
-                    query: { ...router.query, menu: menu.title },
-                  });
+                  // Query-only change on the same page: shallow skips the
+                  // data refetch (a serverless invocation on Netlify).
+                  router.replace(
+                    { query: { ...router.query, menu: menu.title } },
+                    undefined,
+                    { shallow: true },
+                  );
                   setSelectMenu(menu.title);
                 }
               }}

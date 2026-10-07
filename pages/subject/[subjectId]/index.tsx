@@ -1,4 +1,3 @@
-import { GetServerSideProps } from "next";
 import Head from "next/head";
 import React from "react";
 import { FaStarHalfStroke, FaUserGroup } from "react-icons/fa6";
@@ -14,6 +13,9 @@ import {
   useGetStudent,
   useGetSubjectById,
 } from "../../../react-query";
+import RouteParamsGate, {
+  queryString,
+} from "../../../components/common/RouteParamsGate";
 
 const menuLists = [
   {
@@ -85,10 +87,9 @@ function Index({ subjectId }: { subjectId: string }) {
                   })
                   .map((menu, index) => {
                     const isActive = menu.title === selectMenu;
-                    const label =
-                      menuSubjectDataLanguage[
-                        menu.title.toLowerCase() as keyof typeof menuSubjectDataLanguage
-                      ](language.data ?? "en");
+                    const label = menuSubjectDataLanguage[
+                      menu.title.toLowerCase() as keyof typeof menuSubjectDataLanguage
+                    ](language.data ?? "en");
                     return (
                       <button
                         type="button"
@@ -127,20 +128,17 @@ function Index({ subjectId }: { subjectId: string }) {
   );
 }
 
-export default Index;
+function Page() {
+  return (
+    <RouteParamsGate
+      read={(query) => {
+        const subjectId = queryString(query.subjectId);
+        return subjectId ? { subjectId } : null;
+      }}
+    >
+      {(params) => <Index {...params} />}
+    </RouteParamsGate>
+  );
+}
 
-export const getServerSideProps: GetServerSideProps = async (ctx) => {
-  const params = ctx.params;
-
-  if (!params?.subjectId) {
-    return {
-      notFound: true,
-    };
-  }
-
-  return {
-    props: {
-      subjectId: params.subjectId,
-    },
-  };
-};
+export default Page;

@@ -1,4 +1,3 @@
-import { GetServerSideProps } from "next";
 import Head from "next/head";
 import React, { useEffect } from "react";
 import {
@@ -24,6 +23,9 @@ import { generateBlurHash } from "../../../utils";
 import LoadingSpinner from "../../../components/common/LoadingSpinner";
 import { Toast } from "primereact/toast";
 import { studentDataLanguage } from "../../../data/languages";
+import RouteParamsGate, {
+  queryString,
+} from "../../../components/common/RouteParamsGate";
 
 function Index(subjectId: { subjectId: string }) {
   const student = useGetStudent();
@@ -350,19 +352,17 @@ function Index(subjectId: { subjectId: string }) {
   );
 }
 
-export default Index;
+function Page() {
+  return (
+    <RouteParamsGate
+      read={(query) => {
+        const subjectId = queryString(query.subject_id);
+        return subjectId ? { subjectId } : null;
+      }}
+    >
+      {(params) => <Index {...params} />}
+    </RouteParamsGate>
+  );
+}
 
-export const getServerSideProps: GetServerSideProps = async (ctx) => {
-  const query = ctx.query;
-
-  if (!query.subject_id) {
-    return {
-      notFound: true,
-    };
-  }
-  return {
-    props: {
-      subjectId: query.subject_id,
-    },
-  };
-};
+export default Page;

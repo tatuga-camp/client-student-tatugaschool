@@ -1,4 +1,3 @@
-import { GetServerSideProps } from "next";
 import Head from "next/head";
 import React, { useState } from "react";
 import LoadingSpinner from "../../../components/common/LoadingSpinner";
@@ -7,6 +6,9 @@ import WordCloudView from "../../../components/word-cloud/WordCloudView";
 import WordCloudBars from "../../../components/word-cloud/WordCloudBars";
 import { useGetLanguage, useGetWordCloudResults } from "../../../react-query";
 import { wordCloudLanguage } from "../../../data/languages";
+import RouteParamsGate, {
+  queryString,
+} from "../../../components/common/RouteParamsGate";
 
 function Results({ token }: { token: string }) {
   const language = useGetLanguage();
@@ -131,12 +133,17 @@ function Results({ token }: { token: string }) {
   );
 }
 
-export const getServerSideProps: GetServerSideProps = async (ctx) => {
-  const token = ctx.query.token;
-  if (typeof token !== "string" || !/^[a-f0-9]{32}$/.test(token)) {
-    return { notFound: true };
-  }
-  return { props: { token } };
-};
+function Page() {
+  return (
+    <RouteParamsGate
+      read={(query) => {
+        const token = queryString(query.token);
+        return token && /^[a-f0-9]{32}$/.test(token) ? { token } : null;
+      }}
+    >
+      {(params) => <Results {...params} />}
+    </RouteParamsGate>
+  );
+}
 
-export default Results;
+export default Page;
