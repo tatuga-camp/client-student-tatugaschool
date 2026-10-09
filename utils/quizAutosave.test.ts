@@ -212,3 +212,39 @@ test("after dispose a failing save arms no retry and nothing more is sent", asyn
   assert.equal(calls.length, 1);
   assert.deepEqual(closed, []);
 });
+
+test("QUIZ_NOT_STARTED (teacher reset the attempt) stops saving and reports that reason", async () => {
+  const { clock, calls, saver, closed } = setup();
+  saver.queue("q1", "A");
+  await clock.advance(600);
+  calls[0].d.reject(new Error("QUIZ_NOT_STARTED"));
+  await settle();
+  assert.deepEqual(closed, ["QUIZ_NOT_STARTED"]);
+  saver.queue("q1", "B");
+  await clock.advance(60_000);
+  assert.equal(calls.length, 1);
+  assert.equal(clock.pendingTimers(), 0);
+});
+
+test("a finished flush leaves none of its own wait timers behind", async () => {
+  const { clock, calls, saver } = setup();
+  saver.queue("q1", "A");
+  const done = saver.flush(10_000);
+  await settle();
+  calls[0].d.resolve();
+  await settle();
+  assert.equal(await done, true);
+  assert.equal(clock.pendingTimers(), 0);
+});
+
+test("dispose during a flush pause ends the flush instead of hanging it", async () => {
+  const { clock, calls, saver } = setup();
+  saver.queue("q1", "A");
+  const done = saver.flush(10_000);
+  await settle();
+  calls[0].d.reject(new Error("network"));
+  await settle();
+  saver.dispose();
+  assert.equal(await done, false);
+  assert.equal(clock.pendingTimers(), 0);
+});

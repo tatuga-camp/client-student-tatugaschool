@@ -14,6 +14,7 @@ export function useQuizAutosave(soaId: string, onClosed: (reason: AutosaveClosed
   // Created in an effect (not during render) so StrictMode's mount/unmount/mount
   // disposes the first instance and leaves a live one.
   useEffect(() => {
+    setState("idle");
     const instance = createAnswerAutosaver<QuizAnswerDraft>({
       send: (questionId, answer) => SaveQuizAnswerService(soaId, questionId, answer),
       onState: setState,

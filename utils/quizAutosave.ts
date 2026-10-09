@@ -121,7 +121,24 @@ export function createAnswerAutosaver<A>(deps: {
     arm(questionId, AUTOSAVE_DEBOUNCE_MS);
   };
 
-  const sleep = (ms: number) => new Promise<void>((r) => deps.setTimer(r, ms));
+  /** flush()'s own waits; tracked so they never outlive flush or dispose. */
+  const sleeps = new Map<TimerHandle, () => void>();
+  const sleep = (ms: number) =>
+    new Promise<void>((resolve) => {
+      const handle = deps.setTimer(() => {
+        sleeps.delete(handle);
+        resolve();
+      }, ms);
+      sleeps.set(handle, resolve);
+    });
+  /** Cancels flush's waits and resolves them, so an awaiting flush never hangs. */
+  const cancelSleeps = () => {
+    sleeps.forEach((resolve, handle) => {
+      deps.clearTimer(handle);
+      resolve();
+    });
+    sleeps.clear();
+  };
 
   /** Saves everything now. Resolves true when nothing is left unsaved. */
   const flush = async (timeoutMs = 10_000): Promise<boolean> => {
@@ -138,6 +155,7 @@ export function createAnswerAutosaver<A>(deps: {
       return pending.size === 0;
     } finally {
       flushing--;
+      if (flushing === 0) cancelSleeps();
       if (flushing === 0 && !stopped()) {
         pending.forEach((_, id) => {
           if (!timers.has(id) && !sending.has(id)) arm(id, autosaveBackoffMs(attempts.get(id) ?? 1));
@@ -149,6 +167,7 @@ export function createAnswerAutosaver<A>(deps: {
   const dispose = () => {
     disposed = true;
     clearAllTimers();
+    cancelSleeps();
   };
 
   return { queue, flush, dispose };
