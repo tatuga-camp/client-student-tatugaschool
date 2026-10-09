@@ -1,5 +1,6 @@
 import Head from "next/head";
 import React from "react";
+import { useRouter } from "next/router";
 import {
   FaPlay,
   FaPlus,
@@ -151,6 +152,12 @@ function Index({
 
   const assignments = useGetAssignments({ subjectId });
   const assignment = assignments.data?.find((item) => item.id === assignmentId);
+  const router = useRouter();
+  React.useEffect(() => {
+    if (assignment?.type === "Quiz") {
+      router.replace(`/subject/${subjectId}/quiz/${assignmentId}`);
+    }
+  }, [assignment?.type]);
 
   const studentFiles = useGetFileStudentAssignment({
     studentOnAssignmentId: assignment?.studentOnAssignment.id as string,

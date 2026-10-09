@@ -17,18 +17,25 @@ import RouteParamsGate, {
   queryString,
 } from "../../../components/common/RouteParamsGate";
 
+// Full class names only: Tailwind cannot see classes built from strings.
 const menuLists = [
   {
     title: "Classwork",
     icon: <MdAssignmentAdd />,
+    active: "bg-primary-color text-white",
+    idle: "hover:text-primary-color",
   },
   {
     title: "Attendance",
     icon: <FaUserGroup />,
+    active: "bg-emerald-500 text-white",
+    idle: "hover:text-emerald-600",
   },
   {
     title: "Grade",
     icon: <FaStarHalfStroke />,
+    active: "bg-amber-500 text-white",
+    idle: "hover:text-amber-600",
   },
 ] as const;
 
@@ -68,7 +75,7 @@ function Index({ subjectId }: { subjectId: string }) {
         <main className="mx-auto flex w-full max-w-3xl flex-col px-3 sm:px-4">
           {subject.data && (
             <div className="sticky top-14 z-20 -mx-3 bg-background-color/90 px-3 py-2 backdrop-blur-md sm:-mx-4 sm:px-4 md:static md:bg-transparent md:backdrop-blur-none">
-              <div className="mx-auto flex h-12 w-full items-center justify-between gap-1 rounded-2xl border border-gray-100 bg-white p-1 shadow-sm sm:h-14 sm:rounded-full sm:p-1.5">
+              <div className="mx-auto flex h-12 w-full items-center justify-between gap-1 rounded-2xl border border-gray-100 bg-white p-1 font-Anuphan shadow-sm sm:h-14 sm:rounded-full sm:p-1.5">
                 {menuLists
                   .filter((m) => {
                     if (
@@ -101,8 +108,8 @@ function Index({ subjectId }: { subjectId: string }) {
                         aria-current={isActive ? "page" : undefined}
                         className={`flex h-full min-w-0 flex-1 items-center justify-center gap-1 rounded-xl px-1 text-[11px] font-bold transition-all duration-200 sm:gap-1.5 sm:rounded-full sm:text-xs ${
                           isActive
-                            ? "bg-primary-color text-white shadow-md"
-                            : "text-gray-500 hover:bg-gray-50 hover:text-primary-color"
+                            ? `${menu.active} shadow-md`
+                            : `text-gray-500 hover:bg-gray-50 ${menu.idle}`
                         }`}
                       >
                         <span className="shrink-0 text-base sm:text-lg">
