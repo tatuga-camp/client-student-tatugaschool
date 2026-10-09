@@ -1,8 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { StudentQuizView } from "../interfaces";
-import { GetStudentQuizService, StartQuizService, SubmitQuizService } from "../services/quiz";
+import {
+  GetStudentQuizService,
+  StartQuizService,
+  SubmitQuizService,
+} from "../services/quiz";
 
-export const keyStudentQuiz = (soaId: string) => ["student-quiz", { soaId }] as const;
+export const keyStudentQuiz = (soaId: string) =>
+  ["student-quiz", { soaId }] as const;
 
 export function useGetStudentQuiz(soaId: string | undefined) {
   return useQuery({

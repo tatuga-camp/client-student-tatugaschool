@@ -1,5 +1,9 @@
 import type { AxiosRequestConfig } from "axios";
-import { IntegrityEvent, QuizAnswerDraft, StudentQuizView } from "../interfaces";
+import {
+  IntegrityEvent,
+  QuizAnswerDraft,
+  StudentQuizView,
+} from "../interfaces";
 import { getAccessToken } from "../utils/cookie";
 import { isPermanentIntegrityRejection } from "../utils/quizIntegrity";
 import createAxiosInstance from "./apiService";
@@ -29,7 +33,11 @@ export function StartQuizService(soaId: string) {
   return call<StudentQuizView>({ method: "POST", url: `${base(soaId)}/start` });
 }
 
-export function SaveQuizAnswerService(soaId: string, questionId: string, answer: QuizAnswerDraft) {
+export function SaveQuizAnswerService(
+  soaId: string,
+  questionId: string,
+  answer: QuizAnswerDraft,
+) {
   return call<{ questionId: string; savedAt: string }>({
     method: "PUT",
     url: `${base(soaId)}/answers/${questionId}`,
@@ -39,12 +47,18 @@ export function SaveQuizAnswerService(soaId: string, questionId: string, answer:
 }
 
 export function SubmitQuizService(soaId: string) {
-  return call<StudentQuizView>({ method: "POST", url: `${base(soaId)}/submit` });
+  return call<StudentQuizView>({
+    method: "POST",
+    url: `${base(soaId)}/submit`,
+  });
 }
 
 export type IntegrityBatch = { events: IntegrityEvent[]; heartbeat: boolean };
 
-export function SendIntegrityBatchService(soaId: string, batch: IntegrityBatch) {
+export function SendIntegrityBatchService(
+  soaId: string,
+  batch: IntegrityBatch,
+) {
   return call<{ ok: true }>({
     method: "POST",
     url: `${base(soaId)}/integrity`,
@@ -59,19 +73,30 @@ export function SendIntegrityBatchService(soaId: string, batch: IntegrityBatch) 
  * when the batch was delivered, was empty or was rejected for good, false
  * when it could not be sent, so the caller can keep the events queued.
  */
-export function sendIntegrityKeepalive(soaId: string, batch: IntegrityBatch): Promise<boolean> {
+export function sendIntegrityKeepalive(
+  soaId: string,
+  batch: IntegrityBatch,
+): Promise<boolean> {
   if (batch.events.length === 0) return Promise.resolve(true);
   const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL ?? "";
   const { access_token } = getAccessToken();
   if (!serverUrl || !access_token) return Promise.resolve(false);
-  const url = new URL(`${base(soaId)}/integrity`, serverUrl.endsWith("/") ? serverUrl : `${serverUrl}/`);
-  return fetch(url.toString(), {
-    method: "POST",
-    keepalive: true,
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${access_token}` },
-    body: JSON.stringify(batch),
-  })
-    // A permanent rejection counts as handled so the batch is not re-queued forever.
-    .then((res) => res.ok || isPermanentIntegrityRejection(res.status))
-    .catch(() => false);
+  const url = new URL(
+    `${base(soaId)}/integrity`,
+    serverUrl.endsWith("/") ? serverUrl : `${serverUrl}/`,
+  );
+  return (
+    fetch(url.toString(), {
+      method: "POST",
+      keepalive: true,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${access_token}`,
+      },
+      body: JSON.stringify(batch),
+    })
+      // A permanent rejection counts as handled so the batch is not re-queued forever.
+      .then((res) => res.ok || isPermanentIntegrityRejection(res.status))
+      .catch(() => false)
+  );
 }

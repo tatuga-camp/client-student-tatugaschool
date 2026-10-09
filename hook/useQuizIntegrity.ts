@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { IntegrityEvent, IntegrityEventType } from "../interfaces";
-import { SendIntegrityBatchService, sendIntegrityKeepalive } from "../services/quiz";
+import {
+  SendIntegrityBatchService,
+  sendIntegrityKeepalive,
+} from "../services/quiz";
 import {
   createIntegritySender,
   createIntegrityTracker,
@@ -23,7 +26,10 @@ export function useQuizIntegrity(soaId: string, enabled: boolean) {
     const queue = queueRef.current;
     // Wall clock on purpose: performance.now() can pause while a phone is suspended,
     // which would undercount exactly the absences we care about.
-    const tracker = createIntegrityTracker(() => Date.now(), () => new Date().toISOString());
+    const tracker = createIntegrityTracker(
+      () => Date.now(),
+      () => new Date().toISOString(),
+    );
     const sender = createIntegritySender({
       queue,
       send: (batch) => SendIntegrityBatchService(soaId, batch),
@@ -72,13 +78,22 @@ export function useQuizIntegrity(soaId: string, enabled: boolean) {
     const originalLang = html.lang;
     let translateReported = false;
     const checkTranslate = () => {
-      if (!translateReported && isTranslatedDocument({ className: html.className, lang: html.lang }, originalLang)) {
+      if (
+        !translateReported &&
+        isTranslatedDocument(
+          { className: html.className, lang: html.lang },
+          originalLang,
+        )
+      ) {
         translateReported = true;
         report("TRANSLATE_DETECTED");
       }
     };
     const observer = new MutationObserver(checkTranslate);
-    observer.observe(html, { attributes: true, attributeFilter: ["class", "lang"] });
+    observer.observe(html, {
+      attributes: true,
+      attributeFilter: ["class", "lang"],
+    });
     checkTranslate();
 
     document.addEventListener("visibilitychange", onVisibility);
@@ -110,5 +125,9 @@ export function useQuizIntegrity(soaId: string, enabled: boolean) {
     };
   }, [soaId, enabled, report]);
 
-  return { report, awayNoticeMs, dismissAwayNotice: () => setAwayNoticeMs(null) };
+  return {
+    report,
+    awayNoticeMs,
+    dismissAwayNotice: () => setAwayNoticeMs(null),
+  };
 }

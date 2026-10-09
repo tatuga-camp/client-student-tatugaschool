@@ -9,8 +9,11 @@ import {
   tintColor,
 } from "./subjectHome";
 
-const work = (status: string, type = "Assignment", dueDate?: string | null) =>
-  ({ type, studentOnAssignment: { status: status as never }, dueDate });
+const work = (
+  status: string,
+  type = "Assignment",
+  dueDate?: string | null,
+) => ({ type, studentOnAssignment: { status: status as never }, dueDate });
 
 test("buckets: pending and sent-back are to do, submitted, reviewed is graded", () => {
   assert.equal(classworkBucket(work("PENDDING")), "todo");
@@ -18,7 +21,10 @@ test("buckets: pending and sent-back are to do, submitted, reviewed is graded", 
   assert.equal(classworkBucket(work("SUBMITTED")), "submitted");
   assert.equal(classworkBucket(work("REVIEWD")), "graded");
   assert.equal(classworkBucket(work("PENDDING", "Material")), "material");
-  assert.equal(classworkBucket({ type: "Quiz", studentOnAssignment: null }), "todo");
+  assert.equal(
+    classworkBucket({ type: "Quiz", studentOnAssignment: null }),
+    "todo",
+  );
 });
 
 test("counts every bucket", () => {
@@ -37,7 +43,10 @@ test("counts every bucket", () => {
 test("filters keep materials visible", () => {
   assert.equal(matchesClassworkFilter(work("SUBMITTED"), "todo"), false);
   assert.equal(matchesClassworkFilter(work("PENDDING"), "todo"), true);
-  assert.equal(matchesClassworkFilter(work("PENDDING", "Material"), "graded"), true);
+  assert.equal(
+    matchesClassworkFilter(work("PENDDING", "Material"), "graded"),
+    true,
+  );
   assert.equal(matchesClassworkFilter(work("REVIEWD"), "all"), true);
 });
 
@@ -45,12 +54,30 @@ const now = new Date("2026-10-09T12:00:00Z");
 
 test("due urgency", () => {
   assert.equal(dueUrgency(work("PENDDING", "Assignment", null), now), "none");
-  assert.equal(dueUrgency(work("PENDDING", "Material", "2026-10-01T00:00:00Z"), now), "none");
-  assert.equal(dueUrgency(work("SUBMITTED", "Assignment", "2026-10-01T00:00:00Z"), now), "done");
-  assert.equal(dueUrgency(work("PENDDING", "Assignment", "2026-10-09T11:59:00Z"), now), "overdue");
-  assert.equal(dueUrgency(work("IMPROVED", "Assignment", "2026-10-11T12:00:00Z"), now), "soon");
-  assert.equal(dueUrgency(work("PENDDING", "Assignment", "2026-10-11T12:01:00Z"), now), "later");
-  assert.equal(dueUrgency(work("PENDDING", "Assignment", "not a date"), now), "none");
+  assert.equal(
+    dueUrgency(work("PENDDING", "Material", "2026-10-01T00:00:00Z"), now),
+    "none",
+  );
+  assert.equal(
+    dueUrgency(work("SUBMITTED", "Assignment", "2026-10-01T00:00:00Z"), now),
+    "done",
+  );
+  assert.equal(
+    dueUrgency(work("PENDDING", "Assignment", "2026-10-09T11:59:00Z"), now),
+    "overdue",
+  );
+  assert.equal(
+    dueUrgency(work("IMPROVED", "Assignment", "2026-10-11T12:00:00Z"), now),
+    "soon",
+  );
+  assert.equal(
+    dueUrgency(work("PENDDING", "Assignment", "2026-10-11T12:01:00Z"), now),
+    "later",
+  );
+  assert.equal(
+    dueUrgency(work("PENDDING", "Assignment", "not a date"), now),
+    "none",
+  );
 });
 
 const statuses = [
@@ -69,17 +96,28 @@ test("attendance summary counts in teacher order and finds the best status", () 
   ]);
   assert.deepEqual(
     s.counts.map((c) => [c.title, c.count]),
-    [["Present", 3], ["Late", 1], ["Absent", 1]],
+    [
+      ["Present", 3],
+      ["Late", 1],
+      ["Absent", 1],
+    ],
   );
   assert.equal(s.recorded, 5);
   assert.deepEqual(s.best, { title: "Present", count: 3, percent: 60 });
 });
 
 test("attendance summary skips unused statuses and keeps renamed ones", () => {
-  const s = summarizeAttendance(statuses, [{ status: "Present" }, { status: "Sick" }, { status: "" }]);
+  const s = summarizeAttendance(statuses, [
+    { status: "Present" },
+    { status: "Sick" },
+    { status: "" },
+  ]);
   assert.deepEqual(
     s.counts.map((c) => [c.title, c.count, c.color]),
-    [["Present", 1, "#22c55e"], ["Sick", 1, "#94a3b8"]],
+    [
+      ["Present", 1, "#22c55e"],
+      ["Sick", 1, "#94a3b8"],
+    ],
   );
   assert.equal(s.recorded, 2);
   assert.equal(s.best?.percent, 50);

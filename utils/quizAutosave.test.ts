@@ -1,6 +1,10 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { AutosaveState, autosaveBackoffMs, createAnswerAutosaver } from "./quizAutosave";
+import {
+  AutosaveState,
+  autosaveBackoffMs,
+  createAnswerAutosaver,
+} from "./quizAutosave";
 
 /** Manual clock: timers only fire when the test advances time. */
 function fakeClock() {
@@ -20,7 +24,9 @@ function fakeClock() {
       const end = t + ms;
       for (;;) {
         await settle();
-        const next = [...timers.entries()].filter(([, v]) => v.at <= end).sort((a, b) => a[1].at - b[1].at)[0];
+        const next = [...timers.entries()]
+          .filter(([, v]) => v.at <= end)
+          .sort((a, b) => a[1].at - b[1].at)[0];
         if (!next) break;
         t = next[1].at;
         timers.delete(next[0]);
@@ -81,7 +87,10 @@ test("debounces rapid changes into one save of the latest answer", async () => {
   await clock.advance(599);
   assert.equal(calls.length, 0);
   await clock.advance(1);
-  assert.deepEqual(calls.map((c) => c.a), ["B"]);
+  assert.deepEqual(
+    calls.map((c) => c.a),
+    ["B"],
+  );
   calls[0].d.resolve();
   await settle();
   assert.equal(last(), "saved");
@@ -97,7 +106,10 @@ test("a newer answer is never sent while an older save for the same question is 
   assert.equal(calls.length, 1, "B must wait for A to settle");
   calls[0].d.resolve(); // A lands
   await settle();
-  assert.deepEqual(calls.map((c) => c.a), ["A", "B"]);
+  assert.deepEqual(
+    calls.map((c) => c.a),
+    ["A", "B"],
+  );
   assert.equal(last(), "saving");
   calls[1].d.resolve();
   await settle();
@@ -114,7 +126,10 @@ test("flush waits for an in-flight save and then sends the latest answer", async
   assert.equal(calls.length, 1);
   calls[0].d.resolve();
   await settle();
-  assert.deepEqual(calls.map((c) => c.a), ["A", "B"]);
+  assert.deepEqual(
+    calls.map((c) => c.a),
+    ["A", "B"],
+  );
   calls[1].d.resolve();
   assert.equal(await result, true);
 });

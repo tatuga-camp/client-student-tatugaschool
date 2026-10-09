@@ -1,16 +1,28 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createIntegrityTracker, EventQueue, isScreenshotKey, isTranslatedDocument } from "./quizIntegrity";
+import {
+  createIntegrityTracker,
+  EventQueue,
+  isScreenshotKey,
+  isTranslatedDocument,
+} from "./quizIntegrity";
 
 function clock() {
   let t = 0;
-  return { now: () => t, iso: () => new Date(t).toISOString(), advance: (ms: number) => (t += ms) };
+  return {
+    now: () => t,
+    iso: () => new Date(t).toISOString(),
+    advance: (ms: number) => (t += ms),
+  };
 }
 
 test("hide → visible emits HIDDEN then VISIBLE with the away duration", () => {
   const c = clock();
   const tracker = createIntegrityTracker(c.now, c.iso);
-  assert.deepEqual(tracker.onHidden().events.map((e) => e.type), ["HIDDEN"]);
+  assert.deepEqual(
+    tracker.onHidden().events.map((e) => e.type),
+    ["HIDDEN"],
+  );
   c.advance(12_000);
   const back = tracker.onVisible();
   assert.equal(back.events[0].type, "VISIBLE");
@@ -48,25 +60,82 @@ test("visible without a prior hide emits nothing", () => {
 
 test("EventQueue keeps the newest 200 and restores failed drains to the front", () => {
   const q = new EventQueue(3);
-  q.push([{ type: "BLUR", clientAt: "1" }, { type: "BLUR", clientAt: "2" }, { type: "BLUR", clientAt: "3" }, { type: "BLUR", clientAt: "4" }]);
-  assert.deepEqual(q.drain().map((e) => e.clientAt), ["2", "3", "4"]);
+  q.push([
+    { type: "BLUR", clientAt: "1" },
+    { type: "BLUR", clientAt: "2" },
+    { type: "BLUR", clientAt: "3" },
+    { type: "BLUR", clientAt: "4" },
+  ]);
+  assert.deepEqual(
+    q.drain().map((e) => e.clientAt),
+    ["2", "3", "4"],
+  );
   q.push([{ type: "FOCUS", clientAt: "5" }]);
   q.restore([{ type: "BLUR", clientAt: "x" }]);
-  assert.deepEqual(q.drain().map((e) => e.clientAt), ["x", "5"]);
+  assert.deepEqual(
+    q.drain().map((e) => e.clientAt),
+    ["x", "5"],
+  );
   assert.equal(q.size, 0);
 });
 
 test("isScreenshotKey", () => {
-  assert.equal(isScreenshotKey({ key: "PrintScreen", code: "PrintScreen", metaKey: false, shiftKey: false }), true);
-  assert.equal(isScreenshotKey({ key: "4", code: "Digit4", metaKey: true, shiftKey: true }), true);
-  assert.equal(isScreenshotKey({ key: "$", code: "Digit4", metaKey: true, shiftKey: true }), true);
-  assert.equal(isScreenshotKey({ key: "4", code: "Digit4", metaKey: false, shiftKey: true }), false);
-  assert.equal(isScreenshotKey({ key: "a", code: "KeyA", metaKey: false, shiftKey: false }), false);
+  assert.equal(
+    isScreenshotKey({
+      key: "PrintScreen",
+      code: "PrintScreen",
+      metaKey: false,
+      shiftKey: false,
+    }),
+    true,
+  );
+  assert.equal(
+    isScreenshotKey({
+      key: "4",
+      code: "Digit4",
+      metaKey: true,
+      shiftKey: true,
+    }),
+    true,
+  );
+  assert.equal(
+    isScreenshotKey({
+      key: "$",
+      code: "Digit4",
+      metaKey: true,
+      shiftKey: true,
+    }),
+    true,
+  );
+  assert.equal(
+    isScreenshotKey({
+      key: "4",
+      code: "Digit4",
+      metaKey: false,
+      shiftKey: true,
+    }),
+    false,
+  );
+  assert.equal(
+    isScreenshotKey({
+      key: "a",
+      code: "KeyA",
+      metaKey: false,
+      shiftKey: false,
+    }),
+    false,
+  );
 });
 
 test("isTranslatedDocument", () => {
-  assert.equal(isTranslatedDocument({ className: "translated-ltr", lang: "th" }, "th"), true);
+  assert.equal(
+    isTranslatedDocument({ className: "translated-ltr", lang: "th" }, "th"),
+    true,
+  );
   assert.equal(isTranslatedDocument({ className: "", lang: "en" }, "th"), true);
-  assert.equal(isTranslatedDocument({ className: "dark", lang: "th" }, "th"), false);
+  assert.equal(
+    isTranslatedDocument({ className: "dark", lang: "th" }, "th"),
+    false,
+  );
   assert.equal(isTranslatedDocument({ className: "", lang: "" }, "th"), false);
 });

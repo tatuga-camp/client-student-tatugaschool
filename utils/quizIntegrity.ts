@@ -11,8 +11,13 @@ const none = (): Result => ({ events: [], awayMs: null });
 export function createIntegrityTracker(now: () => number, iso: () => string) {
   let hiddenAt: number | null = null;
   let blurAt: number | null = null;
-  const event = (type: IntegrityEvent["type"], durationMs?: number): IntegrityEvent =>
-    durationMs === undefined ? { type, clientAt: iso() } : { type, clientAt: iso(), durationMs };
+  const event = (
+    type: IntegrityEvent["type"],
+    durationMs?: number,
+  ): IntegrityEvent =>
+    durationMs === undefined
+      ? { type, clientAt: iso() }
+      : { type, clientAt: iso(), durationMs };
 
   return {
     onHidden(): Result {
@@ -53,7 +58,8 @@ export class EventQueue {
 
   push(events: IntegrityEvent[]): void {
     this.items.push(...events);
-    if (this.items.length > this.max) this.items = this.items.slice(this.items.length - this.max);
+    if (this.items.length > this.max)
+      this.items = this.items.slice(this.items.length - this.max);
   }
 
   drain(): IntegrityEvent[] {
@@ -65,7 +71,8 @@ export class EventQueue {
   /** Put a failed batch back in front of anything queued since. */
   restore(events: IntegrityEvent[]): void {
     this.items = [...events, ...this.items];
-    if (this.items.length > this.max) this.items = this.items.slice(this.items.length - this.max);
+    if (this.items.length > this.max)
+      this.items = this.items.slice(this.items.length - this.max);
   }
 
   get size(): number {
@@ -73,12 +80,24 @@ export class EventQueue {
   }
 }
 
-export function isScreenshotKey(e: { key: string; code?: string; metaKey: boolean; shiftKey: boolean }): boolean {
+export function isScreenshotKey(e: {
+  key: string;
+  code?: string;
+  metaKey: boolean;
+  shiftKey: boolean;
+}): boolean {
   if (e.key === "PrintScreen" || e.code === "PrintScreen") return true;
-  return e.metaKey && e.shiftKey && ["Digit3", "Digit4", "Digit5"].includes(e.code ?? "");
+  return (
+    e.metaKey &&
+    e.shiftKey &&
+    ["Digit3", "Digit4", "Digit5"].includes(e.code ?? "")
+  );
 }
 
-export function isTranslatedDocument(html: { className: string; lang: string }, originalLang: string): boolean {
+export function isTranslatedDocument(
+  html: { className: string; lang: string },
+  originalLang: string,
+): boolean {
   if (/\btranslated-(ltr|rtl)\b/.test(html.className)) return true;
   return !!html.lang && !!originalLang && html.lang !== originalLang;
 }
@@ -94,9 +113,17 @@ type IntegrityBatchLike = { events: IntegrityEvent[]; heartbeat: boolean };
  * hold newer events behind it, so it is dropped. Network errors (no status),
  * 401 (token refresh), 408, 429 and 5xx stay retryable.
  */
-export function isPermanentIntegrityRejection(status: number | null | undefined): boolean {
+export function isPermanentIntegrityRejection(
+  status: number | null | undefined,
+): boolean {
   if (typeof status !== "number") return false;
-  return status >= 400 && status < 500 && status !== 401 && status !== 408 && status !== 429;
+  return (
+    status >= 400 &&
+    status < 500 &&
+    status !== 401 &&
+    status !== 408 &&
+    status !== 429
+  );
 }
 
 const statusOf = (error: unknown): number | null => {
@@ -132,7 +159,8 @@ export function createIntegritySender(deps: {
     } catch (error) {
       // `send` rethrows the server's error body ({ statusCode, message }) or
       // undefined for a network failure.
-      if (!isPermanentIntegrityRejection(statusOf(error))) queue.restore(events);
+      if (!isPermanentIntegrityRejection(statusOf(error)))
+        queue.restore(events);
     } finally {
       inFlight = false;
     }
@@ -184,7 +212,10 @@ export function clipboardPolicy(
   kind: "copy" | "paste" | "contextmenu",
   target: TargetLike,
 ): { preventDefault: boolean; report: IntegrityEvent["type"] | null } {
-  if (kind === "paste") return { preventDefault: false, report: "PASTE_ATTEMPT" };
+  if (kind === "paste")
+    return { preventDefault: false, report: "PASTE_ATTEMPT" };
   if (isTextInputTarget(target)) return { preventDefault: false, report: null };
-  return kind === "copy" ? { preventDefault: true, report: "COPY_ATTEMPT" } : { preventDefault: true, report: null };
+  return kind === "copy"
+    ? { preventDefault: true, report: "COPY_ATTEMPT" }
+    : { preventDefault: true, report: null };
 }

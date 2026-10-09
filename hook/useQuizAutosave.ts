@@ -1,11 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { QuizAnswerDraft } from "../interfaces";
 import { SaveQuizAnswerService } from "../services/quiz";
-import { AutosaveClosedReason, AutosaveState, createAnswerAutosaver } from "../utils/quizAutosave";
+import {
+  AutosaveClosedReason,
+  AutosaveState,
+  createAnswerAutosaver,
+} from "../utils/quizAutosave";
 
 type Autosaver = ReturnType<typeof createAnswerAutosaver<QuizAnswerDraft>>;
 
-export function useQuizAutosave(soaId: string, onClosed: (reason: AutosaveClosedReason) => void) {
+export function useQuizAutosave(
+  soaId: string,
+  onClosed: (reason: AutosaveClosedReason) => void,
+) {
   const [state, setState] = useState<AutosaveState>("idle");
   const onClosedRef = useRef(onClosed);
   onClosedRef.current = onClosed;
@@ -16,7 +23,8 @@ export function useQuizAutosave(soaId: string, onClosed: (reason: AutosaveClosed
   useEffect(() => {
     setState("idle");
     const instance = createAnswerAutosaver<QuizAnswerDraft>({
-      send: (questionId, answer) => SaveQuizAnswerService(soaId, questionId, answer),
+      send: (questionId, answer) =>
+        SaveQuizAnswerService(soaId, questionId, answer),
       onState: setState,
       onClosed: (reason) => onClosedRef.current(reason),
       setTimer: (fn, ms) => window.setTimeout(fn, ms),

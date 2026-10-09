@@ -8,12 +8,13 @@ type Props = {
 };
 
 // Full class names only: Tailwind cannot see classes built from strings.
-const STYLES: Record<StudentAssignmentStatus, { chip: string; emoji: string }> = {
-  PENDDING: { chip: "bg-gray-100 text-gray-600", emoji: "📝" },
-  SUBMITTED: { chip: "bg-amber-100 text-amber-700", emoji: "⏳" },
-  REVIEWD: { chip: "bg-emerald-100 text-emerald-700", emoji: "✅" },
-  IMPROVED: { chip: "bg-rose-100 text-rose-700", emoji: "✏️" },
-};
+const STYLES: Record<StudentAssignmentStatus, { chip: string; emoji: string }> =
+  {
+    PENDDING: { chip: "bg-gray-100 text-gray-600", emoji: "📝" },
+    SUBMITTED: { chip: "bg-amber-100 text-amber-700", emoji: "⏳" },
+    REVIEWD: { chip: "bg-emerald-100 text-emerald-700", emoji: "✅" },
+    IMPROVED: { chip: "bg-rose-100 text-rose-700", emoji: "✏️" },
+  };
 
 function AssignmentStatusCard({ status }: Props) {
   const language = useGetLanguage();

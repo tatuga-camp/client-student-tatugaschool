@@ -1,12 +1,34 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { answeredIds, clockOffset, emptyAnswer, formatCountdown, isAnswered, promptSegments, remainingMs } from "./quizTake";
+import {
+  answeredIds,
+  clockOffset,
+  emptyAnswer,
+  formatCountdown,
+  isAnswered,
+  promptSegments,
+  remainingMs,
+} from "./quizTake";
 
 test("isAnswered / answeredIds", () => {
   assert.equal(isAnswered(emptyAnswer()), false);
-  assert.equal(isAnswered({ selectedOptionIds: [], blankAnswers: [{ blankId: "x", value: "  " }] }), false);
-  assert.equal(isAnswered({ selectedOptionIds: ["a"], blankAnswers: [] }), true);
-  const ids = answeredIds(new Map([["q1", { selectedOptionIds: ["a"], blankAnswers: [] }], ["q2", emptyAnswer()]]));
+  assert.equal(
+    isAnswered({
+      selectedOptionIds: [],
+      blankAnswers: [{ blankId: "x", value: "  " }],
+    }),
+    false,
+  );
+  assert.equal(
+    isAnswered({ selectedOptionIds: ["a"], blankAnswers: [] }),
+    true,
+  );
+  const ids = answeredIds(
+    new Map([
+      ["q1", { selectedOptionIds: ["a"], blankAnswers: [] }],
+      ["q2", emptyAnswer()],
+    ]),
+  );
   assert.deepEqual([...ids], ["q1"]);
 });
 
@@ -19,9 +41,16 @@ test("promptSegments", () => {
 });
 
 test("countdown uses the server clock", () => {
-  const offset = clockOffset("2026-10-09T03:00:10.000Z", Date.parse("2026-10-09T03:00:00.000Z"));
+  const offset = clockOffset(
+    "2026-10-09T03:00:10.000Z",
+    Date.parse("2026-10-09T03:00:00.000Z"),
+  );
   assert.equal(offset, 10_000); // client is 10 s behind
-  const left = remainingMs("2026-10-09T03:05:00.000Z", offset, Date.parse("2026-10-09T03:00:00.000Z"));
+  const left = remainingMs(
+    "2026-10-09T03:05:00.000Z",
+    offset,
+    Date.parse("2026-10-09T03:00:00.000Z"),
+  );
   assert.equal(left, 290_000);
   assert.equal(remainingMs(null, offset, 0), null);
 });

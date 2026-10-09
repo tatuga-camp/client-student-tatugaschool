@@ -12,15 +12,19 @@ type Props = { soaId: string; enabled: boolean; children: React.ReactNode };
 export default function TestModeShell({ soaId, enabled, children }: Props) {
   const language = useGetLanguage();
   const lang = language.data ?? "en";
-  const { report, awayNoticeMs, dismissAwayNotice } = useQuizIntegrity(soaId, enabled);
+  const { report, awayNoticeMs, dismissAwayNotice } = useQuizIntegrity(
+    soaId,
+    enabled,
+  );
 
   if (!enabled) return <>{children}</>;
 
-  const handle = (kind: "copy" | "paste" | "contextmenu") => (e: React.SyntheticEvent) => {
-    const policy = clipboardPolicy(kind, e.target as Element | null);
-    if (policy.preventDefault) e.preventDefault();
-    if (policy.report) report(policy.report);
-  };
+  const handle =
+    (kind: "copy" | "paste" | "contextmenu") => (e: React.SyntheticEvent) => {
+      const policy = clipboardPolicy(kind, e.target as Element | null);
+      if (policy.preventDefault) e.preventDefault();
+      if (policy.report) report(policy.report);
+    };
 
   return (
     <div
@@ -35,10 +39,15 @@ export default function TestModeShell({ soaId, enabled, children }: Props) {
       </Head>
       {children}
       {awayNoticeMs !== null && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="alertdialog">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          role="alertdialog"
+        >
           <div className="w-full max-w-sm rounded-3xl bg-white p-6 text-center font-Anuphan shadow-xl">
             <MdVisibility className="mx-auto text-4xl text-warning-color" />
-            <h2 className="mt-2 text-lg font-semibold text-icon-color">{quizLanguage.awayTitle(lang)}</h2>
+            <h2 className="mt-2 text-lg font-semibold text-icon-color">
+              {quizLanguage.awayTitle(lang)}
+            </h2>
             <p className="mt-1 text-sm text-icon-color/70">
               {quizLanguage.awayBody(lang, Math.round(awayNoticeMs / 1000))}
             </p>

@@ -187,7 +187,11 @@ function Attendance({ subjectId, studentId }: Props) {
                 </div>
               ) : (
                 <p className="relative text-xl font-bold">
-                  ✅ {subjectHomeLanguage.classesChecked(lang, summary?.recorded ?? 0)}
+                  ✅{" "}
+                  {subjectHomeLanguage.classesChecked(
+                    lang,
+                    summary?.recorded ?? 0,
+                  )}
                 </p>
               )}
             </section>

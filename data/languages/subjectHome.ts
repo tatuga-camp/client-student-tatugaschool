@@ -52,12 +52,16 @@ export const subjectHomeLanguage = {
     "ทุกคาบที่คุณครูเช็คชื่อแล้ว",
   ),
   bestOf: (l: Language, title: string, n: number, total: number) =>
-    l === "th" ? `${title} ${n} จาก ${total} ครั้ง` : `${title} ${n} of ${total} times`,
+    l === "th"
+      ? `${title} ${n} จาก ${total} ครั้ง`
+      : `${title} ${n} of ${total} times`,
   cheerGreat: t("Amazing! Keep it up 🌟", "เยี่ยมมาก! รักษาไว้นะ 🌟"),
   cheerGood: t("Nice work 👍", "ดีมาก 👍"),
   cheerLow: t("Let's come to class more 💪", "มาเรียนให้บ่อยขึ้นนะ 💪"),
   classesChecked: (l: Language, n: number) =>
-    l === "th" ? `เช็คชื่อแล้ว ${n} ครั้ง` : `${n} ${n === 1 ? "class" : "classes"} checked`,
+    l === "th"
+      ? `เช็คชื่อแล้ว ${n} ครั้ง`
+      : `${n} ${n === 1 ? "class" : "classes"} checked`,
   noAttendance: t("No attendance yet", "ยังไม่มีการเช็คชื่อ"),
   notChecked: t("Not checked", "ยังไม่เช็ค"),
   note: t("Note", "บันทึก"),

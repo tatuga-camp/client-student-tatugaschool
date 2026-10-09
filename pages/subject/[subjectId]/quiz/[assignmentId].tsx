@@ -12,7 +12,9 @@ import {
   useStartQuiz,
   useSubmitQuiz,
 } from "../../../../react-query";
-import RouteParamsGate, { queryString } from "../../../../components/common/RouteParamsGate";
+import RouteParamsGate, {
+  queryString,
+} from "../../../../components/common/RouteParamsGate";
 import QuizResultScreen from "../../../../components/quiz/QuizResultScreen";
 import QuizStartScreen from "../../../../components/quiz/QuizStartScreen";
 import QuizTakeScreen from "../../../../components/quiz/QuizTakeScreen";
@@ -45,16 +47,28 @@ export default function Page() {
   );
 }
 
-function StudentQuizPage({ subjectId, assignmentId }: { subjectId: string; assignmentId: string }) {
+function StudentQuizPage({
+  subjectId,
+  assignmentId,
+}: {
+  subjectId: string;
+  assignmentId: string;
+}) {
   const language = useGetLanguage();
   const lang = language.data ?? "en";
   // Only used to resolve soaId, so no 10 s polling for the whole attempt.
-  const assignments = useGetAssignments({ subjectId }, { refetchInterval: false });
+  const assignments = useGetAssignments(
+    { subjectId },
+    { refetchInterval: false },
+  );
   const subject = useGetSubjectById({ id: subjectId });
-  const foundSoaId = assignments.data?.find((a) => a.id === assignmentId)?.studentOnAssignment?.id;
+  const foundSoaId = assignments.data?.find((a) => a.id === assignmentId)
+    ?.studentOnAssignment?.id;
   // Keep soaId once resolved: a failed background refetch must never unmount the take screen
   // (that would dispose the autosave queue and drop unsaved answers).
-  const [resolvedSoaId, setResolvedSoaId] = React.useState<string | undefined>(foundSoaId);
+  const [resolvedSoaId, setResolvedSoaId] = React.useState<string | undefined>(
+    foundSoaId,
+  );
   React.useEffect(() => {
     if (foundSoaId && !resolvedSoaId) setResolvedSoaId(foundSoaId);
   }, [foundSoaId, resolvedSoaId]);
@@ -63,7 +77,8 @@ function StudentQuizPage({ subjectId, assignmentId }: { subjectId: string; assig
   const start = useStartQuiz();
   const submit = useSubmitQuiz();
 
-  const fail = (error: unknown) => Swal.fire({ ...errorSwalContent(error), icon: "error" });
+  const fail = (error: unknown) =>
+    Swal.fire({ ...errorSwalContent(error), icon: "error" });
 
   const view = quiz.data;
   // Error screens only when there is nothing to render. TanStack keeps `data` on a failed
@@ -71,9 +86,15 @@ function StudentQuizPage({ subjectId, assignmentId }: { subjectId: string; assig
   if (!soaId && (assignments.isError || assignments.isSuccess)) {
     return (
       <QuizPageMessage
-        text={assignments.isError ? errorSwalContent(assignments.error).text : quizLanguage.notFound(lang)}
+        text={
+          assignments.isError
+            ? errorSwalContent(assignments.error).text
+            : quizLanguage.notFound(lang)
+        }
         language={lang}
-        onRetry={assignments.isError ? () => void assignments.refetch() : undefined}
+        onRetry={
+          assignments.isError ? () => void assignments.refetch() : undefined
+        }
       />
     );
   }
@@ -89,7 +110,11 @@ function StudentQuizPage({ subjectId, assignmentId }: { subjectId: string; assig
   // Wait for a fetch made after this mount: a cached view can hold stale answers and an old
   // serverNow, which would seed the take screen with lost answers and a wrong clock.
   if (!soaId || !view || !quiz.isFetchedAfterMount) {
-    return <div className="flex min-h-dvh items-center justify-center bg-background-color font-Anuphan text-icon-color/60">…</div>;
+    return (
+      <div className="flex min-h-dvh items-center justify-center bg-background-color font-Anuphan text-icon-color/60">
+        …
+      </div>
+    );
   }
 
   const onStart = async () => {
@@ -110,17 +135,27 @@ function StudentQuizPage({ subjectId, assignmentId }: { subjectId: string; assig
       // Already finalized by the server (deadline) or reset: show the real state.
       await quiz.refetch();
       const message = (error as ErrorMessages)?.message;
-      if (!options?.quiet && message !== "QUIZ_CLOSED" && message !== "QUIZ_NOT_STARTED") fail(error);
+      if (
+        !options?.quiet &&
+        message !== "QUIZ_CLOSED" &&
+        message !== "QUIZ_NOT_STARTED"
+      )
+        fail(error);
       return false;
     }
   };
 
   const onClosed = async () => {
     const fresh = await quiz.refetch();
-    if (!fresh.data?.attempt) Swal.fire({ text: quizLanguage.resetByTeacher(lang), icon: "info" });
+    if (!fresh.data?.attempt)
+      Swal.fire({ text: quizLanguage.resetByTeacher(lang), icon: "info" });
   };
 
-  const canViewScore = canStudentViewScoreOnceLoaded(subject.data !== undefined, subject.data, { allowStudentViewScore: view.assignment.allowStudentViewScore });
+  const canViewScore = canStudentViewScoreOnceLoaded(
+    subject.data !== undefined,
+    subject.data,
+    { allowStudentViewScore: view.assignment.allowStudentViewScore },
+  );
   const taking = !!view.attempt && !view.attempt.submittedAt;
 
   return (
@@ -129,9 +164,19 @@ function StudentQuizPage({ subjectId, assignmentId }: { subjectId: string; assig
         <title>{view.assignment.title}</title>
       </Head>
       <div className="min-h-dvh bg-background-color">
-        {!view.attempt && <QuizStartScreen view={view} language={lang} starting={start.isPending} onStart={onStart} />}
+        {!view.attempt && (
+          <QuizStartScreen
+            view={view}
+            language={lang}
+            starting={start.isPending}
+            onStart={onStart}
+          />
+        )}
         {taking && (
-          <TestModeShell soaId={soaId} enabled={view.assignment.quizSettings.testMode}>
+          <TestModeShell
+            soaId={soaId}
+            enabled={view.assignment.quizSettings.testMode}
+          >
             <QuizTakeScreen
               key={view.attempt!.startedAt}
               soaId={soaId}
@@ -145,19 +190,36 @@ function StudentQuizPage({ subjectId, assignmentId }: { subjectId: string; assig
           </TestModeShell>
         )}
         {view.attempt?.submittedAt && (
-          <QuizResultScreen view={view} language={lang} canViewScore={canViewScore} subjectId={subjectId} />
+          <QuizResultScreen
+            view={view}
+            language={lang}
+            canViewScore={canViewScore}
+            subjectId={subjectId}
+          />
         )}
       </div>
     </>
   );
 }
 
-function QuizPageMessage({ text, language, onRetry }: { text: string; language: Language; onRetry?: () => void }) {
+function QuizPageMessage({
+  text,
+  language,
+  onRetry,
+}: {
+  text: string;
+  language: Language;
+  onRetry?: () => void;
+}) {
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-background-color px-4 text-center font-Anuphan">
       <p className="text-icon-color/70">{text}</p>
       {onRetry && (
-        <button type="button" onClick={onRetry} className="rounded-2xl bg-primary-color px-5 py-2.5 font-medium text-white">
+        <button
+          type="button"
+          onClick={onRetry}
+          className="rounded-2xl bg-primary-color px-5 py-2.5 font-medium text-white"
+        >
           {quizLanguage.retry(language)}
         </button>
       )}

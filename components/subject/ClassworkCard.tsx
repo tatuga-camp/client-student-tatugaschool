@@ -209,9 +209,7 @@ function ClassworkCard({
         {hasScore && (
           <div className="flex shrink-0 flex-col items-end justify-center">
             {canViewScore ? (
-              <ScoreBubble
-                {...displayScore(classwork, soa.score ?? 0)}
-              />
+              <ScoreBubble {...displayScore(classwork, soa.score ?? 0)} />
             ) : (
               <ScoreHiddenBadge size="sm" />
             )}
@@ -219,24 +217,27 @@ function ClassworkCard({
         )}
       </button>
 
-      {canViewScore && graded && classwork.type === "Assignment" && classwork.rubricId && (
-        <div className="px-3">
-          <button
-            type="button"
-            onClick={() => setShowRubric((v) => !v)}
-            aria-expanded={showRubric}
-            className="mt-1 inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-semibold text-sky-600 hover:bg-sky-50"
-          >
-            📋 {subjectHomeLanguage.rubric(lang)}
-            <IoChevronDown
-              className={`transition-transform ${showRubric ? "rotate-180" : ""}`}
-            />
-          </button>
-          {showRubric && soa && (
-            <RubricBreakdown studentOnAssignmentId={soa.id} />
-          )}
-        </div>
-      )}
+      {canViewScore &&
+        graded &&
+        classwork.type === "Assignment" &&
+        classwork.rubricId && (
+          <div className="px-3">
+            <button
+              type="button"
+              onClick={() => setShowRubric((v) => !v)}
+              aria-expanded={showRubric}
+              className="mt-1 inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-semibold text-sky-600 hover:bg-sky-50"
+            >
+              📋 {subjectHomeLanguage.rubric(lang)}
+              <IoChevronDown
+                className={`transition-transform ${showRubric ? "rotate-180" : ""}`}
+              />
+            </button>
+            {showRubric && soa && (
+              <RubricBreakdown studentOnAssignmentId={soa.id} />
+            )}
+          </div>
+        )}
     </li>
   );
 }

@@ -44,10 +44,18 @@ export type StudentQuizView = {
   };
   serverNow: string;
   questionCount: number;
-  attempt: { startedAt: string; deadlineAt: string | null; submittedAt: string | null } | null;
+  attempt: {
+    startedAt: string;
+    deadlineAt: string | null;
+    submittedAt: string | null;
+  } | null;
   questions: StudentQuizQuestion[];
   answers: ({ questionId: string } & QuizAnswerDraft)[];
-  result: { score: number; maxScore: number; questions: StudentQuizResultQuestion[] | null } | null;
+  result: {
+    score: number;
+    maxScore: number;
+    questions: StudentQuizResultQuestion[] | null;
+  } | null;
 };
 
 export type IntegrityEventType =
@@ -63,4 +71,8 @@ export type IntegrityEventType =
   | "PAGE_HIDE"
   | "PAGE_SHOW";
 
-export type IntegrityEvent = { type: IntegrityEventType; clientAt: string; durationMs?: number };
+export type IntegrityEvent = {
+  type: IntegrityEventType;
+  clientAt: string;
+  durationMs?: number;
+};

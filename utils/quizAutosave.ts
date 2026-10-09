@@ -6,7 +6,10 @@ export const AUTOSAVE_MAX_BACKOFF_MS = 30_000;
 export const AUTOSAVE_FLUSH_PAUSE_MS = 1000;
 
 export function autosaveBackoffMs(attempt: number): number {
-  return Math.min(AUTOSAVE_MAX_BACKOFF_MS, 1000 * 2 ** (Math.max(1, attempt) - 1));
+  return Math.min(
+    AUTOSAVE_MAX_BACKOFF_MS,
+    1000 * 2 ** (Math.max(1, attempt) - 1),
+  );
 }
 
 type TimerHandle = unknown;
@@ -150,7 +153,8 @@ export function createAnswerAutosaver<A>(deps: {
         const round = Promise.all([...pending.keys()].map((id) => save(id)));
         // A stalled request must not hold flush past its deadline.
         await Promise.race([round, sleep(Math.max(0, deadline - now()))]);
-        if (pending.size > 0 && now() < deadline) await sleep(Math.min(AUTOSAVE_FLUSH_PAUSE_MS, deadline - now()));
+        if (pending.size > 0 && now() < deadline)
+          await sleep(Math.min(AUTOSAVE_FLUSH_PAUSE_MS, deadline - now()));
       }
       return pending.size === 0;
     } finally {
@@ -158,7 +162,8 @@ export function createAnswerAutosaver<A>(deps: {
       if (flushing === 0) cancelSleeps();
       if (flushing === 0 && !stopped()) {
         pending.forEach((_, id) => {
-          if (!timers.has(id) && !sending.has(id)) arm(id, autosaveBackoffMs(attempts.get(id) ?? 1));
+          if (!timers.has(id) && !sending.has(id))
+            arm(id, autosaveBackoffMs(attempts.get(id) ?? 1));
         });
       }
     }
