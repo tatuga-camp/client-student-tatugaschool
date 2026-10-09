@@ -32,7 +32,6 @@ function AssignmentStatusCard({ status }: Props) {
     <span
       className={`inline-flex w-max max-w-full items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold ${style.chip}`}
     >
-      <span aria-hidden>{style.emoji}</span>
       <span className="truncate">{label}</span>
     </span>
   );

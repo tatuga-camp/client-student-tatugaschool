@@ -235,13 +235,6 @@ function Classwork({ subjectId }: Props) {
 
           {!assignments.isLoading && visibleAssignments.length === 0 ? (
             <SubjectEmptyState
-              emoji={
-                sortedAssignments.length === 0
-                  ? "📚"
-                  : filter === "todo"
-                    ? "🎉"
-                    : "🔍"
-              }
               text={
                 sortedAssignments.length === 0
                   ? subjectHomeLanguage.emptyClasswork(lang)
@@ -288,7 +281,6 @@ function Classwork({ subjectId }: Props) {
           {announcements.isLoading && <LoadingBar />}
           {!announcements.isLoading && announcementCount === 0 ? (
             <SubjectEmptyState
-              emoji="📣"
               text={subjectHomeLanguage.emptyAnnouncements(lang)}
             />
           ) : (

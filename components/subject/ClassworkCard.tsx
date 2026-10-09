@@ -185,10 +185,10 @@ function ClassworkCard({
                   className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${DUE_CHIP[urgency]}`}
                 >
                   {urgency === "overdue"
-                    ? `⏰ ${subjectHomeLanguage.dueOverdue(lang, dueText)}`
+                    ? `${subjectHomeLanguage.dueOverdue(lang, dueText)}`
                     : urgency === "soon"
-                      ? `⚡ ${subjectHomeLanguage.dueSoon(lang, dueText)}`
-                      : `📅 ${subjectHomeLanguage.dueLater(lang, dueText)}`}
+                      ? `${subjectHomeLanguage.dueSoon(lang, dueText)}`
+                      : ` ${subjectHomeLanguage.dueLater(lang, dueText)}`}
                 </span>
               )}
               {!isMaterial && classwork.weight !== null && (
