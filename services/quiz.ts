@@ -17,6 +17,10 @@ async function call<T>(config: AxiosRequestConfig): Promise<T> {
 
 const base = (soaId: string) => `v1/student/quiz/${soaId}`;
 
+// The shared axios instance waits up to 10 minutes. Quiz writes must fail fast on
+// flaky Wi-Fi so autosave and the integrity sender retry instead of hanging.
+const QUIZ_WRITE_TIMEOUT_MS = 15_000;
+
 export function GetStudentQuizService(soaId: string) {
   return call<StudentQuizView>({ method: "GET", url: base(soaId) });
 }
@@ -30,6 +34,7 @@ export function SaveQuizAnswerService(soaId: string, questionId: string, answer:
     method: "PUT",
     url: `${base(soaId)}/answers/${questionId}`,
     data: answer,
+    timeout: QUIZ_WRITE_TIMEOUT_MS,
   });
 }
 
@@ -40,7 +45,12 @@ export function SubmitQuizService(soaId: string) {
 export type IntegrityBatch = { events: IntegrityEvent[]; heartbeat: boolean };
 
 export function SendIntegrityBatchService(soaId: string, batch: IntegrityBatch) {
-  return call<{ ok: true }>({ method: "POST", url: `${base(soaId)}/integrity`, data: batch });
+  return call<{ ok: true }>({
+    method: "POST",
+    url: `${base(soaId)}/integrity`,
+    data: batch,
+    timeout: QUIZ_WRITE_TIMEOUT_MS,
+  });
 }
 
 /**
