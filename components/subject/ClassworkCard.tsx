@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { BiBook, BiLock } from "react-icons/bi";
-import { MdAssignment, MdVideoLibrary } from "react-icons/md";
+import { MdAssignment, MdQuiz, MdVideoLibrary } from "react-icons/md";
 import { classworkCardDataLanguage } from "../../data/languages";
 import {
   Assignment,
@@ -64,6 +64,19 @@ function ClassworkCard({
           canViewScore={canViewScore}
           subjectId={subjectId}
           assignment={classwork}
+          onSelect={(a) => {
+            onSelect(a);
+          }}
+        />
+      )}
+
+      {classwork.type === "Quiz" && (
+        <AssignmentVideoCard
+          locked={locked}
+          canViewScore={canViewScore}
+          subjectId={subjectId}
+          assignment={classwork}
+          icon={<MdQuiz />}
           onSelect={(a) => {
             onSelect(a);
           }}
@@ -299,6 +312,7 @@ type PropsAssignmentVideoCard = {
   onSelect: (classwork: Assignment) => void;
   canViewScore: boolean;
   locked?: boolean;
+  icon?: React.ReactNode;
 };
 function AssignmentVideoCard({
   assignment,
@@ -306,6 +320,7 @@ function AssignmentVideoCard({
   onSelect,
   canViewScore,
   locked,
+  icon,
 }: PropsAssignmentVideoCard) {
   const language = useGetLanguage();
   const handleColor = (status: StudentAssignmentStatus) => {
@@ -346,7 +361,7 @@ function AssignmentVideoCard({
         <div
           className={`flex h-14 w-14 items-center justify-center rounded-full bg-${color}-100 text-2xl text-${color}-500`}
         >
-          <MdVideoLibrary />
+          {icon ?? <MdVideoLibrary />}
         </div>
 
         <div className="w-max">

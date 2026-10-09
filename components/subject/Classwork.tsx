@@ -135,7 +135,11 @@ function Classwork({ subjectId }: Props) {
               locked={isLocked}
               canViewScore={canStudentViewScore(subject.data, classwork)}
               onSelect={(a) => {
-                router.push(`/subject/${subjectId}/assignment/${a.id}`);
+                router.push(
+                  a.type === "Quiz"
+                    ? `/subject/${subjectId}/quiz/${a.id}`
+                    : `/subject/${subjectId}/assignment/${a.id}`,
+                );
               }}
               classwork={classwork}
               subjectId={subjectId}
