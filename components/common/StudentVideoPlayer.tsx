@@ -1,5 +1,6 @@
 import React, {
   useEffect,
+  useMemo,
   useRef,
   useState,
   forwardRef,
@@ -20,6 +21,8 @@ import {
 import { QuestionOnVideo } from "../../interfaces";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { parseYouTubeId, YT_STATE } from "../../utils/youtube";
+import YouTubeEmbed, { YouTubeEmbedHandle } from "./YouTubeEmbed";
 
 export type VideoConfig = {
   preventFastForward: boolean;
@@ -42,6 +45,37 @@ const StudentVideoPlayer = forwardRef<StudentVideoPlayerRef, Props>(
   ({ src, config, onSubmit, cannotSummit, nextVideoURL }, ref) => {
     const router = useRouter();
     const videoRef = useRef<HTMLVideoElement>(null);
+    const ytRef = useRef<YouTubeEmbedHandle>(null);
+    const youTubeId = useMemo(() => parseYouTubeId(src), [src]);
+    // YouTube's own play button takes the first tap (mobile browsers may
+    // refuse a play() from outside the iframe); after that Tatuga's controls
+    // sit on top so students can't scrub with YouTube's UI.
+    const [ytStarted, setYtStarted] = useState(false);
+    const ytPlayingRef = useRef(false);
+
+    // One surface over the uploaded <video> and the YouTube player.
+    const media = {
+      play: () => {
+        if (youTubeId) ytRef.current?.play();
+        else videoRef.current?.play();
+      },
+      pause: () => {
+        if (youTubeId) ytRef.current?.pause();
+        else videoRef.current?.pause();
+      },
+      seek: (seconds: number) => {
+        if (youTubeId) ytRef.current?.seek(seconds);
+        else if (videoRef.current) videoRef.current.currentTime = seconds;
+      },
+      setVolume: (volume: number) => {
+        if (youTubeId) ytRef.current?.setVolume(volume);
+        else if (videoRef.current) videoRef.current.volume = volume;
+      },
+      setMuted: (muted: boolean) => {
+        if (youTubeId) ytRef.current?.setMuted(muted);
+        else if (videoRef.current) videoRef.current.muted = muted;
+      },
+    };
     const containerRef = useRef<HTMLDivElement>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
@@ -91,16 +125,10 @@ const StudentVideoPlayer = forwardRef<StudentVideoPlayerRef, Props>(
       };
     }, []);
 
-    useEffect(() => {
-      const video = videoRef.current;
-      if (!video) return;
-
-      const handleTimeUpdate = () => {
-        const now = video.currentTime;
-
+    const handleTick = (now: number) => {
         if (config?.preventFastForward) {
           if (now > maxTimeWatchedRef.current + 1) {
-            video.currentTime = maxTimeWatchedRef.current;
+            media.seek(maxTimeWatchedRef.current);
             return;
           }
         }
@@ -121,25 +149,35 @@ const StudentVideoPlayer = forwardRef<StudentVideoPlayerRef, Props>(
           );
 
           if (question) {
-            video.pause();
+            media.pause();
             setIsPlaying(false);
             setCurrentQuestion(question);
             // Optional: Exit fullscreen when question appears?
             // User didn't ask for this, but popup might be better in fullscreen now that we moved it.
           }
         }
-      };
+    };
+    const tickRef = useRef(handleTick);
+    tickRef.current = handleTick;
 
+    const handleEnded = () => {
+      setIsPlaying(false);
+      if (config?.questions && config.questions.length > 0) {
+        setShowSummary(true);
+      }
+    };
+    const endedRef = useRef(handleEnded);
+    endedRef.current = handleEnded;
+
+    useEffect(() => {
+      const video = videoRef.current;
+      if (!video) return;
+
+      const handleTimeUpdate = () => tickRef.current(video.currentTime);
       const handleLoadedMetadata = () => {
         setDuration(video.duration);
       };
-
-      const handleEnded = () => {
-        setIsPlaying(false);
-        if (config?.questions && config.questions.length > 0) {
-          setShowSummary(true);
-        }
-      };
+      const handleEnded = () => endedRef.current();
 
       video.addEventListener("timeupdate", handleTimeUpdate);
       video.addEventListener("loadedmetadata", handleLoadedMetadata);
@@ -150,14 +188,14 @@ const StudentVideoPlayer = forwardRef<StudentVideoPlayerRef, Props>(
         video.removeEventListener("loadedmetadata", handleLoadedMetadata);
         video.removeEventListener("ended", handleEnded);
       };
-    }, [config, answeredQuestions]);
+    }, [youTubeId]);
 
     const togglePlay = () => {
-      if (videoRef.current) {
+      if (videoRef.current || youTubeId) {
         if (isPlaying) {
-          videoRef.current.pause();
+          media.pause();
         } else {
-          videoRef.current.play();
+          media.play();
           // Force fullscreen on play
           if (!document.fullscreenElement && containerRef.current) {
             containerRef.current
@@ -175,27 +213,21 @@ const StudentVideoPlayer = forwardRef<StudentVideoPlayerRef, Props>(
         // Prevent seeking forward
         return;
       }
-      if (videoRef.current) {
-        videoRef.current.currentTime = time;
-        setCurrentTime(time);
-      }
+      media.seek(time);
+      setCurrentTime(time);
     };
 
     const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const vol = Number(e.target.value);
       setVolume(vol);
-      if (videoRef.current) {
-        videoRef.current.volume = vol;
-        setIsMuted(vol === 0);
-      }
+      media.setVolume(vol);
+      setIsMuted(vol === 0);
     };
 
     const toggleMute = () => {
-      if (videoRef.current) {
-        const newMuted = !isMuted;
-        setIsMuted(newMuted);
-        videoRef.current.muted = newMuted;
-      }
+      const newMuted = !isMuted;
+      setIsMuted(newMuted);
+      media.setMuted(newMuted);
     };
 
     const handleFullScreen = () => {
@@ -228,22 +260,18 @@ const StudentVideoPlayer = forwardRef<StudentVideoPlayerRef, Props>(
         setCurrentQuestion(null);
         setFeedbackStatus(null);
         setSelectedOptionIndex(null);
-        if (videoRef.current) {
-          videoRef.current.play();
-          setIsPlaying(true);
-        }
+        media.play();
+        setIsPlaying(true);
       }, 3000);
     };
 
     const handleRetry = () => {
-      if (videoRef.current) {
-        videoRef.current.currentTime = 0;
-        videoRef.current.play();
-        if (!document.fullscreenElement && containerRef.current) {
-          containerRef.current
-            .requestFullscreen()
-            .catch((err) => console.error(err));
-        }
+      media.seek(0);
+      media.play();
+      if (!document.fullscreenElement && containerRef.current) {
+        containerRef.current
+          .requestFullscreen()
+          .catch((err) => console.error(err));
       }
       setCurrentTime(0);
       setAnsweredQuestions([]);
@@ -257,9 +285,7 @@ const StudentVideoPlayer = forwardRef<StudentVideoPlayerRef, Props>(
     const handleSubmit = () => {
       if (onSubmit) {
         onSubmit(correctAnswers, config?.questions.length || 0);
-        if (videoRef.current) {
-          videoRef.current.currentTime = 0;
-        }
+        media.seek(0);
         setCurrentTime(0);
         setAnsweredQuestions([]);
         setCorrectAnswers(0);
@@ -457,15 +483,53 @@ const StudentVideoPlayer = forwardRef<StudentVideoPlayerRef, Props>(
             </div>
           )}
 
-          <video
-            ref={videoRef}
-            src={src}
-            className="h-full w-full object-contain"
-            onClick={togglePlay}
-          />
+          {youTubeId ? (
+            <>
+              <YouTubeEmbed
+                ref={ytRef}
+                videoId={youTubeId}
+                controls={false}
+                className="h-full w-full"
+                onReady={(d) => setDuration(d)}
+                onTime={(time, d) => {
+                  if (d > 0) setDuration((prev) => (prev === d ? prev : d));
+                  if (ytPlayingRef.current) tickRef.current(time);
+                }}
+                onStateChange={(state) => {
+                  ytPlayingRef.current = state === YT_STATE.PLAYING;
+                  if (state === YT_STATE.PLAYING) {
+                    setYtStarted(true);
+                    setIsPlaying(true);
+                  } else if (state === YT_STATE.PAUSED) {
+                    setIsPlaying(false);
+                  } else if (state === YT_STATE.ENDED) {
+                    endedRef.current();
+                  }
+                }}
+              />
+              {ytStarted && (
+                <div
+                  className="absolute inset-0"
+                  onClick={togglePlay}
+                  aria-hidden
+                />
+              )}
+            </>
+          ) : (
+            <video
+              ref={videoRef}
+              src={src}
+              className="h-full w-full object-contain"
+              onClick={togglePlay}
+            />
+          )}
 
           {/* Custom Controls */}
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+          <div
+            className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100 ${
+              youTubeId && !ytStarted ? "hidden" : ""
+            }`}
+          >
             {/* Progress Bar Container */}
             <div className="relative mb-2 flex items-center">
               {/* Markers */}
