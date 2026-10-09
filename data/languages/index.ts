@@ -13,3 +13,4 @@ export * from "./student";
 export * from "./word-cloud";
 export * from "./grade";
 export * from "./progress";
+export * from "./quiz";
