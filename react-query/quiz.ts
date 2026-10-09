@@ -10,6 +10,9 @@ export function useGetStudentQuiz(soaId: string | undefined) {
     queryFn: () => GetStudentQuizService(soaId as string),
     enabled: !!soaId,
     refetchOnWindowFocus: true,
+    // Autosave never writes into this cache, so a cached view can hold stale answers.
+    // Always refetch on mount; the page waits for isFetchedAfterMount before rendering.
+    refetchOnMount: "always",
   });
 }
 

@@ -10,13 +10,17 @@ import QuizQuestionView from "./QuizQuestionView";
 type Props = {
   soaId: string;
   view: StudentQuizView;
+  /** Client time (ms) when `view` was fetched: the query's dataUpdatedAt. */
+  fetchedAt: number;
   language: Language;
   submitting: boolean;
-  onSubmit: () => Promise<void>;
+  onSubmit: (options?: { quiet?: boolean }) => Promise<boolean>;
   onClosed: () => void;
 };
 
-export default function QuizTakeScreen({ soaId, view, language, submitting, onSubmit, onClosed }: Props) {
+const AUTO_SUBMIT_RETRY_MS = 5_000;
+
+export default function QuizTakeScreen({ soaId, view, fetchedAt, language, submitting, onSubmit, onClosed }: Props) {
   const questions = view.questions;
   const [index, setIndex] = useState(0);
   const [reviewOpen, setReviewOpen] = useState(false);
@@ -24,20 +28,25 @@ export default function QuizTakeScreen({ soaId, view, language, submitting, onSu
     () => new Map(view.answers.map((a) => [a.questionId, { selectedOptionIds: a.selectedOptionIds, blankAnswers: a.blankAnswers }])),
   );
   const autosave = useQuizAutosave(soaId, () => onClosed());
-  const offsetRef = useRef(clockOffset(view.serverNow, Date.now()));
+  // offset = serverNow - clientNowAtFetch; recomputed whenever a refetch brings a new serverNow.
+  const offset = useMemo(() => clockOffset(view.serverNow, fetchedAt), [view.serverNow, fetchedAt]);
   const [now, setNow] = useState(Date.now());
   const autoSubmitted = useRef(false);
+  const retryTimer = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     const id = window.setInterval(() => setNow(Date.now()), 1000);
-    return () => window.clearInterval(id);
+    return () => {
+      window.clearInterval(id);
+      window.clearTimeout(retryTimer.current);
+    };
   }, []);
 
-  const left = remainingMs(view.attempt?.deadlineAt ?? null, offsetRef.current, now);
+  const left = remainingMs(view.attempt?.deadlineAt ?? null, offset, now);
   const answered = useMemo(() => answeredIds(answers), [answers]);
   const question = questions[index];
 
-  const submit = async (force = false) => {
+  const submit = async (force = false, quiet = false) => {
     const savedAll = await autosave.flush();
     if (!savedAll && !force) {
       const answer = await Swal.fire({
@@ -49,14 +58,22 @@ export default function QuizTakeScreen({ soaId, view, language, submitting, onSu
       });
       if (!answer.isConfirmed) return;
     }
-    await onSubmit();
+    return onSubmit({ quiet });
   };
 
   useEffect(() => {
     if (left !== null && left <= 0 && !autoSubmitted.current) {
       autoSubmitted.current = true;
-      Swal.fire({ text: quizLanguage.timeUp(language), showConfirmButton: false, timer: 2500 });
-      void submit(true);
+      if (!retryTimer.current) Swal.fire({ text: quizLanguage.timeUp(language), showConfirmButton: false, timer: 2500 });
+      void submit(true, true).then((ok) => {
+        // Network down at the deadline: try again shortly instead of sitting on 00:00.
+        if (ok === false) {
+          retryTimer.current = window.setTimeout(() => {
+            autoSubmitted.current = false;
+            setNow(Date.now());
+          }, AUTO_SUBMIT_RETRY_MS);
+        }
+      });
     }
   }, [left]);
 
@@ -111,7 +128,7 @@ export default function QuizTakeScreen({ soaId, view, language, submitting, onSu
         <div className="h-1.5 overflow-hidden rounded-full bg-gray-100">
           <div className="h-full rounded-full bg-primary-color transition-all" style={{ width: `${(answered.size / questions.length) * 100}%` }} />
         </div>
-        <nav className="flex gap-1.5 overflow-x-auto pb-1" aria-label="Questions">
+        <nav className="flex gap-1.5 overflow-x-auto pb-1" aria-label={quizLanguage.questionsNav(language)}>
           {questions.map((q, i) => (
             <button
               key={q.id}

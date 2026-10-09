@@ -47,5 +47,9 @@ export const quizLanguage = {
   correctAnswer: t("Correct answer", "คำตอบที่ถูก"),
   noAnswer: t("No answer", "ไม่ได้ตอบ"),
   backToClass: t("Back to class", "กลับไปที่ห้องเรียน"),
+  questionsNav: t("Questions", "ข้อสอบ"),
+  notFound: t("This quiz isn't available.", "ไม่พบแบบทดสอบนี้"),
+  loadFailed: t("Couldn't load the quiz.", "โหลดแบบทดสอบไม่สำเร็จ"),
+  retry: t("Try again", "ลองอีกครั้ง"),
   resetByTeacher: t("Your teacher reset this quiz. You can start again.", "ครูรีเซ็ตแบบทดสอบนี้แล้ว คุณเริ่มทำใหม่ได้"),
 };

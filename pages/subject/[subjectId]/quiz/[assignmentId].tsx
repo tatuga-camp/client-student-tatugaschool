@@ -18,7 +18,8 @@ import QuizStartScreen from "../../../../components/quiz/QuizStartScreen";
 import QuizTakeScreen from "../../../../components/quiz/QuizTakeScreen";
 import TestModeShell from "../../../../components/quiz/TestModeShell";
 import { quizLanguage } from "../../../../data/languages";
-import { ErrorMessages } from "../../../../interfaces";
+import { ErrorMessages, Language } from "../../../../interfaces";
+import { errorSwalContent } from "../../../../utils/errorSwal";
 import { canStudentViewScore } from "../../../../utils/scoreVisibility";
 
 function requestFullscreenIfSupported() {
@@ -54,13 +55,30 @@ function StudentQuizPage({ subjectId, assignmentId }: { subjectId: string; assig
   const start = useStartQuiz();
   const submit = useSubmitQuiz();
 
-  const fail = (error: unknown) => {
-    const result = error as ErrorMessages;
-    Swal.fire({ title: result?.error ?? "Error", text: result?.message?.toString(), icon: "error" });
-  };
+  const fail = (error: unknown) => Swal.fire({ ...errorSwalContent(error), icon: "error" });
 
   const view = quiz.data;
-  if (!soaId || !view) {
+  if (assignments.isError || (assignments.isSuccess && !soaId)) {
+    return (
+      <QuizPageMessage
+        text={assignments.isError ? errorSwalContent(assignments.error).text : quizLanguage.notFound(lang)}
+        language={lang}
+        onRetry={assignments.isError ? () => void assignments.refetch() : undefined}
+      />
+    );
+  }
+  if (quiz.isError && !quiz.isFetching) {
+    return (
+      <QuizPageMessage
+        text={`${quizLanguage.loadFailed(lang)} ${errorSwalContent(quiz.error).text}`}
+        language={lang}
+        onRetry={() => void quiz.refetch()}
+      />
+    );
+  }
+  // Wait for a fetch made after this mount: a cached view can hold stale answers and an old
+  // serverNow, which would seed the take screen with lost answers and a wrong clock.
+  if (!soaId || !view || !quiz.isFetchedAfterMount) {
     return <div className="flex min-h-dvh items-center justify-center bg-background-color font-Anuphan text-icon-color/60">…</div>;
   }
 
@@ -73,14 +91,17 @@ function StudentQuizPage({ subjectId, assignmentId }: { subjectId: string; assig
     }
   };
 
-  const onSubmit = async () => {
+  /** Resolves true when the submit landed. `quiet` skips the error dialog (timed auto-submit retries). */
+  const onSubmit = async (options?: { quiet?: boolean }) => {
     try {
       await submit.mutateAsync(soaId);
+      return true;
     } catch (error) {
       // Already finalized by the server (deadline) or reset: show the real state.
       await quiz.refetch();
       const message = (error as ErrorMessages)?.message;
-      if (message !== "QUIZ_CLOSED" && message !== "QUIZ_NOT_STARTED") fail(error);
+      if (!options?.quiet && message !== "QUIZ_CLOSED" && message !== "QUIZ_NOT_STARTED") fail(error);
+      return false;
     }
   };
 
@@ -105,6 +126,7 @@ function StudentQuizPage({ subjectId, assignmentId }: { subjectId: string; assig
               key={view.attempt!.startedAt}
               soaId={soaId}
               view={view}
+              fetchedAt={quiz.dataUpdatedAt}
               language={lang}
               submitting={submit.isPending}
               onSubmit={onSubmit}
@@ -117,5 +139,18 @@ function StudentQuizPage({ subjectId, assignmentId }: { subjectId: string; assig
         )}
       </div>
     </>
+  );
+}
+
+function QuizPageMessage({ text, language, onRetry }: { text: string; language: Language; onRetry?: () => void }) {
+  return (
+    <div className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-background-color px-4 text-center font-Anuphan">
+      <p className="text-icon-color/70">{text}</p>
+      {onRetry && (
+        <button type="button" onClick={onRetry} className="rounded-2xl bg-primary-color px-5 py-2.5 font-medium text-white">
+          {quizLanguage.retry(language)}
+        </button>
+      )}
+    </div>
   );
 }
