@@ -48,9 +48,17 @@ export default function Page() {
 function StudentQuizPage({ subjectId, assignmentId }: { subjectId: string; assignmentId: string }) {
   const language = useGetLanguage();
   const lang = language.data ?? "en";
-  const assignments = useGetAssignments({ subjectId });
+  // Only used to resolve soaId, so no 10 s polling for the whole attempt.
+  const assignments = useGetAssignments({ subjectId }, { refetchInterval: false });
   const subject = useGetSubjectById({ id: subjectId });
-  const soaId = assignments.data?.find((a) => a.id === assignmentId)?.studentOnAssignment?.id;
+  const foundSoaId = assignments.data?.find((a) => a.id === assignmentId)?.studentOnAssignment?.id;
+  // Keep soaId once resolved: a failed background refetch must never unmount the take screen
+  // (that would dispose the autosave queue and drop unsaved answers).
+  const [resolvedSoaId, setResolvedSoaId] = React.useState<string | undefined>(foundSoaId);
+  React.useEffect(() => {
+    if (foundSoaId && !resolvedSoaId) setResolvedSoaId(foundSoaId);
+  }, [foundSoaId, resolvedSoaId]);
+  const soaId = resolvedSoaId ?? foundSoaId;
   const quiz = useGetStudentQuiz(soaId);
   const start = useStartQuiz();
   const submit = useSubmitQuiz();
@@ -58,7 +66,9 @@ function StudentQuizPage({ subjectId, assignmentId }: { subjectId: string; assig
   const fail = (error: unknown) => Swal.fire({ ...errorSwalContent(error), icon: "error" });
 
   const view = quiz.data;
-  if (assignments.isError || (assignments.isSuccess && !soaId)) {
+  // Error screens only when there is nothing to render. TanStack keeps `data` on a failed
+  // background refetch, and replacing a running take screen would lose unsaved answers.
+  if (!soaId && (assignments.isError || assignments.isSuccess)) {
     return (
       <QuizPageMessage
         text={assignments.isError ? errorSwalContent(assignments.error).text : quizLanguage.notFound(lang)}
@@ -67,7 +77,7 @@ function StudentQuizPage({ subjectId, assignmentId }: { subjectId: string; assig
       />
     );
   }
-  if (quiz.isError && !quiz.isFetching) {
+  if (quiz.isError && !quiz.isFetching && !view) {
     return (
       <QuizPageMessage
         text={`${quizLanguage.loadFailed(lang)} ${errorSwalContent(quiz.error).text}`}

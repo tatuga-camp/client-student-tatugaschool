@@ -23,7 +23,9 @@ export default function QuizQuestionView({ question, answer, onChange, language 
         ],
       });
     return (
-      <p className="select-none text-lg leading-[3rem] text-icon-color">
+      <div className="flex flex-col gap-4">
+        {question.imageUrl && <img src={question.imageUrl} alt="" className="max-h-64 rounded-2xl object-contain" />}
+        <p className="select-none text-lg leading-[3rem] text-icon-color">
         {promptSegments(question.prompt).map((segment, i) =>
           segment.kind === "text" ? (
             <span key={i}>{segment.text}</span>
@@ -40,7 +42,8 @@ export default function QuizQuestionView({ question, answer, onChange, language 
             />
           ),
         )}
-      </p>
+        </p>
+      </div>
     );
   }
 
@@ -75,7 +78,10 @@ export default function QuizQuestionView({ question, answer, onChange, language 
                 }`}
               >
                 <Icon className={`shrink-0 text-2xl ${on ? "text-primary-color" : "text-icon-color/30"}`} />
-                <span>{option.text}</span>
+                <span className="flex flex-col gap-2">
+                  {option.imageUrl && <img src={option.imageUrl} alt="" className="max-h-40 rounded-xl object-contain" />}
+                  <span>{option.text}</span>
+                </span>
               </button>
             </li>
           );

@@ -9,10 +9,13 @@ type Props = { view: StudentQuizView; language: Language; canViewScore: boolean;
 
 function ResultItem({ q, view, language }: { q: StudentQuizResultQuestion; view: StudentQuizView; language: Language }) {
   const mine = view.answers.find((a) => a.questionId === q.id);
+  const image = q.imageUrl && <img src={q.imageUrl} alt="" className="mb-2 max-h-48 rounded-xl object-contain" />;
   if (q.type === "FILL_BLANK") {
     const given = new Map((mine?.blankAnswers ?? []).map((b) => [b.blankId, b.value]));
     const accepted = new Map(q.acceptedAnswers.map((a) => [a.blankId, a.answers]));
     return (
+      <>
+      {image}
       <p className="leading-9 text-icon-color">
         {promptSegments(q.prompt).map((s, i) =>
           s.kind === "text" ? (
@@ -25,13 +28,15 @@ function ResultItem({ q, view, language }: { q: StudentQuizResultQuestion; view:
           ),
         )}
       </p>
+      </>
     );
   }
   const picked = new Set(mine?.selectedOptionIds ?? []);
   const correct = new Set(q.correctOptionIds);
   return (
     <>
-      <p className="mb-2 text-icon-color">{q.prompt}</p>
+      <p className="mb-2 whitespace-pre-line text-icon-color">{q.prompt}</p>
+      {image}
       <ul className="flex flex-col gap-1 text-sm">
         {q.options.map((o) => (
           <li
@@ -40,7 +45,10 @@ function ResultItem({ q, view, language }: { q: StudentQuizResultQuestion; view:
               correct.has(o.id) ? "bg-success-color/10" : picked.has(o.id) ? "bg-error-color/10" : ""
             }`}
           >
-            <span className="flex-1">{o.text}</span>
+            <span className="flex flex-1 flex-col gap-1">
+              {o.imageUrl && <img src={o.imageUrl} alt="" className="max-h-24 rounded-lg object-contain" />}
+              <span>{o.text}</span>
+            </span>
             {picked.has(o.id) && <span className="text-xs text-icon-color/60">{quizLanguage.yourAnswer(language)}</span>}
             {correct.has(o.id) && <MdCheckCircle className="text-success-color" aria-label={quizLanguage.correctAnswer(language)} />}
           </li>
@@ -65,14 +73,17 @@ export default function QuizResultScreen({ view, language, canViewScore, subject
           <p className="text-sm text-icon-color/60">{quizLanguage.scoreHidden(language)}</p>
         )}
       </div>
-      {canViewScore &&
-        result?.questions?.map((q, i) => (
+      {/* Two separate gates (spec): the server sends `questions` only when showAnswersAfterSubmit
+          is on; per-question scores follow score visibility. */}
+      {result?.questions?.map((q, i) => (
           <article key={q.id} className="rounded-2xl border border-gray-100 bg-white p-4">
             <div className="mb-2 flex justify-between text-xs text-icon-color/50">
               <span>{quizLanguage.questionOf(language, i + 1, result.questions!.length)}</span>
-              <span>
-                {q.score}/{q.points}
-              </span>
+              {canViewScore && (
+                <span>
+                  {q.score}/{q.points}
+                </span>
+              )}
             </div>
             <ResultItem q={q} view={view} language={language} />
           </article>
