@@ -82,3 +82,87 @@ export function isTranslatedDocument(html: { className: string; lang: string }, 
   if (/\btranslated-(ltr|rtl)\b/.test(html.className)) return true;
   return !!html.lang && !!originalLang && html.lang !== originalLang;
 }
+
+export const INTEGRITY_FLUSH_MS = 10_000;
+export const AWAY_NOTICE_MIN_MS = 2_000;
+
+type IntegrityBatchLike = { events: IntegrityEvent[]; heartbeat: boolean };
+
+/**
+ * The send side of the integrity collector, kept free of React and the DOM so
+ * it can be tested. `flush` is the heartbeat; `flushKeepalive` is for page hide.
+ * A failed send puts its events back in the queue (cap applies), so an offline
+ * student's events wait for the next heartbeat instead of being lost.
+ */
+export function createIntegritySender(deps: {
+  queue: EventQueue;
+  send: (batch: IntegrityBatchLike) => Promise<unknown>;
+  /** Resolves true when the batch was delivered (or there was nothing to send). */
+  keepalive: (batch: IntegrityBatchLike) => Promise<boolean>;
+}) {
+  const { queue, send, keepalive } = deps;
+  let inFlight = false;
+
+  const flush = async (): Promise<void> => {
+    if (inFlight) return;
+    inFlight = true;
+    const events = queue.drain();
+    try {
+      await send({ events, heartbeat: true });
+    } catch {
+      queue.restore(events);
+    } finally {
+      inFlight = false;
+    }
+  };
+
+  const flushKeepalive = async (): Promise<void> => {
+    const events = queue.drain();
+    if (events.length === 0) return;
+    let delivered = false;
+    try {
+      delivered = await keepalive({ events, heartbeat: false });
+    } catch {
+      delivered = false;
+    }
+    if (!delivered) queue.restore(events);
+  };
+
+  /** Sends a first heartbeat now, then one every `ms`. Returns a stop function. */
+  const startHeartbeat = (
+    setIntervalFn: (fn: () => void, ms: number) => unknown,
+    clearIntervalFn: (handle: unknown) => void,
+    ms = INTEGRITY_FLUSH_MS,
+  ) => {
+    void flush();
+    const handle = setIntervalFn(() => void flush(), ms);
+    return () => clearIntervalFn(handle);
+  };
+
+  return { flush, flushKeepalive, startHeartbeat };
+}
+
+export function shouldShowAwayNotice(awayMs: number | null): awayMs is number {
+  return awayMs !== null && awayMs >= AWAY_NOTICE_MIN_MS;
+}
+
+type TargetLike = { tagName?: string } | null | undefined;
+
+const isTextInputTarget = (target: TargetLike) => {
+  const tag = target?.tagName?.toUpperCase();
+  return tag === "INPUT" || tag === "TEXTAREA";
+};
+
+/**
+ * What the Test mode shell does with a clipboard or context-menu event.
+ * Text fields keep normal behaviour so students can fix their own answers.
+ * Paste is recorded but never prevented (detect only).
+ */
+export function clipboardPolicy(
+  kind: "copy" | "paste" | "contextmenu",
+  target: TargetLike,
+): { preventDefault: boolean; report: IntegrityEvent["type"] | null } {
+  if (kind === "paste") return { preventDefault: false, report: "PASTE_ATTEMPT" };
+  if (isTextInputTarget(target)) return { preventDefault: false, report: null };
+  return kind === "copy" ? { preventDefault: true, report: "COPY_ATTEMPT" } : { preventDefault: true, report: null };
+}

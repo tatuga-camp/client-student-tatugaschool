@@ -44,17 +44,22 @@ export function SendIntegrityBatchService(soaId: string, batch: IntegrityBatch) 
 
 /**
  * Used on page hide. It survives the page freezing or closing, and unlike
- * sendBeacon it can send the Bearer header the API requires.
+ * sendBeacon it can send the Bearer header the API requires. Resolves true
+ * when the batch was delivered (or was empty), false when it could not be
+ * sent, so the caller can keep the events queued.
  */
-export function sendIntegrityKeepalive(soaId: string, batch: IntegrityBatch): void {
+export function sendIntegrityKeepalive(soaId: string, batch: IntegrityBatch): Promise<boolean> {
+  if (batch.events.length === 0) return Promise.resolve(true);
   const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL ?? "";
   const { access_token } = getAccessToken();
-  if (!serverUrl || !access_token || batch.events.length === 0) return;
+  if (!serverUrl || !access_token) return Promise.resolve(false);
   const url = new URL(`${base(soaId)}/integrity`, serverUrl.endsWith("/") ? serverUrl : `${serverUrl}/`);
-  fetch(url.toString(), {
+  return fetch(url.toString(), {
     method: "POST",
     keepalive: true,
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${access_token}` },
     body: JSON.stringify(batch),
-  }).catch(() => undefined);
+  })
+    .then((res) => res.ok)
+    .catch(() => false);
 }

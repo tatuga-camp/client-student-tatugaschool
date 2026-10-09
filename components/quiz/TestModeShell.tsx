@@ -4,6 +4,7 @@ import { MdVisibility } from "react-icons/md";
 import { quizLanguage } from "../../data/languages";
 import { useQuizIntegrity } from "../../hook/useQuizIntegrity";
 import { useGetLanguage } from "../../react-query";
+import { clipboardPolicy } from "../../utils/quizIntegrity";
 
 type Props = { soaId: string; enabled: boolean; children: React.ReactNode };
 
@@ -15,23 +16,19 @@ export default function TestModeShell({ soaId, enabled, children }: Props) {
 
   if (!enabled) return <>{children}</>;
 
-  const isTextInput = (target: EventTarget | null) =>
-    target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement;
+  const handle = (kind: "copy" | "paste" | "contextmenu") => (e: React.SyntheticEvent) => {
+    const policy = clipboardPolicy(kind, e.target as Element | null);
+    if (policy.preventDefault) e.preventDefault();
+    if (policy.report) report(policy.report);
+  };
 
   return (
     <div
       translate="no"
       className="notranslate"
-      onCopy={(e) => {
-        if (isTextInput(e.target)) return;
-        e.preventDefault();
-        report("COPY_ATTEMPT");
-      }}
-      onPaste={() => report("PASTE_ATTEMPT")}
-      onContextMenu={(e) => {
-        if (isTextInput(e.target)) return;
-        e.preventDefault();
-      }}
+      onCopy={handle("copy")}
+      onPaste={handle("paste")}
+      onContextMenu={handle("contextmenu")}
     >
       <Head>
         <meta name="google" content="notranslate" />

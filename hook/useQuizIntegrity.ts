@@ -1,10 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { IntegrityEvent, IntegrityEventType } from "../interfaces";
 import { SendIntegrityBatchService, sendIntegrityKeepalive } from "../services/quiz";
-import { createIntegrityTracker, EventQueue, isScreenshotKey, isTranslatedDocument } from "../utils/quizIntegrity";
-
-const FLUSH_MS = 10_000;
-const NOTICE_MIN_MS = 2_000;
+import {
+  createIntegritySender,
+  createIntegrityTracker,
+  EventQueue,
+  isScreenshotKey,
+  isTranslatedDocument,
+  shouldShowAwayNotice,
+} from "../utils/quizIntegrity";
 
 export function useQuizIntegrity(soaId: string, enabled: boolean) {
   const queueRef = useRef(new EventQueue(200));
@@ -20,24 +24,16 @@ export function useQuizIntegrity(soaId: string, enabled: boolean) {
     // Wall clock on purpose: performance.now() can pause while a phone is suspended,
     // which would undercount exactly the absences we care about.
     const tracker = createIntegrityTracker(() => Date.now(), () => new Date().toISOString());
-    let inFlight = false;
-
-    const flush = async () => {
-      if (inFlight) return;
-      inFlight = true;
-      const events = queue.drain();
-      try {
-        await SendIntegrityBatchService(soaId, { events, heartbeat: true });
-      } catch {
-        queue.restore(events);
-      } finally {
-        inFlight = false;
-      }
-    };
+    const sender = createIntegritySender({
+      queue,
+      send: (batch) => SendIntegrityBatchService(soaId, batch),
+      keepalive: (batch) => sendIntegrityKeepalive(soaId, batch),
+    });
+    const flush = sender.flush;
     const push = (events: IntegrityEvent[]) => queue.push(events);
-    const flushKeepalive = () => sendIntegrityKeepalive(soaId, { events: queue.drain(), heartbeat: false });
+    const flushKeepalive = () => void sender.flushKeepalive();
     const notice = (awayMs: number | null) => {
-      if (awayMs !== null && awayMs >= NOTICE_MIN_MS) setAwayNoticeMs(awayMs);
+      if (shouldShowAwayNotice(awayMs)) setAwayNoticeMs(awayMs);
     };
 
     const onVisibility = () => {
@@ -93,11 +89,14 @@ export function useQuizIntegrity(soaId: string, enabled: boolean) {
     window.addEventListener("keyup", onKey); // PrintScreen arrives on keyup on Windows
     window.addEventListener("keydown", onKey); // macOS Cmd+Shift+3/4/5, when the OS lets it through
     document.addEventListener("fullscreenchange", onFullscreen);
-    void flush(); // first heartbeat
-    const interval = window.setInterval(() => void flush(), FLUSH_MS);
+    // First heartbeat now, then every 10 s.
+    const stopHeartbeat = sender.startHeartbeat(
+      (fn, ms) => window.setInterval(fn, ms),
+      (handle) => window.clearInterval(handle as number),
+    );
 
     return () => {
-      window.clearInterval(interval);
+      stopHeartbeat();
       observer.disconnect();
       document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("blur", onBlur);
