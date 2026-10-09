@@ -20,6 +20,7 @@ export interface Assignment {
   videoURL?: string;
   tags: string[];
   quizSettings?: QuizSettings | null;
+  rubricId?: string | null;
 }
 
 export type AssignmentStatus = "Published" | "Draft";
