@@ -171,10 +171,7 @@ function Grade({ subjectId, studentId }: Props) {
       </section>
 
       {!hasAnyScore && (
-        <SubjectEmptyState
-          emoji="✨"
-          text={subjectHomeLanguage.noScores(lang)}
-        />
+        <SubjectEmptyState text={subjectHomeLanguage.noScores(lang)} />
       )}
 
       {/* Classwork scores */}

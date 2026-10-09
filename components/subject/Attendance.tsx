@@ -158,10 +158,7 @@ function Attendance({ subjectId, studentId }: Props) {
 
       {!attendanceTables.isLoading &&
         (!selectTable || rows.length === 0 ? (
-          <SubjectEmptyState
-            emoji="🗓️"
-            text={subjectHomeLanguage.noAttendance(lang)}
-          />
+          <SubjectEmptyState text={subjectHomeLanguage.noAttendance(lang)} />
         ) : (
           <>
             {/* Hero: how often the student came to class */}
