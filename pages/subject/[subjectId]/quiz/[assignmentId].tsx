@@ -20,7 +20,7 @@ import TestModeShell from "../../../../components/quiz/TestModeShell";
 import { quizLanguage } from "../../../../data/languages";
 import { ErrorMessages, Language } from "../../../../interfaces";
 import { errorSwalContent } from "../../../../utils/errorSwal";
-import { canStudentViewScore } from "../../../../utils/scoreVisibility";
+import { canStudentViewScoreOnceLoaded } from "../../../../utils/scoreVisibility";
 
 function requestFullscreenIfSupported() {
   const el = document.documentElement;
@@ -120,7 +120,7 @@ function StudentQuizPage({ subjectId, assignmentId }: { subjectId: string; assig
     if (!fresh.data?.attempt) Swal.fire({ text: quizLanguage.resetByTeacher(lang), icon: "info" });
   };
 
-  const canViewScore = canStudentViewScore(subject.data, { allowStudentViewScore: view.assignment.allowStudentViewScore });
+  const canViewScore = canStudentViewScoreOnceLoaded(subject.isSuccess, subject.data, { allowStudentViewScore: view.assignment.allowStudentViewScore });
   const taking = !!view.attempt && !view.attempt.submittedAt;
 
   return (

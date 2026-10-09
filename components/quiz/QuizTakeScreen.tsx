@@ -24,6 +24,9 @@ export default function QuizTakeScreen({ soaId, view, fetchedAt, language, submi
   const questions = view.questions;
   const [index, setIndex] = useState(0);
   const [reviewOpen, setReviewOpen] = useState(false);
+  // Blocks a second confirm while flush() is still awaiting, before `submitting` flips.
+  const submittingRef = useRef(false);
+  const [busy, setBusy] = useState(false);
   const [answers, setAnswers] = useState<Map<string, QuizAnswerDraft>>(
     () => new Map(view.answers.map((a) => [a.questionId, { selectedOptionIds: a.selectedOptionIds, blankAnswers: a.blankAnswers }])),
   );
@@ -91,8 +94,16 @@ export default function QuizTakeScreen({ soaId, view, fetchedAt, language, submi
       cancelButtonText: quizLanguage.cancel(language),
     });
     if (answer.isConfirmed) {
+      if (submittingRef.current) return;
+      submittingRef.current = true;
+      setBusy(true);
       setReviewOpen(false);
-      await submit();
+      try {
+        await submit();
+      } finally {
+        submittingRef.current = false;
+        setBusy(false);
+      }
     }
   };
 
@@ -214,7 +225,7 @@ export default function QuizTakeScreen({ soaId, view, fetchedAt, language, submi
             )}
             <button
               type="button"
-              disabled={submitting}
+              disabled={submitting || busy}
               onClick={confirmSubmit}
               className="w-full rounded-2xl bg-primary-color py-3 font-semibold text-white disabled:opacity-50"
             >

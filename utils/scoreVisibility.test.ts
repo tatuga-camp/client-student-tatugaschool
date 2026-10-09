@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   canStudentViewScore,
+  canStudentViewScoreOnceLoaded,
   summarizeAssignmentScores,
 } from "./scoreVisibility";
 
@@ -114,4 +115,26 @@ test("summarize hides everything when the subject flag is false", () => {
     { allowStudentViewScoreOnAssignment: false },
   );
   assert.deepEqual(out, { earned: 0, max: 0, hiddenCount: 1 });
+});
+
+test("gated: hidden until the subject has loaded", () => {
+  assert.equal(
+    canStudentViewScoreOnceLoaded(false, undefined, { allowStudentViewScore: true }),
+    false,
+  );
+  assert.equal(
+    canStudentViewScoreOnceLoaded(false, { allowStudentViewScoreOnAssignment: true }, { allowStudentViewScore: true }),
+    false,
+  );
+});
+
+test("gated: follows the normal rules once the subject has loaded", () => {
+  assert.equal(
+    canStudentViewScoreOnceLoaded(true, { allowStudentViewScoreOnAssignment: true }, { allowStudentViewScore: true }),
+    true,
+  );
+  assert.equal(
+    canStudentViewScoreOnceLoaded(true, { allowStudentViewScoreOnAssignment: false }, { allowStudentViewScore: true }),
+    false,
+  );
 });
