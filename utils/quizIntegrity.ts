@@ -89,10 +89,30 @@ export const AWAY_NOTICE_MIN_MS = 2_000;
 type IntegrityBatchLike = { events: IntegrityEvent[]; heartbeat: boolean };
 
 /**
+ * True when the server rejected an integrity batch for good (409 QUIZ_CLOSED,
+ * 400 validation, 403 Test mode off, 404). Re-sending it would fail forever and
+ * hold newer events behind it, so it is dropped. Network errors (no status),
+ * 401 (token refresh), 408, 429 and 5xx stay retryable.
+ */
+export function isPermanentIntegrityRejection(status: number | null | undefined): boolean {
+  if (typeof status !== "number") return false;
+  return status >= 400 && status < 500 && status !== 401 && status !== 408 && status !== 429;
+}
+
+const statusOf = (error: unknown): number | null => {
+  if (error && typeof error === "object" && "statusCode" in error) {
+    const code = (error as { statusCode: unknown }).statusCode;
+    return typeof code === "number" ? code : null;
+  }
+  return null;
+};
+
+/**
  * The send side of the integrity collector, kept free of React and the DOM so
  * it can be tested. `flush` is the heartbeat; `flushKeepalive` is for page hide.
  * A failed send puts its events back in the queue (cap applies), so an offline
- * student's events wait for the next heartbeat instead of being lost.
+ * student's events wait for the next heartbeat instead of being lost. A batch
+ * the server rejected for good (see isPermanentIntegrityRejection) is dropped.
  */
 export function createIntegritySender(deps: {
   queue: EventQueue;
@@ -109,8 +129,10 @@ export function createIntegritySender(deps: {
     const events = queue.drain();
     try {
       await send({ events, heartbeat: true });
-    } catch {
-      queue.restore(events);
+    } catch (error) {
+      // `send` rethrows the server's error body ({ statusCode, message }) or
+      // undefined for a network failure.
+      if (!isPermanentIntegrityRejection(statusOf(error))) queue.restore(events);
     } finally {
       inFlight = false;
     }

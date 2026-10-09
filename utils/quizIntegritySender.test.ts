@@ -7,6 +7,7 @@ import {
   createIntegritySender,
   EventQueue,
   INTEGRITY_FLUSH_MS,
+  isPermanentIntegrityRejection,
   shouldShowAwayNotice,
 } from "./quizIntegrity";
 
@@ -195,5 +196,51 @@ test("context menu outside a text field is prevented but not recorded", () => {
 test("paste is recorded but never prevented, anywhere", () => {
   for (const target of [{ tagName: "INPUT" }, { tagName: "TEXTAREA" }, { tagName: "DIV" }, null]) {
     assert.deepEqual(clipboardPolicy("paste", target), { preventDefault: false, report: "PASTE_ATTEMPT" });
+  }
+});
+
+test("only permanent 4xx rejections count as permanent", () => {
+  for (const status of [400, 403, 404, 409, 422]) assert.equal(isPermanentIntegrityRejection(status), true, String(status));
+  for (const status of [null, undefined, 401, 408, 429, 500, 502, 503]) {
+    assert.equal(isPermanentIntegrityRejection(status), false, String(status));
+  }
+});
+
+test("a batch the server rejected for good (409 QUIZ_CLOSED, 400, 403) is dropped, not re-sent", async () => {
+  for (const statusCode of [400, 403, 409]) {
+    const queue = new EventQueue(200);
+    let calls = 0;
+    const sender = createIntegritySender({
+      queue,
+      send: async () => {
+        calls++;
+        if (calls === 1) throw { statusCode, message: "QUIZ_CLOSED" };
+      },
+      keepalive: async () => true,
+    });
+    queue.push([ev("HIDDEN", 0)]);
+    await sender.flush();
+    assert.equal(queue.size, 0, `status ${statusCode} batch dropped`);
+    queue.push([ev("VISIBLE", 1)]);
+    const sent: Batch[] = [];
+    const next = createIntegritySender({ queue, send: async (b) => void sent.push(b), keepalive: async () => true });
+    await next.flush();
+    assert.deepEqual(sent[0].events.map((e) => e.type), ["VISIBLE"], "newer events are not stuck behind it");
+  }
+});
+
+test("network errors, 401, 429 and 5xx keep the batch queued for the next heartbeat", async () => {
+  for (const thrown of [undefined, new Error("Network Error"), { statusCode: 401 }, { statusCode: 429 }, { statusCode: 503 }]) {
+    const queue = new EventQueue(200);
+    const sender = createIntegritySender({
+      queue,
+      send: async () => {
+        throw thrown;
+      },
+      keepalive: async () => true,
+    });
+    queue.push([ev("HIDDEN", 0)]);
+    await sender.flush();
+    assert.equal(queue.size, 1, `kept after ${JSON.stringify(thrown)}`);
   }
 });

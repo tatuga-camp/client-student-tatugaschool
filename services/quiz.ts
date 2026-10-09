@@ -1,6 +1,7 @@
 import type { AxiosRequestConfig } from "axios";
 import { IntegrityEvent, QuizAnswerDraft, StudentQuizView } from "../interfaces";
 import { getAccessToken } from "../utils/cookie";
+import { isPermanentIntegrityRejection } from "../utils/quizIntegrity";
 import createAxiosInstance from "./apiService";
 
 const axiosInstance = createAxiosInstance();
@@ -45,8 +46,8 @@ export function SendIntegrityBatchService(soaId: string, batch: IntegrityBatch) 
 /**
  * Used on page hide. It survives the page freezing or closing, and unlike
  * sendBeacon it can send the Bearer header the API requires. Resolves true
- * when the batch was delivered (or was empty), false when it could not be
- * sent, so the caller can keep the events queued.
+ * when the batch was delivered, was empty or was rejected for good, false
+ * when it could not be sent, so the caller can keep the events queued.
  */
 export function sendIntegrityKeepalive(soaId: string, batch: IntegrityBatch): Promise<boolean> {
   if (batch.events.length === 0) return Promise.resolve(true);
@@ -60,6 +61,7 @@ export function sendIntegrityKeepalive(soaId: string, batch: IntegrityBatch): Pr
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${access_token}` },
     body: JSON.stringify(batch),
   })
-    .then((res) => res.ok)
+    // A permanent rejection counts as handled so the batch is not re-queued forever.
+    .then((res) => res.ok || isPermanentIntegrityRejection(res.status))
     .catch(() => false);
 }
