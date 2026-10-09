@@ -120,7 +120,7 @@ function StudentQuizPage({ subjectId, assignmentId }: { subjectId: string; assig
     if (!fresh.data?.attempt) Swal.fire({ text: quizLanguage.resetByTeacher(lang), icon: "info" });
   };
 
-  const canViewScore = canStudentViewScoreOnceLoaded(subject.isSuccess, subject.data, { allowStudentViewScore: view.assignment.allowStudentViewScore });
+  const canViewScore = canStudentViewScoreOnceLoaded(subject.data !== undefined, subject.data, { allowStudentViewScore: view.assignment.allowStudentViewScore });
   const taking = !!view.attempt && !view.attempt.submittedAt;
 
   return (
