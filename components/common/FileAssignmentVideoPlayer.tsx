@@ -9,6 +9,13 @@ import {
 } from "react-icons/fa";
 import { MdReplay10, MdForward10 } from "react-icons/md";
 import Swal from "sweetalert2";
+import {
+  canFullscreenElements,
+  enterFullscreen,
+  enterNativeVideoFullscreen,
+  exitFullscreen,
+  getFullscreenElement,
+} from "../../utils/fullscreen";
 
 export type VideoConfig = {
   preventFastForward: boolean;
@@ -67,14 +74,23 @@ function FileAssignmentVideoPlayer({ src, config, onClose }: Props) {
       setIsPlaying(false);
     };
 
+    // Keep the play button in sync when playback is controlled elsewhere,
+    // e.g. iOS's native fullscreen player.
+    const handlePlay = () => setIsPlaying(true);
+    const handlePause = () => setIsPlaying(false);
+
     video.addEventListener("timeupdate", handleTimeUpdate);
     video.addEventListener("loadedmetadata", handleLoadedMetadata);
     video.addEventListener("ended", handleEnded);
+    video.addEventListener("play", handlePlay);
+    video.addEventListener("pause", handlePause);
 
     return () => {
       video.removeEventListener("timeupdate", handleTimeUpdate);
       video.removeEventListener("loadedmetadata", handleLoadedMetadata);
       video.removeEventListener("ended", handleEnded);
+      video.removeEventListener("play", handlePlay);
+      video.removeEventListener("pause", handlePause);
     };
   }, [config]);
 
@@ -119,12 +135,13 @@ function FileAssignmentVideoPlayer({ src, config, onClose }: Props) {
   };
 
   const handleFullScreen = () => {
-    if (containerRef.current) {
-      if (document.fullscreenElement) {
-        document.exitFullscreen();
-      } else {
-        containerRef.current.requestFullscreen();
-      }
+    if (getFullscreenElement()) {
+      exitFullscreen();
+    } else if (canFullscreenElements()) {
+      if (containerRef.current) enterFullscreen(containerRef.current);
+    } else if (videoRef.current) {
+      // iPhone: no element fullscreen, so use iOS's own video player.
+      enterNativeVideoFullscreen(videoRef.current);
     }
   };
 
