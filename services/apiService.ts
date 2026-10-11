@@ -37,7 +37,16 @@ const createAxiosInstance = () => {
         return config;
       }
       if (request?.startsWith("v1/students/student/get-as-user")) {
-        return config; // Handle specific endpoint for getting student info as user
+        // Skips the session-expired redirect below, but must still send the
+        // CURRENT cookie token: without it the request rides on whatever
+        // Authorization header was left over, i.e. a previous student's.
+        const { access_token } = getAccessToken();
+        if (access_token && !isTokenExpired(access_token)) {
+          config.headers["Authorization"] = `Bearer ${access_token}`;
+        } else {
+          delete config.headers["Authorization"];
+        }
+        return config;
       }
 
       const { refresh_token } = getRefetchtoken();
@@ -114,8 +123,9 @@ const createAxiosInstance = () => {
 
           setAccessToken({ access_token: accessToken });
 
-          instance.defaults.headers.common["Authorization"] =
-            `Bearer ${accessToken}`;
+          // Only this retry gets the new token. Never write it to
+          // instance.defaults: the instance outlives the session, so a later
+          // sign-in as another student would keep sending this token.
           originalRequest.headers["Authorization"] = `Bearer ${accessToken}`;
 
           return instance(originalRequest);
