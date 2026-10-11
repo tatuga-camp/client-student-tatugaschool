@@ -15,3 +15,4 @@ export * from "./grade";
 export * from "./progress";
 export * from "./quiz";
 export * from "./subjectHome";
+export * from "./rate-limit";

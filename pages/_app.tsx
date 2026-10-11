@@ -9,6 +9,14 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { ErrorMessages } from "../interfaces";
 import { classNames } from "primereact/utils";
+import Swal from "sweetalert2";
+import RateLimitNotice from "../components/common/RateLimitNotice";
+import { installSwalRateLimitGuard, isRateLimitError } from "../utils/rateLimit";
+
+// Pages' own error alerts would stack on the rate-limit popup.
+if (typeof window !== "undefined") {
+  installSwalRateLimitGuard(Swal);
+}
 
 const prompt = Prompt({
   subsets: ["latin", "thai"],
@@ -32,7 +40,9 @@ function MyApp({ Component, pageProps }: AppProps) {
               if (
                 errorResponse?.statusCode === 401 ||
                 errorObj?.message === "Session expired" ||
-                errorObj?.message === "Token not found"
+                errorObj?.message === "Token not found" ||
+                // Retrying a 429 right away only fails again.
+                isRateLimitError(error)
               ) {
                 return false;
               }
@@ -221,6 +231,7 @@ function MyApp({ Component, pageProps }: AppProps) {
         />
         <div className={prompt.className}>
           <Component {...pageProps} />
+          <RateLimitNotice />
         </div>
       </PrimeReactProvider>
     </QueryClientProvider>
