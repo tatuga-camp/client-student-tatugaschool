@@ -226,6 +226,7 @@ export default function QuizTakeScreen({
           answer={answers.get(question.id) ?? emptyAnswer()}
           onChange={change}
           language={language}
+          testMode={view.assignment.quizSettings.testMode}
         />
       </main>
 

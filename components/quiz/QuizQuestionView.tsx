@@ -12,12 +12,14 @@ import {
   StudentQuizQuestion,
 } from "../../interfaces";
 import { promptSegments } from "../../utils/quizTake";
+import QuestionAttachment from "./QuestionAttachment";
 
 type Props = {
   question: StudentQuizQuestion;
   answer: QuizAnswerDraft;
   onChange: (next: QuizAnswerDraft) => void;
   language: Language;
+  testMode?: boolean;
 };
 
 export default function QuizQuestionView({
@@ -25,6 +27,7 @@ export default function QuizQuestionView({
   answer,
   onChange,
   language,
+  testMode,
 }: Props) {
   if (question.type === "FILL_BLANK") {
     const value = (blankId: string) =>
@@ -39,11 +42,11 @@ export default function QuizQuestionView({
       });
     return (
       <div className="flex flex-col gap-4">
-        {question.imageUrl && (
-          <img
-            src={question.imageUrl}
-            alt=""
-            className="max-h-64 rounded-2xl object-contain"
+        {question.attachment && (
+          <QuestionAttachment
+            attachment={question.attachment}
+            language={language}
+            testMode={testMode}
           />
         )}
         <p className="select-none text-lg leading-[3rem] text-icon-color">
@@ -83,11 +86,11 @@ export default function QuizQuestionView({
       <p className="select-none whitespace-pre-line text-lg text-icon-color">
         {question.prompt}
       </p>
-      {question.imageUrl && (
-        <img
-          src={question.imageUrl}
-          alt=""
-          className="max-h-64 rounded-2xl object-contain"
+      {question.attachment && (
+        <QuestionAttachment
+          attachment={question.attachment}
+          language={language}
+          testMode={testMode}
         />
       )}
       <ul

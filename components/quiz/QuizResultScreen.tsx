@@ -8,6 +8,7 @@ import {
   StudentQuizView,
 } from "../../interfaces";
 import { promptSegments } from "../../utils/quizTake";
+import QuestionAttachment from "./QuestionAttachment";
 
 type Props = {
   view: StudentQuizView;
@@ -26,12 +27,10 @@ function ResultItem({
   language: Language;
 }) {
   const mine = view.answers.find((a) => a.questionId === q.id);
-  const image = q.imageUrl && (
-    <img
-      src={q.imageUrl}
-      alt=""
-      className="mb-2 max-h-48 rounded-xl object-contain"
-    />
+  const image = q.attachment && (
+    <div className="mb-2">
+      <QuestionAttachment attachment={q.attachment} language={language} />
+    </div>
   );
   if (q.type === "FILL_BLANK") {
     const given = new Map(
