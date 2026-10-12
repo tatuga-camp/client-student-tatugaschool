@@ -44,3 +44,4 @@ next-env.d.ts
 #tinymec
 /public/assets/libs/tinymce
 
+/public/pdf.worker.min.mjs

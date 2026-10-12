@@ -69,4 +69,20 @@ export const quizLanguage = {
     "Your teacher reset this quiz. You can start again.",
     "ครูรีเซ็ตแบบทดสอบนี้แล้ว คุณเริ่มทำใหม่ได้",
   ),
+  questionImageAlt: t("Question image", "รูปภาพประกอบคำถาม"),
+  kindLabel: (l: Language, kind: "IMAGE" | "PDF" | "VIDEO" | "AUDIO") =>
+    ({
+      IMAGE: l === "th" ? "รูปภาพ" : "Image",
+      PDF: "PDF",
+      VIDEO: l === "th" ? "วิดีโอ" : "Video",
+      AUDIO: l === "th" ? "เสียง" : "Audio",
+    })[kind],
+  openPdf: t("Open", "เปิด"),
+  closePdf: t("Close", "ปิด"),
+  pdfPage: (l: Language, n: number, total: number) =>
+    l === "th" ? `หน้า ${n} จาก ${total}` : `Page ${n} of ${total}`,
+  zoomIn: t("Zoom in", "ขยาย"),
+  zoomOut: t("Zoom out", "ย่อ"),
+  pdfLoadError: t("Couldn't open this PDF", "เปิดไฟล์ PDF นี้ไม่ได้"),
+  mediaLoadError: t("Couldn't load this file", "โหลดไฟล์นี้ไม่ได้"),
 };

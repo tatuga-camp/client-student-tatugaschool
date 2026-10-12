@@ -10,12 +10,21 @@ export type QuizSettings = {
   showAnswersAfterSubmit: boolean;
 };
 
+export type QuizAttachmentKind = "IMAGE" | "PDF" | "VIDEO" | "AUDIO";
+export type QuizAttachment = {
+  url: string;
+  name: string;
+  kind: QuizAttachmentKind;
+  mimeType: string;
+  size: number;
+};
+
 export type StudentQuizQuestion = {
   id: string;
   order: number;
   type: QuizQuestionType;
   prompt: string;
-  imageUrl: string | null;
+  attachment: QuizAttachment | null;
   points: number;
   options: { id: string; text: string; imageUrl: string | null }[];
   blanks: { id: string }[];
