@@ -26,6 +26,8 @@ export const config = {
     "/sw.js",
     "/robots.txt",
     "/sitemap.xml",
+    // pdf.js worker (~1 MB), fetched on every PDF open.
+    "/pdf.worker.min.mjs",
     // The rewrite target itself must never be limited.
     "/rate-limited.html",
   ],

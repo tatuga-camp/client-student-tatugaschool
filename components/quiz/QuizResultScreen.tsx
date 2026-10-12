@@ -29,7 +29,7 @@ function ResultItem({
   const mine = view.answers.find((a) => a.questionId === q.id);
   const image = q.attachment && (
     <div className="mb-2">
-      <QuestionAttachment attachment={q.attachment} language={language} />
+      <QuestionAttachment key={q.attachment.url} attachment={q.attachment} language={language} />
     </div>
   );
   if (q.type === "FILL_BLANK") {

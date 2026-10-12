@@ -44,6 +44,7 @@ export default function QuizQuestionView({
       <div className="flex flex-col gap-4">
         {question.attachment && (
           <QuestionAttachment
+            key={question.attachment.url}
             attachment={question.attachment}
             language={language}
             testMode={testMode}
@@ -88,6 +89,7 @@ export default function QuizQuestionView({
       </p>
       {question.attachment && (
         <QuestionAttachment
+          key={question.attachment.url}
           attachment={question.attachment}
           language={language}
           testMode={testMode}
