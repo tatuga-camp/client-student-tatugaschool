@@ -1,5 +1,5 @@
 import React from "react";
-import { FileOnStudentOnAssignment } from "../../interfaces";
+import { FileOnStudentOnAssignment, isLinkFile } from "../../interfaces";
 import { errorSwalContent } from "../../utils";
 import { FiFile } from "react-icons/fi";
 import { FaRegFile, FaRegFileImage } from "react-icons/fa";
@@ -17,7 +17,7 @@ type Props = {
   onShowText?: (file: FileOnStudentOnAssignment) => void;
 };
 function FileStudentAssignmentCard({ file, onShowText }: Props) {
-  if (file.contentType === "FILE") {
+  if (file.contentType === "FILE" || file.contentType === "LINK") {
     return <FileCard file={file} />;
   }
   if (file.contentType === "TEXT") {
@@ -90,7 +90,7 @@ function FileCard({ file }: Props) {
 
   const displayName =
     file.name ??
-    (file.type === "link-url" ? file.body : file.body.split("/").pop());
+    (isLinkFile(file) ? file.body : file.body.split("/").pop());
 
   const handleCommitRename = async () => {
     if (!isEditing) return;
@@ -133,7 +133,7 @@ function FileCard({ file }: Props) {
         >
           {isImage ? (
             <FaRegFileImage />
-          ) : file.type === "link-url" ? (
+          ) : isLinkFile(file) ? (
             <LuLink />
           ) : (
             <FaRegFile />
