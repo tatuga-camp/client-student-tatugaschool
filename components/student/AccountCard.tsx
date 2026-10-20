@@ -40,7 +40,7 @@ function AccountCard({
 }: Props) {
   const change = profileLanguage.change(language);
   return (
-    <section className="w-full rounded-2xl border bg-white p-4 lg:w-7/12">
+    <section className="w-full rounded-2xl border bg-white p-4">
       <h2 className="text-lg font-medium">
         {profileLanguage.account(language)}
       </h2>
