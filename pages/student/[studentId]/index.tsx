@@ -24,6 +24,7 @@ import { generateBlurHash } from "../../../utils";
 import LoadingSpinner from "../../../components/common/LoadingSpinner";
 import { Toast } from "primereact/toast";
 import { studentDataLanguage } from "../../../data/languages";
+import MyCareerSuggest from "../../../components/student/MyCareerSuggest";
 
 function Index(subjectId: { subjectId: string }) {
   const student = useGetStudent();
@@ -181,6 +182,7 @@ function Index(subjectId: { subjectId: string }) {
         />
       )}
       <Layout subjectId={subjectId.subjectId}>
+        <MyCareerSuggest />
         <form
           onSubmit={handleSubmit}
           className="relative mt-20 flex h-max w-full flex-col rounded-2xl border bg-white p-5 md:-top-10 lg:w-7/12"
