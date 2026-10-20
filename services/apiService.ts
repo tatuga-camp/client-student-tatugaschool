@@ -7,6 +7,12 @@ import {
   removeRefreshToken,
   setAccessToken,
 } from "../utils";
+import {
+  isRateLimitError,
+  localRateLimitError,
+  reportRateLimit,
+  waitForRateLimit,
+} from "../utils/rateLimit";
 
 const createAxiosInstance = () => {
   const instance = axios.create({
@@ -19,12 +25,28 @@ const createAxiosInstance = () => {
     async (config) => {
       const request = config.url;
 
+      // While the server's rate limit is in force, hold the request until
+      // the wait is over instead of sending one it would reject. Auth calls
+      // still go out: the token refresh below must not be held back.
+      if (!request?.startsWith("/v1/auth/")) {
+        await waitForRateLimit();
+      }
+
       // Bypass auth service endpoints
       if (request?.startsWith("/v1/auth/")) {
         return config;
       }
       if (request?.startsWith("v1/students/student/get-as-user")) {
-        return config; // Handle specific endpoint for getting student info as user
+        // Skips the session-expired redirect below, but must still send the
+        // CURRENT cookie token: without it the request rides on whatever
+        // Authorization header was left over, i.e. a previous student's.
+        const { access_token } = getAccessToken();
+        if (access_token && !isTokenExpired(access_token)) {
+          config.headers["Authorization"] = `Bearer ${access_token}`;
+        } else {
+          delete config.headers["Authorization"];
+        }
+        return config;
       }
 
       const { refresh_token } = getRefetchtoken();
@@ -56,6 +78,11 @@ const createAxiosInstance = () => {
           setAccessToken({ access_token: accessToken });
           access_token = accessToken;
         } catch (error) {
+          // A rate-limited refresh is not an expired session: keep the
+          // student signed in and let the popup explain the wait.
+          if (isRateLimitError(error)) {
+            throw localRateLimitError((error as any)?.retryAfter ?? 30);
+          }
           console.log("Refresh token failed", error);
           removeAccessToken();
           removeRefreshToken();
@@ -79,6 +106,10 @@ const createAxiosInstance = () => {
     (response) => response,
     async (error) => {
       const originalRequest = error.config;
+      if (error.response?.status === 429) {
+        reportRateLimit(error.response.data);
+        return Promise.reject(error);
+      }
       if (error.response?.status === 401 && !originalRequest._retry) {
         originalRequest._retry = true;
         const { refresh_token } = getRefetchtoken();
@@ -92,12 +123,16 @@ const createAxiosInstance = () => {
 
           setAccessToken({ access_token: accessToken });
 
-          instance.defaults.headers.common["Authorization"] =
-            `Bearer ${accessToken}`;
+          // Only this retry gets the new token. Never write it to
+          // instance.defaults: the instance outlives the session, so a later
+          // sign-in as another student would keep sending this token.
           originalRequest.headers["Authorization"] = `Bearer ${accessToken}`;
 
           return instance(originalRequest);
         } catch (refreshError) {
+          if (isRateLimitError(refreshError)) {
+            return Promise.reject(refreshError);
+          }
           console.log("refreshError", refreshError);
           removeAccessToken();
           removeRefreshToken();

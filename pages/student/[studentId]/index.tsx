@@ -1,4 +1,3 @@
-import { GetServerSideProps } from "next";
 import Head from "next/head";
 import React from "react";
 import {
@@ -23,6 +22,9 @@ import ProfileHeaderCard from "../../../components/student/ProfileHeaderCard";
 import AccountCard from "../../../components/student/AccountCard";
 import EditNameSheet from "../../../components/student/EditNameSheet";
 import ChangePasswordSheet from "../../../components/student/ChangePasswordSheet";
+import RouteParamsGate, {
+  queryString,
+} from "../../../components/common/RouteParamsGate";
 
 function Index(subjectId: { subjectId: string }) {
   const student = useGetStudent();
@@ -166,19 +168,17 @@ function Index(subjectId: { subjectId: string }) {
   );
 }
 
-export default Index;
+function Page() {
+  return (
+    <RouteParamsGate
+      read={(query) => {
+        const subjectId = queryString(query.subject_id);
+        return subjectId ? { subjectId } : null;
+      }}
+    >
+      {(params) => <Index {...params} />}
+    </RouteParamsGate>
+  );
+}
 
-export const getServerSideProps: GetServerSideProps = async (ctx) => {
-  const query = ctx.query;
-
-  if (!query.subject_id) {
-    return {
-      notFound: true,
-    };
-  }
-  return {
-    props: {
-      subjectId: query.subject_id,
-    },
-  };
-};
+export default Page;

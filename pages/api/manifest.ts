@@ -17,6 +17,11 @@ export default async function handler(
   // first one requested). Vary the edge cache on subject_code so each subject
   // gets its own cached manifest. See https://docs.netlify.com/build/caching/caching-overview
   res.setHeader("Netlify-Vary", "query=subject_code");
+  // Let Netlify's edge serve repeat requests without invoking this function.
+  res.setHeader(
+    "Netlify-CDN-Cache-Control",
+    "public, durable, max-age=3600, stale-while-revalidate=86400",
+  );
 
   const raw = req.query.subject_code;
   const code = typeof raw === "string" && raw.length > 0 ? raw : undefined;
@@ -32,6 +37,8 @@ export default async function handler(
       .json(buildSubjectManifest({ code, title: subject.title }));
   } catch (error) {
     console.error("manifest: subject lookup failed", error);
+    // Don't pin a transient backend failure at the edge for an hour.
+    res.setHeader("Netlify-CDN-Cache-Control", "public, durable, max-age=60");
     return res.status(200).json(buildFallbackManifest());
   }
 }

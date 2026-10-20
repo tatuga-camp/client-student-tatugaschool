@@ -1,4 +1,4 @@
-type AssignmentType = "Assignment" | "Material" | "VideoQuiz";
+type AssignmentType = "Assignment" | "Material" | "VideoQuiz" | "Quiz";
 type SubmissionStatus = "PENDDING" | "SUBMITTED" | "REVIEWD" | "IMPROVED";
 
 export function hasUnconfirmedWork(input: {

@@ -1,10 +1,12 @@
 import React, {
   useEffect,
+  useMemo,
   useRef,
   useState,
   forwardRef,
   useImperativeHandle,
 } from "react";
+import { createPortal } from "react-dom";
 import {
   FaExpand,
   FaPause,
@@ -20,6 +22,13 @@ import {
 import { QuestionOnVideo } from "../../interfaces";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { parseYouTubeId, YT_STATE } from "../../utils/youtube";
+import YouTubeEmbed, { YouTubeEmbedHandle } from "./YouTubeEmbed";
+import {
+  enterFullscreen,
+  exitFullscreen,
+  getFullscreenElement,
+} from "../../utils/fullscreen";
 
 export type VideoConfig = {
   preventFastForward: boolean;
@@ -42,6 +51,37 @@ const StudentVideoPlayer = forwardRef<StudentVideoPlayerRef, Props>(
   ({ src, config, onSubmit, cannotSummit, nextVideoURL }, ref) => {
     const router = useRouter();
     const videoRef = useRef<HTMLVideoElement>(null);
+    const ytRef = useRef<YouTubeEmbedHandle>(null);
+    const youTubeId = useMemo(() => parseYouTubeId(src), [src]);
+    // YouTube's own play button takes the first tap (mobile browsers may
+    // refuse a play() from outside the iframe); after that Tatuga's controls
+    // sit on top so students can't scrub with YouTube's UI.
+    const [ytStarted, setYtStarted] = useState(false);
+    const ytPlayingRef = useRef(false);
+
+    // One surface over the uploaded <video> and the YouTube player.
+    const media = {
+      play: () => {
+        if (youTubeId) ytRef.current?.play();
+        else videoRef.current?.play();
+      },
+      pause: () => {
+        if (youTubeId) ytRef.current?.pause();
+        else videoRef.current?.pause();
+      },
+      seek: (seconds: number) => {
+        if (youTubeId) ytRef.current?.seek(seconds);
+        else if (videoRef.current) videoRef.current.currentTime = seconds;
+      },
+      setVolume: (volume: number) => {
+        if (youTubeId) ytRef.current?.setVolume(volume);
+        else if (videoRef.current) videoRef.current.volume = volume;
+      },
+      setMuted: (muted: boolean) => {
+        if (youTubeId) ytRef.current?.setMuted(muted);
+        else if (videoRef.current) videoRef.current.muted = muted;
+      },
+    };
     const containerRef = useRef<HTMLDivElement>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
@@ -79,67 +119,79 @@ const StudentVideoPlayer = forwardRef<StudentVideoPlayerRef, Props>(
 
     useEffect(() => {
       const handleFullscreenChange = () => {
-        setIsFullscreen(!!document.fullscreenElement);
+        setIsFullscreen(!!getFullscreenElement());
       };
 
       document.addEventListener("fullscreenchange", handleFullscreenChange);
+      document.addEventListener(
+        "webkitfullscreenchange",
+        handleFullscreenChange,
+      );
       return () => {
         document.removeEventListener(
           "fullscreenchange",
           handleFullscreenChange,
         );
+        document.removeEventListener(
+          "webkitfullscreenchange",
+          handleFullscreenChange,
+        );
       };
     }, []);
+
+    const handleTick = (now: number) => {
+      if (config?.preventFastForward) {
+        if (now > maxTimeWatchedRef.current + 1) {
+          media.seek(maxTimeWatchedRef.current);
+          return;
+        }
+      }
+
+      setCurrentTime(now);
+      if (now > maxTimeWatchedRef.current) {
+        maxTimeWatchedRef.current = now;
+        setMaxTimeWatched(now);
+      }
+
+      // Check for questions
+      if (config?.questions) {
+        const question = config.questions.find(
+          (q) =>
+            Math.abs(q.timestamp - now) < 1 &&
+            !answeredQuestions.includes(q.id) &&
+            now > q.timestamp, // ensure we passed it slightly
+        );
+
+        if (question) {
+          media.pause();
+          setIsPlaying(false);
+          setCurrentQuestion(question);
+          // Optional: Exit fullscreen when question appears?
+          // User didn't ask for this, but popup might be better in fullscreen now that we moved it.
+        }
+      }
+    };
+    const tickRef = useRef(handleTick);
+    tickRef.current = handleTick;
+
+    const handleEnded = () => {
+      setIsPlaying(false);
+      if (config?.questions && config.questions.length > 0) {
+        setShowSummary(true);
+      }
+    };
+    const endedRef = useRef(handleEnded);
+    endedRef.current = handleEnded;
 
     useEffect(() => {
       const video = videoRef.current;
       if (!video) return;
 
-      const handleTimeUpdate = () => {
-        const now = video.currentTime;
-
-        if (config?.preventFastForward) {
-          if (now > maxTimeWatchedRef.current + 1) {
-            video.currentTime = maxTimeWatchedRef.current;
-            return;
-          }
-        }
-
-        setCurrentTime(now);
-        if (now > maxTimeWatchedRef.current) {
-          maxTimeWatchedRef.current = now;
-          setMaxTimeWatched(now);
-        }
-
-        // Check for questions
-        if (config?.questions) {
-          const question = config.questions.find(
-            (q) =>
-              Math.abs(q.timestamp - now) < 1 &&
-              !answeredQuestions.includes(q.id) &&
-              now > q.timestamp, // ensure we passed it slightly
-          );
-
-          if (question) {
-            video.pause();
-            setIsPlaying(false);
-            setCurrentQuestion(question);
-            // Optional: Exit fullscreen when question appears?
-            // User didn't ask for this, but popup might be better in fullscreen now that we moved it.
-          }
-        }
-      };
-
+      const handleTimeUpdate = () => tickRef.current(video.currentTime);
       const handleLoadedMetadata = () => {
         setDuration(video.duration);
       };
-
-      const handleEnded = () => {
-        setIsPlaying(false);
-        if (config?.questions && config.questions.length > 0) {
-          setShowSummary(true);
-        }
-      };
+      const handleEnded = () => endedRef.current();
 
       video.addEventListener("timeupdate", handleTimeUpdate);
       video.addEventListener("loadedmetadata", handleLoadedMetadata);
@@ -150,20 +202,16 @@ const StudentVideoPlayer = forwardRef<StudentVideoPlayerRef, Props>(
         video.removeEventListener("loadedmetadata", handleLoadedMetadata);
         video.removeEventListener("ended", handleEnded);
       };
-    }, [config, answeredQuestions]);
+    }, [youTubeId]);
 
     const togglePlay = () => {
-      if (videoRef.current) {
+      if (videoRef.current || youTubeId) {
         if (isPlaying) {
-          videoRef.current.pause();
+          media.pause();
         } else {
-          videoRef.current.play();
+          media.play();
           // Force fullscreen on play
-          if (!document.fullscreenElement && containerRef.current) {
-            containerRef.current
-              .requestFullscreen()
-              .catch((err) => console.error("Fullscreen error:", err));
-          }
+          if (containerRef.current) enterFullscreen(containerRef.current);
         }
         setIsPlaying(!isPlaying);
       }
@@ -175,36 +223,28 @@ const StudentVideoPlayer = forwardRef<StudentVideoPlayerRef, Props>(
         // Prevent seeking forward
         return;
       }
-      if (videoRef.current) {
-        videoRef.current.currentTime = time;
-        setCurrentTime(time);
-      }
+      media.seek(time);
+      setCurrentTime(time);
     };
 
     const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const vol = Number(e.target.value);
       setVolume(vol);
-      if (videoRef.current) {
-        videoRef.current.volume = vol;
-        setIsMuted(vol === 0);
-      }
+      media.setVolume(vol);
+      setIsMuted(vol === 0);
     };
 
     const toggleMute = () => {
-      if (videoRef.current) {
-        const newMuted = !isMuted;
-        setIsMuted(newMuted);
-        videoRef.current.muted = newMuted;
-      }
+      const newMuted = !isMuted;
+      setIsMuted(newMuted);
+      media.setMuted(newMuted);
     };
 
     const handleFullScreen = () => {
-      if (containerRef.current) {
-        if (document.fullscreenElement) {
-          document.exitFullscreen();
-        } else {
-          containerRef.current.requestFullscreen();
-        }
+      if (getFullscreenElement()) {
+        exitFullscreen();
+      } else if (containerRef.current) {
+        enterFullscreen(containerRef.current);
       }
     };
 
@@ -228,23 +268,15 @@ const StudentVideoPlayer = forwardRef<StudentVideoPlayerRef, Props>(
         setCurrentQuestion(null);
         setFeedbackStatus(null);
         setSelectedOptionIndex(null);
-        if (videoRef.current) {
-          videoRef.current.play();
-          setIsPlaying(true);
-        }
+        media.play();
+        setIsPlaying(true);
       }, 3000);
     };
 
     const handleRetry = () => {
-      if (videoRef.current) {
-        videoRef.current.currentTime = 0;
-        videoRef.current.play();
-        if (!document.fullscreenElement && containerRef.current) {
-          containerRef.current
-            .requestFullscreen()
-            .catch((err) => console.error(err));
-        }
-      }
+      media.seek(0);
+      media.play();
+      if (containerRef.current) enterFullscreen(containerRef.current);
       setCurrentTime(0);
       setAnsweredQuestions([]);
       setCorrectAnswers(0);
@@ -257,9 +289,7 @@ const StudentVideoPlayer = forwardRef<StudentVideoPlayerRef, Props>(
     const handleSubmit = () => {
       if (onSubmit) {
         onSubmit(correctAnswers, config?.questions.length || 0);
-        if (videoRef.current) {
-          videoRef.current.currentTime = 0;
-        }
+        media.seek(0);
         setCurrentTime(0);
         setAnsweredQuestions([]);
         setCorrectAnswers(0);
@@ -267,9 +297,12 @@ const StudentVideoPlayer = forwardRef<StudentVideoPlayerRef, Props>(
         setIsPlaying(true);
         setMaxTimeWatched(0);
         maxTimeWatchedRef.current = 0;
-        document.exitFullscreen();
+        exitFullscreen();
       }
     };
+
+    const renderOverlay = (node: React.ReactNode) =>
+      isFullscreen ? node : createPortal(node, document.body);
 
     const formatTime = (seconds: number) => {
       const mins = Math.floor(seconds / 60);
@@ -310,162 +343,208 @@ const StudentVideoPlayer = forwardRef<StudentVideoPlayerRef, Props>(
             </div>
           )}
 
-          {/* Summary Overlay */}
-          {showSummary && (
-            <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-              <div className="animate-bounce-short flex max-h-[90%] w-full max-w-md scale-100 flex-col items-center justify-center overflow-y-auto rounded-3xl bg-white p-8 shadow-2xl transition-all">
-                <h2 className="mb-4 text-3xl font-bold text-gray-800">
-                  Video Completed! 🎉
-                </h2>
-                <div className="mb-8 flex flex-col items-center gap-2">
-                  <span className="text-gray-600">You scored</span>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-5xl font-bold text-blue-500">
-                      {correctAnswers}
-                    </span>
-                    <span className="text-2xl text-gray-400">
-                      / {config?.questions.length || 0}
-                    </span>
+          {/* Summary Overlay — same placement rule as the question popup */}
+          {showSummary &&
+            renderOverlay(
+              <div
+                className={`${isFullscreen ? "absolute" : "fixed"} inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm`}
+              >
+                <div className="animate-bounce-short flex max-h-[90%] w-full max-w-md scale-100 flex-col items-center justify-center overflow-y-auto rounded-3xl bg-white p-8 shadow-2xl transition-all">
+                  <h2 className="mb-4 text-3xl font-bold text-gray-800">
+                    Video Completed! 🎉
+                  </h2>
+                  <div className="mb-8 flex flex-col items-center gap-2">
+                    <span className="text-gray-600">You scored</span>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-5xl font-bold text-blue-500">
+                        {correctAnswers}
+                      </span>
+                      <span className="text-2xl text-gray-400">
+                        / {config?.questions.length || 0}
+                      </span>
+                    </div>
+                    <span className="text-gray-600">questions correct</span>
                   </div>
-                  <span className="text-gray-600">questions correct</span>
-                </div>
 
-                <div className="flex w-full gap-4 text-sm">
-                  <button
-                    onClick={handleRetry}
-                    className="flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-gray-200 bg-white py-3 font-bold text-gray-700 transition hover:bg-gray-50 hover:text-gray-900"
-                  >
-                    <FaRedo /> Retry
-                  </button>
-                  {cannotSummit && nextVideoURL && (
+                  <div className="flex w-full gap-4 text-sm">
                     <button
-                      onClick={() => {
-                        setCurrentTime(0);
-                        setAnsweredQuestions([]);
-                        setCorrectAnswers(0);
-                        setShowSummary(false);
-                        setIsPlaying(true);
-                        setMaxTimeWatched(0);
-                        maxTimeWatchedRef.current = 0;
-                        document.exitFullscreen();
-                        router.push(nextVideoURL);
-                      }}
+                      onClick={handleRetry}
                       className="flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-gray-200 bg-white py-3 font-bold text-gray-700 transition hover:bg-gray-50 hover:text-gray-900"
                     >
-                      <FaArrowRight /> Next Video
+                      <FaRedo /> Retry
                     </button>
-                  )}
-                  {!cannotSummit && (
-                    <button
-                      onClick={handleSubmit}
-                      className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-blue-500 py-3 font-bold text-white shadow-lg transition hover:bg-blue-600 hover:shadow-blue-200"
-                    >
-                      <FaCheck /> Submit Work
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Popup Question Overlay */}
-          {currentQuestion && (
-            <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-              <div className="animate-bounce-short max-h-[90%] w-full max-w-md scale-100 transform overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl transition-all">
-                <div className="mb-4 flex items-center justify-center">
-                  <span className="text-3xl">🤔</span>
-                </div>
-                <h3 className="mb-6 text-center text-xl font-bold text-gray-800">
-                  {currentQuestion.question}
-                </h3>
-                <div className="flex flex-col gap-3">
-                  {currentQuestion.options.map((option, idx) => {
-                    const isSelected = selectedOptionIndex === idx;
-                    const isCorrect =
-                      feedbackStatus &&
-                      currentQuestion.correctOptions.includes(idx);
-                    const isWrong =
-                      feedbackStatus === "incorrect" &&
-                      isSelected &&
-                      !currentQuestion.correctOptions.includes(idx);
-
-                    let btnClass =
-                      "rounded-xl border-2 border-blue-100 bg-blue-50 px-4 py-3 text-left font-medium text-blue-900 transition-all";
-
-                    if (feedbackStatus) {
-                      // Disable hover effects when feedback is showing
-                      if (isCorrect) {
-                        btnClass =
-                          "rounded-xl border-2 border-green-500 bg-green-100 px-4 py-3 text-left font-medium text-green-900 transition-all";
-                      } else if (isWrong) {
-                        btnClass =
-                          "rounded-xl border-2 border-red-500 bg-red-100 px-4 py-3 text-left font-medium text-red-900 transition-all";
-                      } else {
-                        btnClass =
-                          "rounded-xl border-2 border-gray-100 bg-gray-50 px-4 py-3 text-left font-medium text-gray-400 opacity-60";
-                      }
-                    } else {
-                      btnClass +=
-                        " hover:scale-105 hover:border-blue-300 hover:bg-blue-100 active:scale-95";
-                    }
-
-                    return (
+                    {cannotSummit && nextVideoURL && (
                       <button
-                        key={idx}
-                        onClick={() => handleAnswerQuestion(idx)}
-                        disabled={feedbackStatus !== null}
-                        className={`${btnClass} flex items-center justify-between`}
+                        onClick={() => {
+                          setCurrentTime(0);
+                          setAnsweredQuestions([]);
+                          setCorrectAnswers(0);
+                          setShowSummary(false);
+                          setIsPlaying(true);
+                          setMaxTimeWatched(0);
+                          maxTimeWatchedRef.current = 0;
+                          exitFullscreen();
+                          router.push(nextVideoURL);
+                        }}
+                        className="flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-gray-200 bg-white py-3 font-bold text-gray-700 transition hover:bg-gray-50 hover:text-gray-900"
                       >
-                        <span>{option}</span>
-                        {isCorrect && <FaCheckCircle className="text-xl" />}
-                        {isWrong && <FaTimesCircle className="text-xl" />}
+                        <FaArrowRight /> Next Video
                       </button>
-                    );
-                  })}
+                    )}
+                    {!cannotSummit && (
+                      <button
+                        onClick={handleSubmit}
+                        className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-blue-500 py-3 font-bold text-white shadow-lg transition hover:bg-blue-600 hover:shadow-blue-200"
+                      >
+                        <FaCheck /> Submit Work
+                      </button>
+                    )}
+                  </div>
                 </div>
+              </div>,
+            )}
 
-                {/* Feedback Message */}
-                {feedbackStatus === "incorrect" && (
-                  <div className="mt-4 animate-pulse text-center font-medium text-red-500">
-                    The answer you just submitted is not right.
+          {/* Popup Question Overlay — inside the player in fullscreen (only
+              the fullscreen element renders), otherwise portalled to the
+              screen so it isn't squeezed into a small video frame. */}
+          {currentQuestion &&
+            renderOverlay(
+              <div
+                className={`${isFullscreen ? "absolute" : "fixed"} inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm`}
+              >
+                <div className="animate-bounce-short max-h-[90%] w-full max-w-md scale-100 transform overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl transition-all">
+                  <div className="mb-4 flex items-center justify-center">
+                    <span className="text-3xl">🤔</span>
                   </div>
-                )}
+                  <h3 className="mb-6 text-center text-xl font-bold text-gray-800">
+                    {currentQuestion.question}
+                  </h3>
+                  <div className="flex flex-col gap-3">
+                    {currentQuestion.options.map((option, idx) => {
+                      const isSelected = selectedOptionIndex === idx;
+                      const isCorrect =
+                        feedbackStatus &&
+                        currentQuestion.correctOptions.includes(idx);
+                      const isWrong =
+                        feedbackStatus === "incorrect" &&
+                        isSelected &&
+                        !currentQuestion.correctOptions.includes(idx);
 
-                {/* Countdown Bar */}
-                {feedbackStatus && (
-                  <div className="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
-                    <div
-                      className="h-full bg-blue-500"
-                      style={{
-                        width: "100%",
-                        animation: "countdown 2s linear forwards",
-                      }}
-                    />
-                    <style jsx>{`
-                      @keyframes countdown {
-                        from {
-                          width: 100%;
+                      let btnClass =
+                        "rounded-xl border-2 border-blue-100 bg-blue-50 px-4 py-3 text-left font-medium text-blue-900 transition-all";
+
+                      if (feedbackStatus) {
+                        // Disable hover effects when feedback is showing
+                        if (isCorrect) {
+                          btnClass =
+                            "rounded-xl border-2 border-green-500 bg-green-100 px-4 py-3 text-left font-medium text-green-900 transition-all";
+                        } else if (isWrong) {
+                          btnClass =
+                            "rounded-xl border-2 border-red-500 bg-red-100 px-4 py-3 text-left font-medium text-red-900 transition-all";
+                        } else {
+                          btnClass =
+                            "rounded-xl border-2 border-gray-100 bg-gray-50 px-4 py-3 text-left font-medium text-gray-400 opacity-60";
                         }
-                        to {
-                          width: 0%;
-                        }
+                      } else {
+                        btnClass +=
+                          " hover:scale-105 hover:border-blue-300 hover:bg-blue-100 active:scale-95";
                       }
-                    `}</style>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
 
-          <video
-            ref={videoRef}
-            src={src}
-            className="h-full w-full object-contain"
-            onClick={togglePlay}
-          />
+                      return (
+                        <button
+                          key={idx}
+                          onClick={() => handleAnswerQuestion(idx)}
+                          disabled={feedbackStatus !== null}
+                          className={`${btnClass} flex items-center justify-between`}
+                        >
+                          <span>{option}</span>
+                          {isCorrect && <FaCheckCircle className="text-xl" />}
+                          {isWrong && <FaTimesCircle className="text-xl" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Feedback Message */}
+                  {feedbackStatus === "incorrect" && (
+                    <div className="mt-4 animate-pulse text-center font-medium text-red-500">
+                      The answer you just submitted is not right.
+                    </div>
+                  )}
+
+                  {/* Countdown Bar */}
+                  {feedbackStatus && (
+                    <div className="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
+                      <div
+                        className="h-full bg-blue-500"
+                        style={{
+                          width: "100%",
+                          animation: "countdown 2s linear forwards",
+                        }}
+                      />
+                      <style jsx>{`
+                        @keyframes countdown {
+                          from {
+                            width: 100%;
+                          }
+                          to {
+                            width: 0%;
+                          }
+                        }
+                      `}</style>
+                    </div>
+                  )}
+                </div>
+              </div>,
+            )}
+
+          {youTubeId ? (
+            <>
+              <YouTubeEmbed
+                ref={ytRef}
+                videoId={youTubeId}
+                controls={false}
+                className="h-full w-full"
+                onReady={(d) => setDuration(d)}
+                onTime={(time, d) => {
+                  if (d > 0) setDuration((prev) => (prev === d ? prev : d));
+                  if (ytPlayingRef.current) tickRef.current(time);
+                }}
+                onStateChange={(state) => {
+                  ytPlayingRef.current = state === YT_STATE.PLAYING;
+                  if (state === YT_STATE.PLAYING) {
+                    setYtStarted(true);
+                    setIsPlaying(true);
+                  } else if (state === YT_STATE.PAUSED) {
+                    setIsPlaying(false);
+                  } else if (state === YT_STATE.ENDED) {
+                    endedRef.current();
+                  }
+                }}
+              />
+              {ytStarted && (
+                <div
+                  className="absolute inset-0"
+                  onClick={togglePlay}
+                  aria-hidden
+                />
+              )}
+            </>
+          ) : (
+            <video
+              ref={videoRef}
+              src={src}
+              className="h-full w-full object-contain"
+              onClick={togglePlay}
+            />
+          )}
 
           {/* Custom Controls */}
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+          <div
+            className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100 ${
+              youTubeId && !ytStarted ? "hidden" : ""
+            }`}
+          >
             {/* Progress Bar Container */}
             <div className="relative mb-2 flex items-center">
               {/* Markers */}

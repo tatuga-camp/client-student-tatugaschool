@@ -1,6 +1,6 @@
-import { GetServerSideProps } from "next";
 import Head from "next/head";
 import React from "react";
+import { useRouter } from "next/router";
 import {
   FaPlay,
   FaPlus,
@@ -58,6 +58,9 @@ import {
   timeAgo,
   timeLeft,
 } from "../../../../utils";
+import RouteParamsGate, {
+  queryString,
+} from "../../../../components/common/RouteParamsGate";
 
 const SummitWorkMenus = [
   {
@@ -149,6 +152,12 @@ function Index({
 
   const assignments = useGetAssignments({ subjectId });
   const assignment = assignments.data?.find((item) => item.id === assignmentId);
+  const router = useRouter();
+  React.useEffect(() => {
+    if (assignment?.type === "Quiz") {
+      router.replace(`/subject/${subjectId}/quiz/${assignmentId}`);
+    }
+  }, [assignment?.type]);
 
   const studentFiles = useGetFileStudentAssignment({
     studentOnAssignmentId: assignment?.studentOnAssignment.id as string,
@@ -509,7 +518,8 @@ function Index({
                       pastTime: new Date(assignment.dueDate).toISOString(),
                       language: language.data ?? "en",
                     })}{" "}
-                    {classworkDataLanguage.ago(language.data ?? "en")} <FaRegSadTear />
+                    {classworkDataLanguage.ago(language.data ?? "en")}{" "}
+                    <FaRegSadTear />
                   </span>
                 ) : (
                   <span className="flex items-center gap-1 font-semibold text-green-600">
@@ -517,7 +527,8 @@ function Index({
                       targetTime: new Date(assignment.dueDate).toISOString(),
                       language: language.data ?? "en",
                     })}{" "}
-                    {classworkDataLanguage.left(language.data ?? "en")} <RiEmotionHappyFill />
+                    {classworkDataLanguage.left(language.data ?? "en")}{" "}
+                    <RiEmotionHappyFill />
                   </span>
                 )}{" "}
                 <span className="text-xs">
@@ -773,21 +784,18 @@ function Index({
   );
 }
 
-export default Index;
+function Page() {
+  return (
+    <RouteParamsGate
+      read={(query) => {
+        const subjectId = queryString(query.subjectId);
+        const assignmentId = queryString(query.assignmentId);
+        return subjectId && assignmentId ? { subjectId, assignmentId } : null;
+      }}
+    >
+      {(params) => <Index {...params} />}
+    </RouteParamsGate>
+  );
+}
 
-export const getServerSideProps: GetServerSideProps = async (ctx) => {
-  const params = ctx.params;
-
-  if (!params?.subjectId || !params?.assignmentId) {
-    return {
-      notFound: true,
-    };
-  }
-
-  return {
-    props: {
-      subjectId: params.subjectId,
-      assignmentId: params.assignmentId,
-    },
-  };
-};
+export default Page;

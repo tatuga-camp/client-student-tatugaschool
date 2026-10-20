@@ -19,6 +19,11 @@ export interface StudentOnAssignment {
   studentOnSubjectId: string;
   schoolId: string;
   subjectId: string;
+  quizAttempt?: {
+    startedAt: string;
+    deadlineAt: string | null;
+    submittedAt: string | null;
+  } | null;
 }
 
 export type StudentAssignmentStatus =

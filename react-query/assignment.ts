@@ -16,11 +16,14 @@ import {
   UpdateWorkService,
 } from "../services/assignment";
 
-export function useGetAssignments(input: RequestGetAssignmentsService) {
+export function useGetAssignments(
+  input: RequestGetAssignmentsService,
+  options?: { refetchInterval?: number | false },
+) {
   return useQuery({
     queryKey: ["assignments", { subjectId: input.subjectId }],
     queryFn: () => GetAssignmentsService(input),
-    refetchInterval: 1000 * 10,
+    refetchInterval: options?.refetchInterval ?? 1000 * 10,
   });
 }
 

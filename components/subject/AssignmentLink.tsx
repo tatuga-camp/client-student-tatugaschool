@@ -19,10 +19,11 @@ function AssignmentLink({ studentOnAssignmentId, toast, onClose }: Props) {
       e.preventDefault();
       await createFile.mutateAsync({
         studentOnAssignmentId: studentOnAssignmentId,
+        // type stays "link-url" so older teacher-app builds still show a link.
         type: "link-url",
         name: link,
         body: link,
-        contentType: "FILE",
+        contentType: "LINK",
         size: 0,
       });
       setLink("");

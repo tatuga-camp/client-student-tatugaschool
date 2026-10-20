@@ -1,4 +1,3 @@
-import { GetServerSideProps } from "next";
 import Head from "next/head";
 import React, { useEffect, useRef, useState } from "react";
 import Swal from "sweetalert2";
@@ -22,6 +21,9 @@ import {
 import { getAccessToken, getLocalStorage, setLocalStorage } from "../../utils";
 import { wordCloudLanguage } from "../../data/languages";
 import ButtonProfile from "../../components/ButtonProfile";
+import RouteParamsGate, {
+  queryString,
+} from "../../components/common/RouteParamsGate";
 
 const MAX_ANSWER_LENGTH = 999;
 
@@ -252,7 +254,10 @@ function Index({ id }: { id: string }) {
                   className="w-full rounded-xl border border-gray-300 px-4 py-3 text-center text-lg text-icon-color outline-none focus:border-primary-color disabled:opacity-60"
                 />
                 <span className="-mt-2 self-end text-xs text-icon-color/60">
-                  {wordCloudLanguage.lettersLeft(lang, MAX_ANSWER_LENGTH - text.length)}
+                  {wordCloudLanguage.lettersLeft(
+                    lang,
+                    MAX_ANSWER_LENGTH - text.length,
+                  )}
                 </span>
                 <button
                   onClick={handleSubmit}
@@ -295,12 +300,17 @@ function Index({ id }: { id: string }) {
   );
 }
 
-export const getServerSideProps: GetServerSideProps = async (ctx) => {
-  const query = ctx.query;
-  if (!query.wordCloudId) {
-    return { notFound: true };
-  }
-  return { props: { id: query.wordCloudId } };
-};
+function Page() {
+  return (
+    <RouteParamsGate
+      read={(query) => {
+        const id = queryString(query.wordCloudId);
+        return id ? { id } : null;
+      }}
+    >
+      {(params) => <Index {...params} />}
+    </RouteParamsGate>
+  );
+}
 
-export default Index;
+export default Page;

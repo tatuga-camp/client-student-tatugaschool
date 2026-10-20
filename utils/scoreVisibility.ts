@@ -19,6 +19,19 @@ export function canStudentViewScore(
   return subjectAllows && assignmentAllows;
 }
 
+/**
+ * Like canStudentViewScore, but a subject that has not loaded yet counts as
+ * "hidden". Without this the missing subject reads as "allowed" and a hidden
+ * score flashes on screen before the subject query resolves.
+ */
+export function canStudentViewScoreOnceLoaded(
+  subjectLoaded: boolean,
+  subject: SubjectVisibility,
+  assignment: AssignmentVisibility,
+): boolean {
+  return subjectLoaded && canStudentViewScore(subject, assignment);
+}
+
 export type OverviewAssignmentRow = {
   assignment: {
     maxScore: number;

@@ -1,4 +1,3 @@
-import { GetServerSideProps } from "next";
 import Head from "next/head";
 import React, { useEffect, useRef, useState } from "react";
 import Swal from "sweetalert2";
@@ -26,6 +25,9 @@ import {
 } from "../../../utils";
 import { wordCloudLanguage } from "../../../data/languages";
 import ButtonProfile from "../../../components/ButtonProfile";
+import RouteParamsGate, {
+  queryString,
+} from "../../../components/common/RouteParamsGate";
 
 const MAX_ANSWER_LENGTH = 999;
 
@@ -244,7 +246,9 @@ function Index({ id }: { id: string }) {
               </button>
             </div>
 
-            <h1 className="text-center text-xl font-bold">{current.question}</h1>
+            <h1 className="text-center text-xl font-bold">
+              {current.question}
+            </h1>
 
             {data.status === "CLOSED" ? (
               <p className="text-center text-error-color">
@@ -352,12 +356,17 @@ function Index({ id }: { id: string }) {
   );
 }
 
-export const getServerSideProps: GetServerSideProps = async (ctx) => {
-  const query = ctx.query;
-  if (!query.setId) {
-    return { notFound: true };
-  }
-  return { props: { id: query.setId } };
-};
+function Page() {
+  return (
+    <RouteParamsGate
+      read={(query) => {
+        const id = queryString(query.setId);
+        return id ? { id } : null;
+      }}
+    >
+      {(params) => <Index {...params} />}
+    </RouteParamsGate>
+  );
+}
 
-export default Index;
+export default Page;

@@ -100,9 +100,7 @@ function Index({ subjectData, code, announcementId, error }: IndexProps) {
   const [selectStudentId, setSelectStudentId] = React.useState<string | null>(
     null,
   );
-  const [passwordError, setPasswordError] = React.useState<string | null>(
-    null,
-  );
+  const [passwordError, setPasswordError] = React.useState<string | null>(null);
 
   const signIn = useSignIn();
 
@@ -129,11 +127,6 @@ function Index({ subjectData, code, announcementId, error }: IndexProps) {
           ? `/subject/${subject.data?.id}?announcement_id=${announcementId}`
           : `/subject/${subject.data?.id}`,
       );
-      Swal.fire({
-        title: requestDataLanguage.successTitle(lang),
-        text: requestDataLanguage.successDesciption(lang),
-        icon: "success",
-      });
     } catch (error) {
       // Wrong password stays inside the form as an inline message instead of
       // a blocking alert, so the student can correct it in place.

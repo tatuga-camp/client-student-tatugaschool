@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   canStudentViewScore,
+  canStudentViewScoreOnceLoaded,
   summarizeAssignmentScores,
 } from "./scoreVisibility";
 
@@ -38,7 +39,10 @@ test("subject flag false wins even if the assignment allows", () => {
 test("missing keys are treated as visible", () => {
   assert.equal(canStudentViewScore(undefined, {}), true);
   assert.equal(canStudentViewScore(null, {}), true);
-  assert.equal(canStudentViewScore({}, { allowStudentViewScore: undefined }), true);
+  assert.equal(
+    canStudentViewScore({}, { allowStudentViewScore: undefined }),
+    true,
+  );
 });
 
 test("summarize sums visible rows and counts hidden ones", () => {
@@ -49,7 +53,11 @@ test("summarize sums visible rows and counts hidden ones", () => {
         studentOnAssignment: { score: 8 },
       },
       {
-        assignment: { maxScore: 20, weight: null, allowStudentViewScore: false },
+        assignment: {
+          maxScore: 20,
+          weight: null,
+          allowStudentViewScore: false,
+        },
         studentOnAssignment: { score: 20 },
       },
       {
@@ -94,7 +102,11 @@ test("summarize with every row hidden returns zeros and the count", () => {
   const out = summarizeAssignmentScores(
     [
       {
-        assignment: { maxScore: 10, weight: null, allowStudentViewScore: false },
+        assignment: {
+          maxScore: 10,
+          weight: null,
+          allowStudentViewScore: false,
+        },
         studentOnAssignment: { score: 9 },
       },
     ],
@@ -114,4 +126,40 @@ test("summarize hides everything when the subject flag is false", () => {
     { allowStudentViewScoreOnAssignment: false },
   );
   assert.deepEqual(out, { earned: 0, max: 0, hiddenCount: 1 });
+});
+
+test("gated: hidden until the subject has loaded", () => {
+  assert.equal(
+    canStudentViewScoreOnceLoaded(false, undefined, {
+      allowStudentViewScore: true,
+    }),
+    false,
+  );
+  assert.equal(
+    canStudentViewScoreOnceLoaded(
+      false,
+      { allowStudentViewScoreOnAssignment: true },
+      { allowStudentViewScore: true },
+    ),
+    false,
+  );
+});
+
+test("gated: follows the normal rules once the subject has loaded", () => {
+  assert.equal(
+    canStudentViewScoreOnceLoaded(
+      true,
+      { allowStudentViewScoreOnAssignment: true },
+      { allowStudentViewScore: true },
+    ),
+    true,
+  );
+  assert.equal(
+    canStudentViewScoreOnceLoaded(
+      true,
+      { allowStudentViewScoreOnAssignment: false },
+      { allowStudentViewScore: true },
+    ),
+    false,
+  );
 });

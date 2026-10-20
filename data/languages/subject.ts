@@ -269,7 +269,7 @@ export const menuSubjectDataLanguage = {
       case "en":
         return "Classwork";
       case "th":
-        return "งานที่ถูกมอบหมาย";
+        return "ชั้นเรียน";
       default:
         return "Classwork";
     }
@@ -279,7 +279,7 @@ export const menuSubjectDataLanguage = {
       case "en":
         return "Attendance";
       case "th":
-        return "ข้อมูลเช็คชื่อ";
+        return "เช็คชื่อ";
       default:
         return "Attendance";
     }
@@ -289,7 +289,7 @@ export const menuSubjectDataLanguage = {
       case "en":
         return "Grade";
       case "th":
-        return "ข้อมูลคะแนนและเกรด";
+        return "คะแนน";
       default:
         return "Grade";
     }

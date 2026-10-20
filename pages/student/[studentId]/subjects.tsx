@@ -1,4 +1,3 @@
-import { GetServerSideProps } from "next";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import React from "react";
@@ -13,6 +12,9 @@ import {
   useGetSubjectById,
   useGetSubjectByStudent,
 } from "../../../react-query/subject";
+import RouteParamsGate, {
+  queryString,
+} from "../../../components/common/RouteParamsGate";
 
 type SortOption = "default" | "newest" | "oldest" | "az" | "za";
 type StatusFilter = "all" | "complete" | "uncomplete";
@@ -260,14 +262,14 @@ function Index({ subjectId }: { subjectId: string }) {
   );
 }
 
-export default Index;
+function Page() {
+  return (
+    <RouteParamsGate
+      read={(query) => ({ subjectId: queryString(query.subject_id) ?? "" })}
+    >
+      {(params) => <Index {...params} />}
+    </RouteParamsGate>
+  );
+}
 
-export const getServerSideProps: GetServerSideProps = async (ctx) => {
-  const query = ctx.query;
-
-  return {
-    props: {
-      subjectId: query.subject_id ?? "",
-    },
-  };
-};
+export default Page;
