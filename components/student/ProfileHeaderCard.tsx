@@ -28,7 +28,7 @@ function ProfileHeaderCard({ student, language, onEditPhoto }: Props) {
           {student.photo ? (
             <Image
               src={student.photo}
-              alt={`${student.firstName} avatar`}
+              alt={`${student.firstName} - ${profileLanguage.profilePhoto(language)}`}
               fill
               sizes="56px"
               className="object-cover"

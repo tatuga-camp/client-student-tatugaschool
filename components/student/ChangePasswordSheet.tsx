@@ -41,7 +41,13 @@ function ChangePasswordSheet({ studentId, language, onClose, onSaved }: Props) {
       onSaved();
     } catch (err) {
       console.error(err);
-      Swal.fire({ ...errorSwalContent(err), icon: "error" });
+      Swal.fire({
+        ...errorSwalContent(
+          err,
+          studentDataLanguage.somethingWentWrong(language),
+        ),
+        icon: "error",
+      });
     }
   };
 

@@ -89,7 +89,13 @@ function Index(subjectId: { subjectId: string }) {
       showSavedToast();
     } catch (error) {
       console.error(error);
-      Swal.fire({ ...errorSwalContent(error), icon: "error" });
+      Swal.fire({
+        ...errorSwalContent(
+          error,
+          studentDataLanguage.somethingWentWrong(lang),
+        ),
+        icon: "error",
+      });
     } finally {
       setUploading(false);
     }
