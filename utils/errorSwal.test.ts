@@ -45,3 +45,15 @@ test("joins a NestJS-style message array like the old toString() did", () => {
 test("omits the footer when statusCode is missing", () => {
   assert.equal(errorSwalContent({ message: "x", error: "y" }).footer, "");
 });
+
+test("uses the localized fallback title when none is provided by the error", () => {
+  assert.equal(errorSwalContent("boom", "เกิดข้อผิดพลาด").title, "เกิดข้อผิดพลาด");
+  assert.equal(
+    errorSwalContent(new Error("net"), "เกิดข้อผิดพลาด").title,
+    "เกิดข้อผิดพลาด",
+  );
+  assert.equal(
+    errorSwalContent({ error: "Bad Request" }, "เกิดข้อผิดพลาด").title,
+    "Bad Request",
+  );
+});

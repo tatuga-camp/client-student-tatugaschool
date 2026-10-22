@@ -11,4 +11,5 @@ export * from "./word-cloud";
 export * from "./word-cloud-set";
 export * from "./rubric";
 export * from "./public-progress";
+export * from "./career";
 export * from "./quiz";

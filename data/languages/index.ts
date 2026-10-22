@@ -13,6 +13,8 @@ export * from "./student";
 export * from "./word-cloud";
 export * from "./grade";
 export * from "./progress";
+export * from "./career";
+export * from "./profile";
 export * from "./quiz";
 export * from "./subjectHome";
 export * from "./rate-limit";
