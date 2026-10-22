@@ -10,11 +10,16 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { ErrorMessages } from "../interfaces";
 import { classNames } from "primereact/utils";
 import Swal from "sweetalert2";
+import ErrorBoundary from "../components/common/ErrorBoundary";
 import RateLimitNotice from "../components/common/RateLimitNotice";
+import { installDomTranslationGuard } from "../utils/domTranslationGuard";
 import { installSwalRateLimitGuard, isRateLimitError } from "../utils/rateLimit";
 
-// Pages' own error alerts would stack on the rate-limit popup.
+// Before React commits anything: keep browser translation from crashing
+// the app with NotFoundError on removeChild / insertBefore.
 if (typeof window !== "undefined") {
+  installDomTranslationGuard();
+  // Pages' own error alerts would stack on the rate-limit popup.
   installSwalRateLimitGuard(Swal);
 }
 
@@ -230,7 +235,9 @@ function MyApp({ Component, pageProps }: AppProps) {
           shallowRouting
         />
         <div className={prompt.className}>
-          <Component {...pageProps} />
+          <ErrorBoundary>
+            <Component {...pageProps} />
+          </ErrorBoundary>
           <RateLimitNotice />
         </div>
       </PrimeReactProvider>
