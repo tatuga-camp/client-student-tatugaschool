@@ -37,7 +37,7 @@ type Props = {
   assignment: AssignmentItem;
   subject: Subject;
   /** Called after Mark as done succeeds. */
-  onTurnedIn: () => void;
+  onTurnedIn: (info: { itemCount: number }) => void;
 };
 
 const pillBase =
@@ -100,7 +100,7 @@ export default function YourWorkSheet({
   const markDone = async () => {
     if (await setStatus("SUBMITTED")) {
       setExpanded(false);
-      onTurnedIn();
+      onTurnedIn({ itemCount: items.length });
     }
   };
 

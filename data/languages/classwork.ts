@@ -406,6 +406,43 @@ export const assignmentPageLanguage = {
   markedDone: t("Marked as done", "ทำเครื่องหมายว่าเสร็จแล้ว"),
   markedNotDone: t("Marked as not done", "ยกเลิกการส่งงานแล้ว"),
   somethingWentWrong: t("Something went wrong", "เกิดข้อผิดพลาด"),
+  // Turned-in celebration
+  turnedInTitle: t("Turned in!", "ส่งงานแล้ว!"),
+  turnedInBody: (l: Language, name: string) =>
+    l === "th"
+      ? `เยี่ยมมาก${name ? ` ${name}` : ""} ครูจะตรวจงานของคุณเร็วๆ นี้`
+      : `Nice work${name ? `, ${name}` : ""}. Your teacher will check it soon.`,
+  tileOnTime: t("ON TIME", "ตรงเวลา"),
+  tileYourWork: t("YOUR WORK", "งานของคุณ"),
+  tileSentAt: t("SENT AT", "ส่งเมื่อ"),
+  yes: t("Yes", "ใช่"),
+  no: t("No", "ไม่"),
+  nextAssignment: (l: Language, title: string) =>
+    l === "th" ? `ถัดไป: ${title}` : `Next: ${title}`,
+  backToClasswork: t("Back to classwork", "กลับไปงานทั้งหมด"),
+  // Reviewed card
+  greatJob: t("Great job!", "เก่งมาก!"),
+  keepGoing: t(
+    "Keep going! Ask your teacher about it",
+    "สู้ต่อไป! ลองถามครูเพิ่มเติมนะ",
+  ),
+  reviewedTitle: t("Reviewed", "ตรวจแล้ว"),
+  reviewedOn: (l: Language, date: string) =>
+    l === "th" ? `ตรวจเมื่อ ${date}` : `Reviewed ${date}`,
+  turnedInOn: (l: Language, date: string) =>
+    l === "th" ? `ส่งเมื่อ ${date}` : `Turned in ${date}`,
+  // Rubric
+  rubric: t("Rubric", "เกณฑ์การให้คะแนน"),
+  loadingRubric: t("Loading rubric...", "กำลังโหลดเกณฑ์การให้คะแนน..."),
+  rubricNotGraded: t("Not graded", "ยังไม่ได้ตรวจ"),
+  teacherNote: t("Teacher's note:", "หมายเหตุจากครู:"),
+  // Comments chat
+  commentsCount: (l: Language, n: number) =>
+    l === "th" ? `ความคิดเห็น · ${n}` : `Comments · ${n}`,
+  addComment: t("Add a comment…", "เขียนความคิดเห็น…"),
+  sendComment: t("Send", "ส่ง"),
+  teacherRole: t("Teacher", "ครู"),
+  deleteCommentTitle: t("Delete this comment?", "ลบความคิดเห็นนี้?"),
   link: t("Link", "ลิงก์"),
   fileKindPdf: t("PDF", "PDF"),
   fileKindImage: t("Image", "รูปภาพ"),

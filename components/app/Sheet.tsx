@@ -311,7 +311,7 @@ export function Sheet({
       data-sheet-root=""
       data-no-swipe
       className="absolute inset-0 z-50"
-      style={{ pointerEvents: modal ? "auto" : "none" }}
+      style={{ pointerEvents: modal && visible ? "auto" : "none" }}
     >
       {modal && (
         <animated.div
@@ -333,7 +333,7 @@ export function Sheet({
         className="absolute inset-x-0 bottom-0 flex flex-col bg-white outline-none"
         style={{
           y,
-          pointerEvents: "auto",
+          pointerEvents: visible ? "auto" : "none",
           bottom: fit ? fit.lift : undefined,
           height: full && modal ? (fit ? fit.room : "100%") : undefined,
           // Full screen: keep the handle and ✕ clear of the status bar / notch.

@@ -40,7 +40,7 @@ export function useCreateComment() {
           { studentOnAssignmentId: data.studentOnAssignmentId },
         ],
         (oldData: ResponseGetCommentByStudentOnAssignmentService) => {
-          return [...oldData, data];
+          return [...(oldData ?? []), data];
         }
       );
     },
@@ -60,7 +60,7 @@ export function useUpdateComment() {
           { studentOnAssignmentId: data.studentOnAssignmentId },
         ],
         (oldData: ResponseGetCommentByStudentOnAssignmentService) => {
-          return oldData.map((comment) =>
+          return (oldData ?? []).map((comment) =>
             comment.id === data.id ? data : comment
           );
         }
@@ -82,7 +82,7 @@ export function useDeleteComment() {
           { studentOnAssignmentId: data.studentOnAssignmentId },
         ],
         (oldData: ResponseGetCommentByStudentOnAssignmentService) => {
-          return oldData.filter((comment) => comment.id !== data.id);
+          return (oldData ?? []).filter((comment) => comment.id !== data.id);
         }
       );
     },
