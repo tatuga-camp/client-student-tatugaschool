@@ -8,6 +8,7 @@ import {
   useGetSubjectById,
 } from "../../react-query";
 import { upNext, weekProgress } from "../../utils/classworkGroups";
+import { countClassworkBuckets } from "../../utils/subjectHome";
 import { NotificationPromptSheet } from "../app/NotificationPromptSheet";
 import {
   type TabPaneProps,
@@ -31,12 +32,14 @@ export default function HomeTab({ subjectId, active }: TabPaneProps) {
   const detailOpen = !!useShellRoute()?.detail;
   const inOrder = subject.data?.allowStudentDoneAssignmentInOrder ?? false;
 
-  const { progress, left } = useMemo(() => {
+  const { now, progress, left, todo } = useMemo(() => {
     const now = new Date();
     const items = assignments.data ?? [];
     return {
+      now,
       progress: weekProgress(items, now),
       left: upNext(items, now, inOrder),
+      todo: countClassworkBuckets(items).todo,
     };
   }, [assignments.data, inOrder]);
   const next = left.slice(0, UP_NEXT_MAX);
@@ -50,28 +53,44 @@ export default function HomeTab({ subjectId, active }: TabPaneProps) {
           active={active}
         />
         <div className="relative z-[3] px-3 pt-[300px]">
-          <WeekProgressCard
-            lang={lang}
-            done={progress.done}
-            total={progress.total}
-          />
-          {assignments.isSuccess && left.length === 0 ? (
-            <p className="mx-0.5 mt-4 text-center text-[13px] font-bold text-icon-color">
-              {homeLanguage.allDone(lang)}
+          {assignments.isSuccess ? (
+            <>
+              <WeekProgressCard
+                lang={lang}
+                done={progress.done}
+                total={progress.total}
+              />
+              {left.length === 0 ? (
+                <p className="mx-0.5 mt-4 text-center text-[13px] font-bold text-icon-color">
+                  {homeLanguage.allDone(lang)}
+                </p>
+              ) : (
+                <>
+                  <h2 className="mx-0.5 mb-1.5 mt-2.5 flex items-center gap-1.5 text-[13px] font-bold text-icon-color">
+                    <LuListChecks aria-hidden size={14} />
+                    {homeLanguage.assignmentsLeft(lang, todo)}
+                  </h2>
+                  <UpNextList
+                    items={next}
+                    lang={lang}
+                    now={now}
+                    onOpen={openAssignment}
+                  />
+                </>
+              )}
+            </>
+          ) : assignments.isError ? (
+            <p
+              role="alert"
+              className="mx-0.5 mt-4 text-center text-[13px] font-bold text-icon-color"
+            >
+              {homeLanguage.loadError(lang)}
             </p>
           ) : (
-            <>
-              <h2 className="mx-0.5 mb-1.5 mt-2.5 flex items-center gap-1.5 text-[13px] font-bold text-icon-color">
-                <LuListChecks aria-hidden size={14} />
-                {homeLanguage.assignmentsLeft(lang, left.length)}
-              </h2>
-              <UpNextList
-                items={next}
-                lang={lang}
-                now={new Date()}
-                onOpen={openAssignment}
-              />
-            </>
+            <div aria-hidden className="animate-pulse">
+              <div className="h-[58px] rounded-[18px] bg-[#E3E8F0]" />
+              <div className="mt-4 h-[52px] rounded-[16px] bg-[#E3E8F0]" />
+            </div>
           )}
         </div>
       </div>

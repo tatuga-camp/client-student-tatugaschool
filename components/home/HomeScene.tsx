@@ -1,4 +1,4 @@
-import { animated, config, useSpring } from "@react-spring/web";
+import { animated, config, to, useSpring } from "@react-spring/web";
 import { useEffect, useState } from "react";
 import { useTimeOfDay } from "../../hook/useTimeOfDay";
 import { homeLanguage } from "../../data/languages";
@@ -88,8 +88,9 @@ export function HomeScene({
         className="absolute inset-x-0 top-[140px] z-[2] mx-auto h-[150px] w-[150px]"
         style={{
           opacity: drop.opacity,
-          transform: drop.y.to(
-            (y) => `translateY(${y}px) scale(${drop.scale.get()})`,
+          transform: to(
+            [drop.y, drop.scale],
+            (y, scale) => `translateY(${y}px) scale(${scale})`,
           ),
         }}
       >

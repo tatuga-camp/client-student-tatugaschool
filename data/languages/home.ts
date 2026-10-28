@@ -45,8 +45,13 @@ export const homeLanguage = {
       `${n} ${n === 1 ? "assignment" : "assignments"} left`,
       `เหลืองาน ${n} ชิ้น`,
     ),
-  allDone: (l: Language) =>
-    t(l, "All done. Nice work!", "ทำครบแล้ว เก่งมาก!"),
+  loadError: (l: Language) =>
+    t(
+      l,
+      "Couldn't load your work. Try again soon.",
+      "โหลดงานไม่สำเร็จ ลองใหม่อีกครั้ง",
+    ),
+  allDone: (l: Language) => t(l, "All done. Nice work!", "ทำครบแล้ว เก่งมาก!"),
   openAssignment: (l: Language, title: string) =>
     t(l, `Open ${title}`, `เปิด ${title}`),
   dueOn: (l: Language, when: string) => t(l, `Due ${when}`, `ส่ง ${when}`),
@@ -58,15 +63,15 @@ export const homeLanguage = {
       case "morning":
         return th ? `อรุณสวัสดิ์ ${firstName}!` : `Good morning, ${firstName}!`;
       case "noon":
-        return th ? "เที่ยงแล้ว กินข้าวหรือยัง?" : "Lunch time! Have you eaten?";
+        return th
+          ? "เที่ยงแล้ว กินข้าวหรือยัง?"
+          : "Lunch time! Have you eaten?";
       case "afternoon":
         return th
           ? `บ่ายนี้สู้ ๆ นะ ${firstName}!`
           : `Keep going this afternoon, ${firstName}!`;
       case "night":
-        return th
-          ? "ทำการบ้านก่อนนอนนะ"
-          : "Finish your homework before bed";
+        return th ? "ทำการบ้านก่อนนอนนะ" : "Finish your homework before bed";
     }
   },
 };
