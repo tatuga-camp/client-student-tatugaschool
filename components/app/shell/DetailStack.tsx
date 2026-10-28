@@ -8,6 +8,7 @@ import { useDrag } from "@use-gesture/react";
 import Router from "next/router";
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import AssignmentDetail from "../../assignment/AssignmentDetail";
+import { OverlayScope } from "../OverlayScope";
 import { canStartShellSwipe, edgeBackOutcome } from "../../../utils/tabs";
 import { inertProps, TAP_SLOP } from "./TabPager";
 import { ShellRoute, takeInAppPop, useShellNav } from "./useShellRoute";
@@ -193,10 +194,13 @@ export default function DetailStack({ subjectId, detail, depthApi }: Props) {
           boxShadow: "-8px 0 24px rgba(20,24,48,.12)",
         }}
       >
-        <AssignmentDetail
-          subjectId={subjectId}
-          assignmentId={item.assignmentId}
-        />
+        {/* Sheets opened from this page render in the panel and move with it. */}
+        <OverlayScope>
+          <AssignmentDetail
+            subjectId={subjectId}
+            assignmentId={item.assignmentId}
+          />
+        </OverlayScope>
       </animated.div>
     );
   });

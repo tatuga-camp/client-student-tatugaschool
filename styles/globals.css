@@ -125,14 +125,17 @@
 @keyframes tgs-wave { from { transform: skewY(-6deg) scaleX(.94); } to { transform: skewY(6deg) scaleX(1); } }
 @keyframes tgs-sway { from { transform: rotate(-2deg); } to { transform: rotate(2deg); } }
 
-/* Everything that pops up renders into the phone screen. */
-#app-overlay-root {
+/* Everything that pops up renders into the phone screen, or into a detail
+   panel's own container (components/app/OverlayScope.tsx). */
+#app-overlay-root,
+[data-overlay-root] {
   position: absolute;
   inset: 0;
   z-index: 50;
   pointer-events: none;
 }
-#app-overlay-root > * {
+#app-overlay-root > *,
+[data-overlay-root] > * {
   pointer-events: auto;
 }
 

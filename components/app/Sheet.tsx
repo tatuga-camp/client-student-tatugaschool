@@ -1,12 +1,25 @@
 import { animated, useSpring } from "@react-spring/web";
 import { useDrag } from "@use-gesture/react";
-import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
+import React, {
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { createPortal } from "react-dom";
 import { LuX } from "react-icons/lu";
 import { profileLanguage } from "../../data/languages";
 import { useGetLanguage } from "../../react-query";
+import { OVERLAY_ROOT_ID } from "../../utils/frameRoutes";
 import { sheetDragOutcome } from "../../utils/tabs";
+import { OverlayRootContext } from "./OverlayScope";
 
+/**
+ * Where it renders: the nearest OverlayScope's container (each detail panel
+ * provides one, so a sheet opened from a detail page slides and leaves with
+ * that page), else the global #app-overlay-root (tab panes, other pages).
+ */
 type SheetProps = {
   open: boolean;
   onClose: () => void;
@@ -25,6 +38,7 @@ let nextId = 0;
 
 const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
 
+/** Bottom sheet; see SheetProps for where it renders. */
 export function Sheet({
   open,
   onClose,
@@ -36,7 +50,9 @@ export function Sheet({
   dismissible = true,
   ariaLabel,
 }: SheetProps) {
-  const [root, setRoot] = useState<HTMLElement | null>(null);
+  const scopedRoot = useContext(OverlayRootContext);
+  const [globalRoot, setGlobalRoot] = useState<HTMLElement | null>(null);
+  const root = scopedRoot === undefined ? globalRoot : scopedRoot;
   const [rendered, setRendered] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
@@ -56,8 +72,10 @@ export function Sheet({
   visibleRef.current = visible;
 
   useEffect(() => {
-    setRoot(document.getElementById("app-overlay-root"));
-  }, [open]);
+    if (scopedRoot === undefined) {
+      setGlobalRoot(document.getElementById(OVERLAY_ROOT_ID));
+    }
+  }, [open, scopedRoot]);
 
   // Mount on show; slide in once measured.
   useLayoutEffect(() => {
@@ -192,6 +210,8 @@ export function Sheet({
           y,
           pointerEvents: "auto",
           height: full && modal ? "100%" : undefined,
+          // Full screen: keep the handle and ✕ clear of the status bar / notch.
+          paddingTop: full && modal ? "var(--safe-top)" : undefined,
           maxHeight: full ? "100%" : "90%",
           borderRadius: full && modal ? 0 : "20px 20px 0 0",
           boxShadow: "0 -4px 0 #E3E8F0",
