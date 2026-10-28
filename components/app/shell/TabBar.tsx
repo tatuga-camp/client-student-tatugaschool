@@ -106,6 +106,7 @@ export default function TabBar({ tab, student, language, onSelect }: Props) {
             clips={mascotForStudent(student)}
             alt=""
             id={student.id}
+            idle={false}
             sizes="60px"
           />
         )}

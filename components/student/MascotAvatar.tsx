@@ -33,6 +33,12 @@ type Props = {
   greetOnMount?: boolean;
   /** Play this reaction on mount (the score event fired before mounting). */
   reactOnMount?: MascotMood;
+  /**
+   * Join the random idle rotation (default). Turn off for a mascot that is
+   * always on screen, like the tab bar's, or it would keep being picked.
+   * This is the one change from the admin-app copy of this file.
+   */
+  idle?: boolean;
   /** `sizes` for the poster image; match the rendered width. */
   sizes?: string;
 };
@@ -168,6 +174,7 @@ function MascotAvatar({
   tapToPlay = false,
   greetOnMount = false,
   reactOnMount,
+  idle = true,
   sizes = "80px",
 }: Props) {
   const wrapperRef = useRef<HTMLElement | null>(null);
@@ -302,7 +309,7 @@ function MascotAvatar({
   // Join the random idle rotation while on screen and motion is OK.
   useEffect(() => {
     const node = wrapperRef.current;
-    if (!node || !videoFormat()) return;
+    if (!idle || !node || !videoFormat()) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const entry: IdleEntry = {
       visible: false,
@@ -324,7 +331,7 @@ function MascotAvatar({
       unregister();
       reserved.current = false;
     };
-  }, [id]);
+  }, [id, idle]);
 
   // Loop by hand so playback always stops on the last frame (the poster pose).
   const handleEnded = (event: React.SyntheticEvent<HTMLVideoElement>) => {

@@ -1,5 +1,5 @@
 import { animated, to, useSpring } from "@react-spring/web";
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useTimeOfDay } from "../../../hook/useTimeOfDay";
 import {
   DayPeriod,
@@ -40,6 +40,21 @@ function useDocumentHidden(): boolean {
     return () => document.removeEventListener("visibilitychange", update);
   }, []);
   return hidden;
+}
+
+/** False while the node is scrolled or swiped out of view. */
+function useOnScreen(ref: React.RefObject<Element>): boolean {
+  const [visible, setVisible] = useState(true);
+  useEffect(() => {
+    const node = ref.current;
+    if (!node || typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(([entry]) =>
+      setVisible(entry.isIntersecting),
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [ref]);
+  return visible;
 }
 
 const NONE: Slot = { x: 0, y: 0, op: 0 };
@@ -224,6 +239,8 @@ function Scene({
   const uid = useId().replace(/:/g, "");
   const reduced = usePrefersReducedMotion();
   const hidden = useDocumentHidden();
+  const rootRef = useRef<SVGSVGElement>(null);
+  const onScreen = useOnScreen(rootRef);
   const s = useSpring({
     to: targetFor(period, variant),
     config: { tension: 120, friction: 26 },
@@ -236,9 +253,10 @@ function Scene({
 
   return (
     <svg
+      ref={rootRef}
       className={[
         variant === "desktop" ? "tgs-desktop" : "tgs-phone",
-        !reduced && !hidden ? "tgs-loops" : "",
+        !reduced && !hidden && onScreen ? "tgs-loops" : "",
         className ?? "",
       ]
         .filter(Boolean)
