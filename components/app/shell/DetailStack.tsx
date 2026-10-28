@@ -10,6 +10,7 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import AssignmentDetail from "../../assignment/AssignmentDetail";
 import { OverlayScope } from "../OverlayScope";
 import { canStartShellSwipe, edgeBackOutcome } from "../../../utils/tabs";
+import PaneErrorBoundary from "./PaneErrorBoundary";
 import { inertProps, TAP_SLOP } from "./TabPager";
 import { ShellRoute, takeInAppPop, useShellNav } from "./useShellRoute";
 
@@ -196,10 +197,12 @@ export default function DetailStack({ subjectId, detail, depthApi }: Props) {
       >
         {/* Sheets opened from this page render in the panel and move with it. */}
         <OverlayScope>
-          <AssignmentDetail
-            subjectId={subjectId}
-            assignmentId={item.assignmentId}
-          />
+          <PaneErrorBoundary onBack={nav.back}>
+            <AssignmentDetail
+              subjectId={subjectId}
+              assignmentId={item.assignmentId}
+            />
+          </PaneErrorBoundary>
         </OverlayScope>
       </animated.div>
     );

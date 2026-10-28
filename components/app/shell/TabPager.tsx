@@ -17,6 +17,7 @@ import {
   TABS,
 } from "../../../utils/tabs";
 import { HINTS_SEEN_KEY, markFrameHintsSeen } from "../DesktopStage";
+import PaneErrorBoundary from "./PaneErrorBoundary";
 import type { TabPaneProps } from "./useShellRoute";
 
 const PANES: Record<TabKey, React.ComponentType<TabPaneProps>> = {
@@ -203,7 +204,12 @@ export default function TabPager({
               ),
             }}
           >
-            {mounted && <Pane subjectId={subjectId} active={active} />}
+            {/* A crash stays in its pane: the tab bar keeps working. */}
+            {mounted && (
+              <PaneErrorBoundary>
+                <Pane subjectId={subjectId} active={active} />
+              </PaneErrorBoundary>
+            )}
           </animated.div>
         );
       })}

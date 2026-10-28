@@ -12,6 +12,9 @@ export const homeLanguage = {
   tabBar: (l: Language) => t(l, "Subject tabs", "แท็บของวิชา"),
   studentNotFound: (l: Language) => t(l, "Student not found", "ไม่พบนักเรียน"),
   back: (l: Language) => t(l, "Back", "ย้อนกลับ"),
+  paneError: (l: Language) =>
+    t(l, "Something went wrong on this page", "หน้านี้เกิดข้อผิดพลาด"),
+  retry: (l: Language) => t(l, "Try again", "ลองอีกครั้ง"),
   greeting: (l: Language, period: DayPeriod, firstName: string) => {
     const th = l === "th";
     switch (period) {
