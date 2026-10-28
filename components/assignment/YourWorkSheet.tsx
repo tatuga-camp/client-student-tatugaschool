@@ -22,6 +22,8 @@ import {
   useUpdateStudentOnAssignment,
 } from "../../react-query";
 import { hasUnconfirmedWork } from "../../utils";
+import Swal from "../../utils/appSwal";
+import { withTimeout } from "../../utils/withTimeout";
 import { yourWorkMode } from "../../utils/assignmentDetail";
 import { Sheet } from "../app/Sheet";
 import { useStudentFileUpload } from "../subject/AssignmentUploadFile";
@@ -44,6 +46,8 @@ type Props = {
 
 /** How long the guard's "Mark as done" waits for an upload before giving up. */
 const UPLOAD_WAIT_MS = 60_000;
+/** How long it waits for the mark-done request itself. */
+const SUBMIT_WAIT_MS = 30_000;
 
 const pillBase =
   "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold";
@@ -143,14 +147,27 @@ export default function YourWorkSheet({
     answerRef.current?.(choice);
     answerRef.current = null;
   };
-  // Never leave a question hanging if the page goes away.
-  useEffect(() => () => answerRef.current?.("stay"), []);
+  // Never leave a question hanging if the page goes away; and the upload
+  // wait below stops when it does.
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      answerRef.current?.("stay");
+    };
+  }, []);
   const guardEnabled =
     (unconfirmed || uploading) && !justSubmitted && !updateWork.isPending;
   // Nothing left to protect (e.g. the upload failed before any item landed)
   // while the question is open: the student asked to leave, so let them.
   useEffect(() => {
-    if (!guardEnabled && answerRef.current) choose("leave");
+    if (!guardEnabled && answerRef.current) {
+      choose("leave");
+      // The failure that released them already showed its dialog; don't leave
+      // it over the page they are going to.
+      Swal.close();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [guardEnabled]);
   useConfirmSubmissionGuard({
@@ -161,6 +178,7 @@ export default function YourWorkSheet({
         // so wait for it, but not forever.
         const startedAt = Date.now();
         while (uploadingRef.current) {
+          if (!mountedRef.current) return false;
           if (Date.now() - startedAt > UPLOAD_WAIT_MS) {
             workError(
               new Error(assignmentPageLanguage.uploadWaitTimeout(lang)),
@@ -172,13 +190,29 @@ export default function YourWorkSheet({
           await new Promise((r) => setTimeout(r, 200));
         }
         setGuardBusy("submit");
-        return await setStatus("SUBMITTED");
+        // The request itself may take up to the axios timeout; the student
+        // is not held that long.
+        const result = await withTimeout(
+          setStatus("SUBMITTED"),
+          SUBMIT_WAIT_MS,
+        );
+        if (!result.ok) {
+          workError(
+            new Error(assignmentPageLanguage.submitTimeout(lang)),
+            lang,
+          );
+          return false;
+        }
+        return result.value;
       } finally {
         setGuardBusy(null);
         setGuardOpen(false);
       }
     },
     ask,
+    cancelAsk: () => {
+      if (answerRef.current) choose("stay");
+    },
   });
 
   if (mode === "none") return null;

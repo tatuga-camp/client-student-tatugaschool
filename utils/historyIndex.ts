@@ -13,9 +13,12 @@ export function createHistoryIndex(): {
   peek(key: string | null | undefined): number | undefined;
   /** The index of the entry the shell is on. */
   current(): number;
+  /** The key of the entry the shell is on (null if none). */
+  currentKey(): string | null;
 } {
   const indexes = new Map<string, number>();
   let current = -1;
+  let currentKeyValue: string | null = null;
   return {
     peek(key) {
       return key ? indexes.get(key) : undefined;
@@ -23,8 +26,12 @@ export function createHistoryIndex(): {
     current() {
       return current;
     },
+    currentKey() {
+      return currentKeyValue;
+    },
     visit(key) {
       if (!key) return 0;
+      currentKeyValue = key;
       let index = indexes.get(key);
       if (index === undefined) {
         // A new entry is pushed right after the one we were on.

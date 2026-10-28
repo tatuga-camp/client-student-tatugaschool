@@ -32,12 +32,22 @@ function currentHistoryIdx(): number {
 }
 
 /**
- * Called while a browser pop is being handled (before the shell has moved):
- * how far history.go() must go to get back to the entry we were on.
+ * Read while a browser pop is being handled (before the shell has moved):
+ * the popped and current entries' keys, and how far history.go() must go to
+ * get back to the entry we were on (null when the popped entry is unknown).
  */
-export function popRestoreDelta(): number | null {
-  const key = (window.history.state as { key?: string } | null)?.key;
-  return restoreDelta(historyIndex.current(), historyIndex.peek(key));
+export function popInfo(): {
+  poppedKey: string | undefined;
+  currentKey: string | null;
+  delta: number | null;
+} {
+  const poppedKey =
+    (window.history.state as { key?: string } | null)?.key ?? undefined;
+  return {
+    poppedKey,
+    currentKey: historyIndex.currentKey(),
+    delta: restoreDelta(historyIndex.current(), historyIndex.peek(poppedKey)),
+  };
 }
 
 // Set while our own back() pops history, so the detail stack can tell it

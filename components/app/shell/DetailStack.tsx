@@ -112,7 +112,9 @@ export default function DetailStack({ subjectId, detail, depthApi }: Props) {
     frozen.current = Array.from(panel.querySelectorAll("iframe"));
     frozen.current.forEach((f) => (f.style.pointerEvents = "none"));
     dragLive.current = settleNow;
+    dropRescue();
     const rescue = () => {
+      dropRescue();
       thaw();
       // If use-gesture did not deliver its own last event, settle here.
       window.setTimeout(() => {
@@ -120,13 +122,23 @@ export default function DetailStack({ subjectId, detail, depthApi }: Props) {
         dragLive.current = null;
       }, 0);
     };
-    window.addEventListener("pointerup", rescue, { once: true });
-    window.addEventListener("pointercancel", rescue, { once: true });
+    rescueRef.current = rescue;
+    window.addEventListener("pointerup", rescue);
+    window.addEventListener("pointercancel", rescue);
+  };
+  const rescueRef = useRef<(() => void) | null>(null);
+  const dropRescue = () => {
+    if (!rescueRef.current) return;
+    window.removeEventListener("pointerup", rescueRef.current);
+    window.removeEventListener("pointercancel", rescueRef.current);
+    rescueRef.current = null;
   };
   const endGuard = () => {
     thaw();
     dragLive.current = null;
+    dropRescue();
   };
+  useEffect(() => endGuard, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const bind = useDrag(
     ({

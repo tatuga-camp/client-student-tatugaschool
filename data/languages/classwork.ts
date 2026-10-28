@@ -406,6 +406,10 @@ export const assignmentPageLanguage = {
     "Your upload is taking too long. Wait for it to finish, then try again.",
     "การอัปโหลดใช้เวลานานเกินไป รอให้เสร็จแล้วลองอีกครั้ง",
   ),
+  submitTimeout: t(
+    "Saving is taking too long. Check your connection and try again.",
+    "การบันทึกใช้เวลานานเกินไป ตรวจสอบการเชื่อมต่อแล้วลองอีกครั้ง",
+  ),
   updateFailedTitle: t("Couldn't update your work", "อัปเดตงานของคุณไม่สำเร็จ"),
   updateFailedText: t("Please try again.", "กรุณาลองอีกครั้ง"),
   contentNotShown: t("(content not shown)", "(ไม่แสดงเนื้อหา)"),
