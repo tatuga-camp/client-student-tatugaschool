@@ -28,4 +28,33 @@ export const profileLanguage = {
     ),
   passwordRequired: (language: Language) =>
     pick(language, "Enter a new password.", "กรุณากรอกรหัสผ่านใหม่"),
+  settings: (language: Language) => pick(language, "Settings", "ตั้งค่า"),
+  submitted: (language: Language) => pick(language, "Submitted", "ส่งแล้ว"),
+  attendance: (language: Language) => pick(language, "Attendance", "เข้าเรียน"),
+  careerMatch: (language: Language) =>
+    pick(language, "My career match", "อาชีพที่เหมาะกับฉัน"),
+  language: (language: Language) => pick(language, "Language", "ภาษา"),
+  notifications: (language: Language) =>
+    pick(language, "Notifications", "การแจ้งเตือน"),
+  notificationsOn: (language: Language) => pick(language, "On", "เปิด"),
+  notificationsOff: (language: Language) => pick(language, "Off", "ปิด"),
+  notificationsBlocked: (language: Language) =>
+    pick(language, "Blocked", "ถูกบล็อก"),
+  notificationsUnavailable: (language: Language) =>
+    pick(language, "Unavailable", "ใช้ไม่ได้"),
+  logoutTitle: (language: Language) =>
+    pick(language, "Log out?", "ออกจากระบบ?"),
+  logoutBody: (language: Language) =>
+    pick(
+      language,
+      "You will need to sign in again on this device.",
+      "คุณต้องเข้าสู่ระบบอีกครั้งบนอุปกรณ์นี้",
+    ),
+  cancel: (language: Language) => pick(language, "Cancel", "ยกเลิก"),
+  adjustPhoto: (language: Language) =>
+    pick(language, "Adjust photo", "ปรับรูปภาพ"),
+  zoom: (language: Language) => pick(language, "Zoom", "ซูม"),
+  straighten: (language: Language) => pick(language, "Straighten", "ปรับแนว"),
+  rotate90: (language: Language) => pick(language, "Rotate 90°", "หมุน 90°"),
+  savePhoto: (language: Language) => pick(language, "Save photo", "บันทึกรูป"),
 };

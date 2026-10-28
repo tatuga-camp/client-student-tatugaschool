@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Swal from "../../utils/appSwal";
-import BottomSheet from "../common/BottomSheet";
+import { Sheet } from "../app/Sheet";
 import Password from "../common/Password";
 import { profileLanguage, studentDataLanguage } from "../../data/languages";
 import { Language } from "../../interfaces";
@@ -52,11 +52,14 @@ function ChangePasswordSheet({ studentId, language, onClose, onSaved }: Props) {
   };
 
   return (
-    <BottomSheet
-      title={profileLanguage.changePassword(language)}
-      closeLabel={profileLanguage.close(language)}
+    <Sheet
+      open
       onClose={onClose}
+      ariaLabel={profileLanguage.changePassword(language)}
     >
+      <h2 className="mb-3 text-base font-bold text-[#383767]">
+        {profileLanguage.changePassword(language)}
+      </h2>
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
         <label className="flex flex-col gap-1">
           <span className="text-sm text-gray-500">
@@ -95,7 +98,7 @@ function ChangePasswordSheet({ studentId, language, onClose, onSaved }: Props) {
           {profileLanguage.save(language)}
         </button>
       </form>
-    </BottomSheet>
+    </Sheet>
   );
 }
 

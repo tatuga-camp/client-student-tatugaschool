@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Swal from "../../utils/appSwal";
-import BottomSheet from "../common/BottomSheet";
+import { Sheet } from "../app/Sheet";
 import { profileLanguage, studentDataLanguage } from "../../data/languages";
 import { Language, Student } from "../../interfaces";
 import { useUpdateStudent } from "../../react-query";
@@ -59,11 +59,14 @@ function EditNameSheet({ student, language, onClose, onSaved }: Props) {
   ] as const;
 
   return (
-    <BottomSheet
-      title={profileLanguage.editName(language)}
-      closeLabel={profileLanguage.close(language)}
+    <Sheet
+      open
       onClose={onClose}
+      ariaLabel={profileLanguage.editName(language)}
     >
+      <h2 className="mb-3 text-base font-bold text-[#383767]">
+        {profileLanguage.editName(language)}
+      </h2>
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
         {fields.map((field) => (
           <label key={field.key} className="flex flex-col gap-1">
@@ -92,7 +95,7 @@ function EditNameSheet({ student, language, onClose, onSaved }: Props) {
           {profileLanguage.save(language)}
         </button>
       </form>
-    </BottomSheet>
+    </Sheet>
   );
 }
 

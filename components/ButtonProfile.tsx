@@ -1,7 +1,5 @@
-import { useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import Link from "next/link";
-import { destroyCookie } from "nookies";
 import { useMemo, useRef, useState } from "react";
 import { AiOutlineLogout } from "react-icons/ai";
 import { FiHelpCircle } from "react-icons/fi";
@@ -13,6 +11,7 @@ import {
 import { defaultBlurHash, defaultCanvas } from "../data";
 import { navbarLanguageData } from "../data/languages";
 import useClickOutside from "../hook/useClickOutside";
+import { useLogout } from "../hook/useLogout";
 import { Student, Subject } from "../interfaces";
 import { useGetAssignments, useGetLanguage } from "../react-query";
 import {
@@ -31,7 +30,7 @@ type Props = {
 };
 
 function ButtonProfile({ student, subjectId }: Props) {
-  const queryClient = useQueryClient();
+  const logout = useLogout();
   const language = useGetLanguage();
   const lang = language.data ?? "en";
   const assignments = useGetAssignments({ subjectId });
@@ -58,16 +57,7 @@ function ButtonProfile({ student, subjectId }: Props) {
 
   const handleLogout = () => {
     setLoading(true);
-    // 1. Stop in-flight/triggered requests so the axios refresh interceptor
-    //    can't refresh and re-set the student_access_token cookie.
-    queryClient.cancelQueries();
-    queryClient.clear();
-    // 2. Delete both cookies (path must match how they were set: "/").
-    destroyCookie(null, "student_access_token", { path: "/" });
-    destroyCookie(null, "student_refresh_token", { path: "/" });
-    // 3. Hard redirect (NOT router.push): tears down the React tree so no
-    //    query can refetch and re-mint the token after we've logged out.
-    window.location.href = "/welcome";
+    void logout();
   };
 
   return (
