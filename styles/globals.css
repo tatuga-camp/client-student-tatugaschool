@@ -174,3 +174,21 @@
     transform: translateY(-4px);
   }
 }
+
+/* Code boxes: blinking caret in the active box. */
+.code-caret {
+  width: 2px;
+  height: 28px;
+  background: #2c7cd1;
+  border-radius: 1px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .code-caret {
+    animation: code-caret 1s steps(1) infinite;
+  }
+}
+@keyframes code-caret {
+  50% {
+    opacity: 0;
+  }
+}
