@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  shouldSubmitAfterUpload,
   formatScore,
   initialUploadProgress,
   fileSizeLabel,
@@ -237,4 +238,24 @@ test("formatScore keeps up to two decimals and drops trailing zeros", () => {
   assert.equal(formatScore(8.75), "8.75");
   assert.equal(formatScore(8.456), "8.46");
   assert.equal(formatScore(0), "0");
+});
+
+test("shouldSubmitAfterUpload turns in only when every upload landed in time", () => {
+  assert.equal(shouldSubmitAfterUpload({ results: [], timedOut: false }), true);
+  assert.equal(
+    shouldSubmitAfterUpload({ results: [true, true], timedOut: false }),
+    true,
+  );
+  assert.equal(
+    shouldSubmitAfterUpload({ results: [true, false], timedOut: false }),
+    false,
+  );
+  assert.equal(
+    shouldSubmitAfterUpload({ results: [false], timedOut: false }),
+    false,
+  );
+  assert.equal(
+    shouldSubmitAfterUpload({ results: [true], timedOut: true }),
+    false,
+  );
 });

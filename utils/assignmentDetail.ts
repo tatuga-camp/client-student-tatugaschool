@@ -130,6 +130,18 @@ export function nextAssignmentAfter<T extends { id: string; order: number }>(
   return next;
 }
 
+/**
+ * The guard's "Mark as done" waited for uploads: turn in only if they all
+ * landed. A failed or timed-out upload means the student stays with the error.
+ */
+export function shouldSubmitAfterUpload(input: {
+  /** One entry per upload that was in flight (true = it landed). */
+  results: boolean[];
+  timedOut: boolean;
+}): boolean {
+  return !input.timedOut && input.results.every(Boolean);
+}
+
 /** A score as the student sees it: up to 2 decimals, none when whole. */
 export function formatScore(score: number): string {
   return String(Number(score.toFixed(2)));

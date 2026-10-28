@@ -24,7 +24,11 @@ import {
 import { hasUnconfirmedWork } from "../../utils";
 import Swal from "../../utils/appSwal";
 import { withTimeout } from "../../utils/withTimeout";
-import { yourWorkMode } from "../../utils/assignmentDetail";
+import {
+  shouldSubmitAfterUpload,
+  yourWorkMode,
+} from "../../utils/assignmentDetail";
+import { useDetailActive } from "../app/shell/DetailActive";
 import { Sheet } from "../app/Sheet";
 import { useStudentFileUpload } from "../subject/AssignmentUploadFile";
 import ActionMenu from "./ActionMenu";
@@ -144,6 +148,8 @@ export default function YourWorkSheet({
   );
   const uploadingRef = useRef(false);
   uploadingRef.current = uploading;
+  // Uploads in flight, so the guard can learn whether they landed.
+  const uploadsRef = useRef(new Set<Promise<boolean>>());
   const ask = () =>
     new Promise<"submit" | "leave" | "stay">((resolve) => {
       answerRef.current = resolve;
@@ -168,7 +174,10 @@ export default function YourWorkSheet({
       answerRef.current?.("stay");
     };
   }, []);
-  const guardEnabled = (unconfirmed || uploading) && !justSubmitted && !marking;
+  // A page on its way out (after Leave anyway) must not guard anything.
+  const active = useDetailActive();
+  const guardEnabled =
+    active && (unconfirmed || uploading) && !justSubmitted && !marking;
   // Nothing left to protect (e.g. the upload failed before any item landed)
   // while the question is open: the student asked to leave, so let them.
   useEffect(() => {
@@ -186,18 +195,25 @@ export default function YourWorkSheet({
       try {
         // Submitting while a file is still going up would turn in without it,
         // so wait for it, but not forever.
-        const startedAt = Date.now();
-        while (uploadingRef.current) {
+        if (uploadsRef.current.size > 0) {
+          setGuardBusy("upload");
+          const waited = await withTimeout(
+            Promise.all(Array.from(uploadsRef.current)),
+            UPLOAD_WAIT_MS,
+          );
           if (!mountedRef.current) return false;
-          if (Date.now() - startedAt > UPLOAD_WAIT_MS) {
+          if (!waited.ok) {
             workError(
               new Error(assignmentPageLanguage.uploadWaitTimeout(lang)),
               lang,
             );
             return false;
           }
-          setGuardBusy("upload");
-          await new Promise((r) => setTimeout(r, 200));
+          // A failed upload already showed its own error: stay, don't submit.
+          if (
+            !shouldSubmitAfterUpload({ results: waited.value, timedOut: false })
+          )
+            return false;
         }
         setGuardBusy("submit");
         // The request itself may take up to the axios timeout; the student
@@ -230,7 +246,9 @@ export default function YourWorkSheet({
   const pickFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
     const picked = Array.from(e.target.files ?? []);
     e.target.value = "";
-    void upload(picked);
+    const run = upload(picked);
+    uploadsRef.current.add(run);
+    void run.finally(() => uploadsRef.current.delete(run));
   };
   const openNote = (file?: FileOnStudentOnAssignment) => {
     setNote(file);
