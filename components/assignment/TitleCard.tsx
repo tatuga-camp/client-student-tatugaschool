@@ -13,7 +13,7 @@ import {
   statusLabel,
   TONES,
   typeLabel,
-} from "../classwork/ClassworkCard";
+} from "../classwork/tones";
 import type { AssignmentItem } from "./types";
 
 type Props = { assignment: AssignmentItem; lang: Language; now: Date };

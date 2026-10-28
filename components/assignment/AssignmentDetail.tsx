@@ -13,6 +13,7 @@ import {
 import { TAB_BODY_CLASS } from "../app/TabHeader";
 import { type DetailPaneProps, useShellNav } from "../app/shell/useShellRoute";
 import TextEditor from "../common/TextEditor";
+import { hasRichContent } from "../../utils/assignmentDetail";
 import DetailHeader from "./DetailHeader";
 import { LegacyVideoQuiz } from "./LegacyVideoQuiz";
 import { LegacyWorkPanels } from "./LegacyWorkPanels";
@@ -22,13 +23,6 @@ import { useDetailFocus } from "./useDetailFocus";
 
 const sectionLabel =
   "mx-0.5 mb-1.5 mt-1 text-[10px] font-bold uppercase tracking-wider text-[#7A80A0]";
-
-/** Rich text with no visible content (editors leave "<p></p>" behind). */
-function hasContent(html: string | null | undefined): boolean {
-  if (!html) return false;
-  if (/<(img|iframe|video|audio)\b/i.test(html)) return true;
-  return html.replace(/<[^>]*>|&nbsp;/g, "").trim().length > 0;
-}
 
 function DetailSkeleton() {
   const bar = "rounded-lg bg-[#E3E8F0] motion-safe:animate-pulse";
@@ -63,7 +57,9 @@ export default function AssignmentDetail({
   const lang = language.data ?? "en";
   const subject = useGetSubjectById({ id: subjectId });
   const assignments = useGetAssignments({ subjectId });
-  const assignment = assignments.data?.find((item) => item.id === assignmentId);
+  const assignment = assignments.data?.find(
+    (item) => item.id === assignmentId,
+  );
   const pageRef = useRef<HTMLDivElement>(null);
   const backRef = useRef<HTMLButtonElement>(null);
   useDetailFocus(backRef, pageRef);
@@ -76,13 +72,12 @@ export default function AssignmentDetail({
 
   // "Not found" only once the list has loaded (or failed) without it.
   const loading = assignments.isPending || isQuiz;
-  const item = assignment;
 
   return (
     <div ref={pageRef} className="flex h-full w-full flex-col font-Anuphan">
-      {item && (
+      {assignment && (
         <Head>
-          <title>Assignment: {item.title}</title>
+          <title>Assignment: {assignment.title}</title>
         </Head>
       )}
       <DetailHeader
@@ -98,18 +93,22 @@ export default function AssignmentDetail({
         <div className="flex flex-col gap-3 px-3 pb-6 pt-4">
           {loading ? (
             <DetailSkeleton />
-          ) : !item ? (
+          ) : !assignment ? (
             <h2 className="py-10 text-center text-base font-bold text-icon-color">
               {classworkDataLanguage.notFound(lang)}
             </h2>
           ) : (
             <>
-              {item.type === "VideoQuiz" && item.videoURL && (
-                <LegacyVideoQuiz assignment={item} subjectId={subjectId} />
+              {assignment.type === "VideoQuiz" && assignment.videoURL && (
+                <LegacyVideoQuiz
+                  assignment={assignment}
+                  subjectId={subjectId}
+                />
               )}
-              <TitleCard assignment={item} lang={lang} now={new Date()} />
-              {(item.type === "Assignment" || item.type === "Material") &&
-                hasContent(item.description) && (
+              <TitleCard assignment={assignment} lang={lang} now={new Date()} />
+              {(assignment.type === "Assignment" ||
+                assignment.type === "Material") &&
+                hasRichContent(assignment.description) && (
                   <section>
                     <h3 className={sectionLabel}>
                       {assignmentPageLanguage.instructions(lang)}
@@ -118,8 +117,8 @@ export default function AssignmentDetail({
                       <div className="h-60 lg:h-96">
                         <TextEditor
                           disabled={false}
-                          schoolId={item.schoolId}
-                          value={item.description}
+                          schoolId={assignment.schoolId}
+                          value={assignment.description}
                           onChange={() => {}}
                           menubar={false}
                           toolbar={false}
@@ -128,15 +127,15 @@ export default function AssignmentDetail({
                     </div>
                   </section>
                 )}
-              {item.files?.length > 0 && (
+              {assignment.files?.length > 0 && (
                 <section>
                   <h3 className={sectionLabel}>
                     {assignmentPageLanguage.fromTeacher(lang)}
                   </h3>
-                  <TeacherFiles files={item.files} lang={lang} />
+                  <TeacherFiles files={assignment.files} lang={lang} />
                 </section>
               )}
-              <LegacyWorkPanels assignment={item} subjectId={subjectId} />
+              <LegacyWorkPanels assignment={assignment} subjectId={subjectId} />
             </>
           )}
         </div>

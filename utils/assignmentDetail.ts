@@ -4,15 +4,64 @@ import type {
   StudentAssignmentStatus,
 } from "../interfaces";
 
+/** Formats the browsers (other than Safari) can't draw in an <img>. */
+const SAFARI_ONLY_IMAGE = /^image\/hei[cf]$/i;
+
 export function teacherFileOpenMode(file: {
-  type: string;
+  type?: string | null;
   url: string;
 }): "video" | "pdf" | "image" | "external" {
-  if (file.type.startsWith("video/")) return "video";
+  const type = file.type ?? "";
+  if (type.startsWith("video/")) return "video";
   const path = file.url.split(/[?#]/)[0];
-  if (file.type === "application/pdf" || /\.pdf$/i.test(path)) return "pdf";
-  if (file.type.startsWith("image/")) return "image";
+  if (type === "application/pdf" || /\.pdf$/i.test(path)) return "pdf";
+  if (SAFARI_ONLY_IMAGE.test(type)) return "external";
+  if (type.startsWith("image/")) return "image";
   return "external";
+}
+
+/** A teacher's link is stored as a file whose type is the literal "LINK". */
+export function isLinkFile(file: { type?: string | null }): boolean {
+  return file.type === "LINK";
+}
+
+export type TeacherFileKind = "video" | "pdf" | "image" | "link" | "file";
+
+/** How a teacher file is labelled and which tile it gets. */
+export function teacherFileKind(file: {
+  type?: string | null;
+  url: string;
+}): TeacherFileKind {
+  if (isLinkFile(file)) return "link";
+  const mode = teacherFileOpenMode(file);
+  return mode === "external" ? "file" : mode;
+}
+
+export function teacherFileName(file: {
+  name?: string | null;
+  url: string;
+}): string {
+  if (file.name) return file.name;
+  const last = file.url.split(/[?#]/)[0].split("/").pop() || file.url;
+  try {
+    return decodeURIComponent(last);
+  } catch {
+    return last;
+  }
+}
+
+export function fileSizeLabel(bytes: number | null | undefined): string {
+  if (!bytes || bytes < 0) return "";
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+}
+
+/** Rich text with visible content (editors leave "<p></p>" behind). */
+export function hasRichContent(html: string | null | undefined): boolean {
+  if (!html) return false;
+  if (/<(img|iframe|video|audio)[\s>/]/i.test(html)) return true;
+  return html.replace(/<[^>]*>|&nbsp;/g, "").trim().length > 0;
 }
 
 export function workItemMenu(input: {

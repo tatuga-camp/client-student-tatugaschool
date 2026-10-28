@@ -166,7 +166,10 @@ export default function DetailStack({ subjectId, detail, depthApi }: Props) {
         started = true;
       };
       const idle = window.setTimeout(() => {
-        if (!started) done();
+        if (started) return;
+        // Nothing popped: the next real pop is the browser's, not ours.
+        takeInAppPop();
+        done();
       }, NO_NAV_MS);
       Router.events.on("routeChangeStart", onStart);
       Router.events.on("routeChangeError", done);

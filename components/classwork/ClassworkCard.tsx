@@ -1,29 +1,28 @@
 import { useState } from "react";
 import {
-  LuBookMarked,
   LuChevronDown,
-  LuClipboardCheck,
   LuClock,
-  LuFileText,
   LuListChecks,
   LuLock,
   LuPaperclip,
   LuStar,
-  LuVideo,
 } from "react-icons/lu";
-import {
-  classworkCardDataLanguage,
-  subjectHomeLanguage,
-} from "../../data/languages";
+import { subjectHomeLanguage } from "../../data/languages";
 import {
   Assignment,
-  AssignmentType,
   FileOnAssignment,
   Language,
-  StudentAssignmentStatus,
   StudentOnAssignment,
 } from "../../interfaces";
-import { classworkBucket, DueUrgency, dueUrgency } from "../../utils";
+import { classworkBucket, dueUrgency } from "../../utils";
+import {
+  DUE_PILL,
+  pill,
+  STATUS_PILL,
+  statusLabel,
+  TONES,
+  typeLabel,
+} from "./tones";
 import { TagChipList } from "../subject/AssignmentTagEditor";
 import RubricBreakdown from "../subject/RubricBreakdown";
 import ScoreHiddenBadge from "../subject/ScoreHiddenBadge";
@@ -42,60 +41,6 @@ type Props = {
   onSelect: (classwork: ClassworkItem) => void;
 };
 
-// Full class names only: Tailwind cannot see classes built from strings.
-export const TONES: Record<
-  AssignmentType,
-  { tile: string; label: string; icon: React.ReactNode }
-> = {
-  Assignment: {
-    tile: "bg-sky-100 text-sky-600",
-    label: "text-sky-600",
-    icon: <LuFileText />,
-  },
-  Quiz: {
-    tile: "bg-violet-100 text-violet-600",
-    label: "text-violet-600",
-    icon: <LuClipboardCheck />,
-  },
-  VideoQuiz: {
-    tile: "bg-pink-100 text-pink-600",
-    label: "text-pink-600",
-    icon: <LuVideo />,
-  },
-  Material: {
-    tile: "bg-teal-100 text-teal-600",
-    label: "text-teal-600",
-    icon: <LuBookMarked />,
-  },
-};
-
-export const DUE_PILL: Record<Exclude<DueUrgency, "none">, string> = {
-  overdue: "bg-rose-100 text-rose-600",
-  soon: "bg-amber-100 text-amber-700",
-  later: "bg-gray-100 text-gray-600",
-  done: "bg-gray-50 text-gray-400",
-};
-
-export const STATUS_PILL: Record<StudentAssignmentStatus, string> = {
-  PENDDING: "bg-gray-100 text-gray-600",
-  SUBMITTED: "bg-amber-100 text-amber-700",
-  REVIEWD: "bg-emerald-100 text-emerald-700",
-  IMPROVED: "bg-rose-100 text-rose-700",
-};
-
-export function statusLabel(status: StudentAssignmentStatus, lang: Language) {
-  switch (status) {
-    case "SUBMITTED":
-      return classworkCardDataLanguage.WaitReview(lang);
-    case "REVIEWD":
-      return classworkCardDataLanguage.Reviewed(lang);
-    case "IMPROVED":
-      return classworkCardDataLanguage.Improve(lang);
-    default:
-      return classworkCardDataLanguage.NoWork(lang);
-  }
-}
-
 function stripHtml(html: string) {
   if (!html) return "";
   return html
@@ -103,19 +48,6 @@ function stripHtml(html: string) {
     .replace(/&nbsp;/g, " ")
     .replace(/\s+/g, " ")
     .trim();
-}
-
-export function typeLabel(type: AssignmentType, lang: Language) {
-  switch (type) {
-    case "Quiz":
-      return subjectHomeLanguage.typeQuiz(lang);
-    case "VideoQuiz":
-      return subjectHomeLanguage.typeVideo(lang);
-    case "Material":
-      return subjectHomeLanguage.typeMaterial(lang);
-    default:
-      return subjectHomeLanguage.typeAssignment(lang);
-  }
 }
 
 /** The score as the student sees it: scaled to the weight when there is one. */
@@ -128,9 +60,6 @@ function displayScore(assignment: Assignment, raw: number) {
   }
   return { score: raw, max: assignment.maxScore };
 }
-
-export const pill =
-  "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold";
 
 export default function ClassworkCard({
   classwork,

@@ -358,7 +358,16 @@ export const assignmentPageLanguage = {
   timeLeft: (l: Language, d: string) =>
     l === "th" ? `เหลือ ${d}` : `${d} left`,
   timeAgo: (l: Language, d: string) => (l === "th" ? `เลยมา ${d}` : `${d} ago`),
-  openFile: t("Open file", "เปิดไฟล์"),
+  fastForwardOff: t(
+    "Fast-forwarding is turned off for this video.",
+    "วิดีโอนี้ปิดการกรอไปข้างหน้า",
+  ),
+  seek: t("Seek", "เลื่อนเวลา"),
+  play: t("Play", "เล่น"),
+  pause: t("Pause", "หยุด"),
+  mute: t("Mute", "ปิดเสียง"),
+  unmute: t("Unmute", "เปิดเสียง"),
+  fullscreen: t("Full screen", "เต็มจอ"),
   link: t("Link", "ลิงก์"),
   fileKindPdf: t("PDF", "PDF"),
   fileKindImage: t("Image", "รูปภาพ"),
