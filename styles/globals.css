@@ -28,6 +28,59 @@
   .gradient-bg {
     @apply bg-primary-color;
   }
+  .chunky {
+    background: #fff;
+    border: 2px solid #e3e8f0;
+    border-bottom-width: 4px;
+    border-radius: 16px;
+  }
+  .chunky-btn {
+    background: #2c7cd1;
+    color: #fff;
+    font-weight: 700;
+    height: 42px;
+    padding: 0 18px;
+    border-radius: 14px;
+    box-shadow: 0 4px 0 #275d96;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: transform 80ms ease, box-shadow 80ms ease;
+  }
+  .chunky-btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 #275d96;
+  }
+  .chunky-btn-secondary {
+    background: #fff;
+    color: #2c7cd1;
+    border: 2px solid #e3e8f0;
+    border-bottom-width: 4px;
+    box-shadow: none;
+  }
+  .chunky-btn-secondary:active {
+    transform: translateY(2px);
+    box-shadow: none;
+    border-bottom-width: 2px;
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #fff;
+    border: 2px solid #e3e8f0;
+    border-bottom-width: 3px;
+    border-radius: 999px;
+    padding: 2px 10px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .app-scroll {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 /* * {
