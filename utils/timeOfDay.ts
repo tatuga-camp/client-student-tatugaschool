@@ -124,3 +124,18 @@ export const SUN_POSITION: Record<DayPeriod, { x: number; y: number }> = {
   afternoon: { x: 232, y: 160 },
   night: { x: 220, y: 92 },
 };
+
+/**
+ * `hex` (#RRGGBB) mixed `amount` of the way toward white, e.g. the header
+ * band's lower sky is lighten(skyTop, 0.25). Mixing never blows a light
+ * morning sky out to pure white.
+ */
+export function lighten(hex: string, amount: number): string {
+  const channel = (i: number) => {
+    const c = parseInt(hex.slice(i, i + 2), 16);
+    return Math.round(c + (255 - c) * amount)
+      .toString(16)
+      .padStart(2, "0");
+  };
+  return `#${channel(1)}${channel(3)}${channel(5)}`.toUpperCase();
+}

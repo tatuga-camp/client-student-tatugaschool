@@ -7,6 +7,35 @@ export function isIosSafariWithoutPwa(): boolean {
   return isIos && !isStandalone;
 }
 
+export type PushStatus =
+  | "granted"
+  | "default"
+  | "denied"
+  | "ios-install"
+  | "unsupported";
+
+/** Where web push stands here; iOS needs the home-screen app first. */
+export function getPushStatus(): PushStatus {
+  if (typeof window === "undefined") return "unsupported";
+  if (isIosSafariWithoutPwa()) return "ios-install";
+  if (typeof Notification === "undefined") return "unsupported";
+  return Notification.permission as PushStatus;
+}
+
+/**
+ * Which prompt shows on its own (the old AskNotification rules): none once
+ * dismissed; the install steps on iPhone Safari; Allow while the browser
+ * can still ask. Blocked, granted and unsupported ask nothing.
+ */
+export function autoPushPrompt(input: {
+  dismissed: boolean;
+  status: PushStatus;
+}): "ask" | "ios-install" | null {
+  if (input.dismissed) return null;
+  if (input.status === "ios-install") return "ios-install";
+  return input.status === "default" ? "ask" : null;
+}
+
 export async function registerServiceWorker() {
   if ("serviceWorker" in navigator) {
     return await navigator.serviceWorker.register("/sw.js");

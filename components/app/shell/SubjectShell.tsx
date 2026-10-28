@@ -8,7 +8,6 @@ import {
   useGetSubjectById,
 } from "../../../react-query";
 import { safeSet } from "../../../utils/safeStorage";
-import AskNotification from "../../AskNotification";
 import LoadingSpinner from "../../common/LoadingSpinner";
 import DetailStack from "./DetailStack";
 import TabBar from "./TabBar";
@@ -66,7 +65,6 @@ function ShellBody({ route }: { route: ShellRoute }) {
         </title>
         <meta name="description" content={subject.data?.title} />
       </Head>
-      <AskNotification />
       <animated.div
         aria-hidden={detailOpen || undefined}
         {...inertProps(detailOpen)}
