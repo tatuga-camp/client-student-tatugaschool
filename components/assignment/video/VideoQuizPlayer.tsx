@@ -58,6 +58,9 @@ export default function VideoQuizPlayer({
   const [expanded, setExpanded] = useState(false);
   const [nativeFs, setNativeFs] = useState(false);
   const full = expanded || nativeFs;
+  const nativeFsRef = useRef(false);
+  const questionOpenRef = useRef(false);
+  const autoExpandedRef = useRef(false);
 
   const quiz = useVideoQuiz({
     src,
@@ -69,11 +72,19 @@ export default function VideoQuizPlayer({
   });
 
   useEffect(() => {
-    const sync = () =>
-      setNativeFs(
+    const sync = () => {
+      const now =
         getFullscreenElement() === containerRef.current &&
-          !!containerRef.current,
-      );
+        !!containerRef.current;
+      // Leaving browser fullscreen during a question: keep the question
+      // over the whole phone by expanding with CSS (collapses after it).
+      if (nativeFsRef.current && !now && questionOpenRef.current) {
+        autoExpandedRef.current = true;
+        setExpanded(true);
+      }
+      nativeFsRef.current = now;
+      setNativeFs(now);
+    };
     document.addEventListener("fullscreenchange", sync);
     document.addEventListener("webkitfullscreenchange", sync);
     return () => {
@@ -95,10 +106,10 @@ export default function VideoQuizPlayer({
   // A question opens over the whole phone screen (video and seek bar stay
   // above the sheet); it collapses again afterwards unless the student
   // expanded the player themselves.
-  const autoExpandedRef = useRef(false);
   const fullRef = useRef(full);
   fullRef.current = full;
   const questionOpen = quiz.question !== null;
+  questionOpenRef.current = questionOpen;
   useEffect(() => {
     if (questionOpen && !fullRef.current) {
       autoExpandedRef.current = true;
@@ -230,6 +241,7 @@ export default function VideoQuizPlayer({
             duration={quiz.duration}
             markers={questions.map((q) => q.timestamp)}
             expanded={full}
+            disabled={questionOpen}
             onTogglePlay={quiz.togglePlay}
             onToggleMute={quiz.toggleMute}
             onVolume={quiz.changeVolume}
@@ -238,7 +250,7 @@ export default function VideoQuizPlayer({
           />
         )}
 
-        {full && (quiz.question || quiz.showEnd) && (
+        {full && quiz.showEnd && (
           // Always reachable: above the question sheet and the end screen.
           <button
             type="button"
@@ -262,6 +274,7 @@ export default function VideoQuizPlayer({
             feedback={quiz.feedback}
             selected={quiz.selected}
             onAnswer={quiz.answer}
+            inFlow={full}
           />
         )}
         {quiz.showEnd && (

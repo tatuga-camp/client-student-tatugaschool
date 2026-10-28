@@ -12,6 +12,8 @@ type Props = {
   feedback: "correct" | "incorrect" | null;
   selected: number | null;
   onAnswer: (optionIndex: number) => void;
+  /** Laid out below the controls in the column (expanded/fullscreen) instead of over the video. */
+  inFlow?: boolean;
 };
 
 /**
@@ -27,6 +29,7 @@ export default function VideoQuestionSheet({
   feedback,
   selected,
   onAnswer,
+  inFlow = false,
 }: Props) {
   const t = assignmentPageLanguage;
   const sheetRef = useRef<HTMLDivElement>(null);
@@ -52,10 +55,10 @@ export default function VideoQuestionSheet({
           e.stopPropagation();
         }
       }}
-      className="absolute inset-x-0 bottom-0 z-30 max-h-[65%] overflow-y-auto rounded-t-[24px] bg-white px-4 pt-2 font-Anuphan text-icon-color"
+      className={`${inFlow ? "relative max-h-[55%] shrink-0" : "absolute inset-x-0 bottom-0 z-30 max-h-[65%]"} overflow-y-auto rounded-t-[24px] bg-white px-4 pt-2 font-Anuphan text-icon-color`}
       style={{
         boxShadow: "0 -6px 24px rgba(0,0,0,.25)",
-        paddingBottom: "max(12px, env(safe-area-inset-bottom))",
+        paddingBottom: inFlow ? 12 : "max(12px, env(safe-area-inset-bottom))",
         paddingLeft: "max(16px, env(safe-area-inset-left))",
         paddingRight: "max(16px, env(safe-area-inset-right))",
       }}

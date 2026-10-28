@@ -20,6 +20,8 @@ type Props = {
   /** Question times in seconds, drawn as yellow markers on the seek bar. */
   markers: number[];
   expanded: boolean;
+  /** A question is open: no play or seek until it is answered. */
+  disabled?: boolean;
   onTogglePlay: () => void;
   onToggleMute: () => void;
   onVolume: (v: number) => void;
@@ -47,6 +49,7 @@ export default function VideoControls({
   duration,
   markers,
   expanded,
+  disabled = false,
   onTogglePlay,
   onToggleMute,
   onVolume,
@@ -73,6 +76,7 @@ export default function VideoControls({
           max={duration || 0}
           step="any"
           value={currentTime}
+          disabled={disabled}
           onChange={(e) => onSeek(Number(e.target.value))}
           aria-label={t.seek(lang)}
           className="block h-11 w-full cursor-pointer appearance-none rounded-full accent-[#569DF8]"
@@ -85,6 +89,7 @@ export default function VideoControls({
         <button
           type="button"
           onClick={onTogglePlay}
+          disabled={disabled}
           aria-label={playing ? t.pause(lang) : t.play(lang)}
           className={btn}
         >
