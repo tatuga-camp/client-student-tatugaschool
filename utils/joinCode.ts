@@ -7,3 +7,8 @@ export function normalizeJoinCode(raw: string): string {
     .replace(/[^A-Z0-9]/g, "")
     .slice(0, JOIN_CODE_LENGTH);
 }
+
+/** Codes are stored lowercase on the server; the boxes show them uppercase. */
+export function joinCodeForLookup(code: string): string {
+  return code.toLowerCase();
+}

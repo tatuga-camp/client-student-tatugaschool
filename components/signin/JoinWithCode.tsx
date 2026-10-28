@@ -4,10 +4,14 @@ import { useState } from "react";
 import { LuArrowRight } from "react-icons/lu";
 import { welcomeDataLanguage as t } from "../../data/languages";
 import { useGetLanguage } from "../../react-query";
-import { GetSubjectByCodeService } from "../../services";
+import { subjectByCodeQuery } from "../../react-query/subject";
+import { joinCodeForLookup } from "../../utils/joinCode";
 import { reactMascot } from "../../utils/mascot";
 import { safeSet } from "../../utils/safeStorage";
 import { CodeBoxes } from "./CodeBoxes";
+
+// Matches the id WelcomeMascots gives the centre mascot.
+const REACT_MASCOT_ID = "welcome-1";
 
 export function JoinWithCode() {
   const router = useRouter();
@@ -21,17 +25,22 @@ export function JoinWithCode() {
   const join = async () => {
     if (code.length < 6 || busy) return;
     setBusy(true);
+    const lookup = joinCodeForLookup(code);
     try {
       await queryClient.fetchQuery({
-        queryKey: ["subject", code],
-        queryFn: () => GetSubjectByCodeService({ code }),
+        ...subjectByCodeQuery(lookup),
+        retry: false,
       });
-      safeSet("subject_code", code);
-      await router.push("/?subject_code=" + code);
     } catch {
-      reactMascot("welcome-1", "sad");
+      reactMascot(REACT_MASCOT_ID, "sad");
       setShakeKey((n) => n + 1);
       setInvalid(true);
+      setBusy(false);
+      return;
+    }
+    safeSet("subject_code", lookup);
+    try {
+      await router.push("/?subject_code=" + lookup);
     } finally {
       setBusy(false);
     }

@@ -47,6 +47,12 @@ export function CodeBoxes({
     });
   }, [shakeKey, api]);
 
+  useEffect(() => {
+    if (autoFocus && window.matchMedia?.("(pointer: fine)").matches) {
+      inputRef.current?.focus();
+    }
+  }, [autoFocus]);
+
   const active = Math.min(value.length, length - 1);
 
   return (
@@ -66,7 +72,6 @@ export function CodeBoxes({
         autoCapitalize="characters"
         autoCorrect="off"
         spellCheck={false}
-        autoFocus={autoFocus}
         maxLength={length * 4}
         aria-label={ariaLabel}
         aria-invalid={invalid || undefined}
@@ -81,7 +86,11 @@ export function CodeBoxes({
             aria-hidden
             className="chunky flex h-14 w-11 items-center justify-center text-2xl font-bold text-[#383767]"
             style={{
-              borderColor: invalid ? "#F04438" : isActive ? "#2C7CD1" : undefined,
+              borderColor: invalid
+                ? "#F04438"
+                : isActive
+                  ? "#2C7CD1"
+                  : undefined,
             }}
           >
             {value[i] ?? (isActive ? <span className="code-caret" /> : null)}
