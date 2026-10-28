@@ -1,10 +1,8 @@
-import Image from "next/image";
 import { LuMail } from "react-icons/lu";
-import { defaultBlurHash } from "../../data";
 import { subjectDataLanguage as t } from "../../data/languages";
 import { Language, TeacherOnSubject } from "../../interfaces";
-import { decodeBlurhashToCanvas } from "../../utils";
 import { Sheet } from "../app/Sheet";
+import { TeacherPhoto } from "./TeacherPhoto";
 
 type Props = {
   open: boolean;
@@ -26,17 +24,7 @@ export function TeachersSheet({ open, onClose, teachers, lang }: Props) {
               className="flex min-h-[56px] items-center gap-3 py-2"
             >
               <span className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full ring-1 ring-[#E3E8F0]">
-                <Image
-                  src={teacher.photo}
-                  alt=""
-                  fill
-                  sizes="44px"
-                  placeholder="blur"
-                  blurDataURL={decodeBlurhashToCanvas(
-                    teacher.blurHash ?? defaultBlurHash,
-                  )}
-                  className="object-cover"
-                />
+                <TeacherPhoto teacher={teacher} size={44} />
               </span>
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-sm font-bold text-[#383767]">

@@ -6,6 +6,13 @@ export function searchStudents<T extends Searchable>(
   hideList: boolean,
 ): T[] {
   const trimmed = query.trim();
+  // A number is a precise key, so it needs no minimum length; text keeps the
+  // 3-character rule so the class list cannot be browsed by name.
+  if (hideList && /^\d+$/.test(trimmed)) {
+    return students
+      .filter((s) => s.number.toString() === trimmed)
+      .sort(byNumber);
+  }
   if (hideList && trimmed.length <= 2) return [];
   if (!hideList && trimmed === "") return students.slice().sort(byNumber);
 

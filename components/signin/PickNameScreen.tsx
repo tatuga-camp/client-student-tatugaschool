@@ -12,6 +12,7 @@ import {
 import { errorSwalContent } from "../../utils";
 import Swal from "../../utils/appSwal";
 import { safeSet } from "../../utils/safeStorage";
+import { signInRequest } from "../../utils/signInRequest";
 import { searchStudents } from "../../utils/studentSearch";
 import PopupLayout from "../layouts/PopupLayout";
 import SignInStudentForm from "../student/SignInStudentForm";
@@ -103,7 +104,9 @@ export function PickNameScreen({ subjectCode, announcementId }: Props) {
       const form = e.currentTarget as HTMLFormElement;
       const password = (form.elements.namedItem("password") as HTMLInputElement)
         .value;
-      await signIn.mutateAsync({ studentId: selectStudentId, password });
+      await signIn.mutateAsync(
+        signInRequest({ studentId: selectStudentId }, password),
+      );
       goToSubject();
     } catch (error) {
       // The server names the password in its 400 message; show the localized
@@ -118,14 +121,14 @@ export function PickNameScreen({ subjectCode, announcementId }: Props) {
   const handlePick = async (student: StudentOnSubject) => {
     setPendingId(student.id);
     try {
-      await signIn.mutateAsync({ studentId: student.id });
+      await signIn.mutateAsync(signInRequest(student));
       await goToSubject();
     } catch (error) {
       const result = error as ErrorMessages;
       console.error(error);
       if (result?.message === "Please enter your password") {
         setPasswordError(null);
-        setSelectStudentId(student.id);
+        setSelectStudentId(student.studentId);
         setTimeout(() => passwordInputRef.current?.focus(), 1000);
       } else {
         Swal.fire({

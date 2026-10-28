@@ -56,7 +56,9 @@ export function HiddenListSearch({
         {(results ?? []).map((student) => (
           <li
             key={student.id}
-            className="chunky flex items-center gap-3 px-2.5 py-2"
+            className={`chunky flex items-center gap-3 px-2.5 py-2 ${
+              student.isActive ? "" : "opacity-45"
+            }`}
           >
             <span
               className="relative h-11 w-11 shrink-0 rounded-full"

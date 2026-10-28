@@ -1,12 +1,10 @@
-import Image from "next/image";
 import { useRouter } from "next/router";
 import { LuArrowLeft, LuCalculator, LuMail } from "react-icons/lu";
-import { defaultBlurHash } from "../../data";
 import { subjectDataLanguage as t } from "../../data/languages";
 import { Language, TeacherOnSubject } from "../../interfaces";
 import { ResponseGetSubjectByCodeService } from "../../services";
-import { decodeBlurhashToCanvas } from "../../utils";
 import { LanguagePill } from "./LanguagePill";
+import { TeacherPhoto } from "./TeacherPhoto";
 
 type Props = {
   subject: ResponseGetSubjectByCodeService;
@@ -14,8 +12,10 @@ type Props = {
   onTeachers: () => void;
 };
 
-// Darkens the lower half so white text on it stays readable (4.5:1).
-const SCRIM = "linear-gradient(rgba(10,25,60,.15), rgba(10,25,60,.5))";
+// Under the text block the scrim is at least 60% black, so white text keeps
+// 4.5:1 even over a white photo; it fades out above the text.
+const SCRIM =
+  "linear-gradient(to bottom, rgba(0,0,0,0) 25%, rgba(0,0,0,.6) 55%)";
 
 /** Escape only what would end a quoted CSS url(). */
 const cssUrl = (url: string) =>
@@ -24,17 +24,7 @@ const cssUrl = (url: string) =>
 function TeacherAvatar({ teacher }: { teacher: TeacherOnSubject }) {
   return (
     <span className="relative -mr-1 h-5 w-5 overflow-hidden rounded-full ring-2 ring-white/80">
-      <Image
-        src={teacher.photo}
-        alt=""
-        fill
-        sizes="20px"
-        placeholder="blur"
-        blurDataURL={decodeBlurhashToCanvas(
-          teacher.blurHash ?? defaultBlurHash,
-        )}
-        className="object-cover"
-      />
+      <TeacherPhoto teacher={teacher} size={20} />
     </span>
   );
 }
@@ -68,7 +58,7 @@ export function SubjectCover({ subject, lang, onTeachers }: Props) {
         </button>
         <LanguagePill />
       </div>
-      <div className="relative z-[1] mt-auto px-[18px] pb-7 pt-2">
+      <div className="relative z-[1] mt-auto px-[18px] pb-7 pt-2 [text-shadow:0_1px_2px_rgba(0,0,0,.35)]">
         <h1 className="text-lg font-extrabold leading-tight">
           {subject.title}
         </h1>

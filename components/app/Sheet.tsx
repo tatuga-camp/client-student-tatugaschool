@@ -288,18 +288,20 @@ export function Sheet({
           style={{ touchAction: "none" }}
         >
           <div className="h-1.5 w-10 rounded-full bg-[#E3E8F0]" />
-          {dismissible && modal && (
-            <button
-              type="button"
-              aria-label={profileLanguage.close(language.data ?? "en")}
-              onClick={dismiss}
-              onPointerDown={(e) => e.stopPropagation()}
-              className="absolute right-3 top-2 flex h-8 w-8 items-center justify-center rounded-full text-[#383767]"
-            >
-              <LuX size={20} />
-            </button>
-          )}
         </div>
+        {dismissible && modal && (
+          // Outside the handle: use-gesture's tap filter on the handle eats
+          // real clicks (detail > 0) that did not start a gesture.
+          <button
+            type="button"
+            aria-label={profileLanguage.close(language.data ?? "en")}
+            onClick={dismiss}
+            className="absolute right-3 flex h-8 w-8 items-center justify-center rounded-full text-[#383767]"
+            style={{ top: full && modal ? "calc(var(--safe-top) + 8px)" : 8 }}
+          >
+            <LuX size={20} />
+          </button>
+        )}
         <div
           ref={bodyRef}
           {...bindBody()}
