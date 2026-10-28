@@ -8,13 +8,18 @@ type Props = { teacher: TeacherOnSubject; size: number };
 
 /** A teacher's photo that falls back to their initials if it will not load. */
 export function TeacherPhoto({ teacher, size }: Props) {
-  const [failed, setFailed] = useState(false);
+  // Remember which photo failed, so a new src gets a fresh try.
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
+  const failed = failedSrc === teacher.photo;
   if (failed || !teacher.photo) {
-    const initials = `${teacher.firstName[0] ?? ""}${teacher.lastName[0] ?? ""}`;
+    const small = size < 32;
+    const initials = small
+      ? (teacher.firstName[0] ?? "")
+      : `${teacher.firstName[0] ?? ""}${teacher.lastName[0] ?? ""}`;
     return (
       <span
         aria-hidden
-        className="flex h-full w-full items-center justify-center bg-[#E8F1FD] text-[11px] font-bold uppercase text-[#2C7CD1]"
+        className={`flex h-full w-full items-center justify-center bg-[#E8F1FD] ${small ? "text-[10px]" : "text-[11px]"} font-bold uppercase text-[#2C7CD1]`}
       >
         {initials}
       </span>
@@ -29,7 +34,7 @@ export function TeacherPhoto({ teacher, size }: Props) {
       placeholder="blur"
       blurDataURL={decodeBlurhashToCanvas(teacher.blurHash ?? defaultBlurHash)}
       className="object-cover"
-      onError={() => setFailed(true)}
+      onError={() => setFailedSrc(teacher.photo)}
     />
   );
 }

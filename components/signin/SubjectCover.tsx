@@ -12,10 +12,10 @@ type Props = {
   onTeachers: () => void;
 };
 
-// Under the text block the scrim is at least 60% black, so white text keeps
-// 4.5:1 even over a white photo; it fades out above the text.
+// 50% black at the top (back button, pill) rising to 60% by 30% and held
+// to the bottom (the faint icon adds a little light back), so white text keeps 4.5:1 even over a white photo.
 const SCRIM =
-  "linear-gradient(to bottom, rgba(0,0,0,0) 25%, rgba(0,0,0,.6) 55%)";
+  "linear-gradient(to bottom, rgba(0,0,0,.5) 0%, rgba(0,0,0,.6) 30%, rgba(0,0,0,.6) 100%)";
 
 /** Escape only what would end a quoted CSS url(). */
 const cssUrl = (url: string) =>
@@ -45,7 +45,7 @@ export function SubjectCover({ subject, lang, onTeachers }: Props) {
     >
       <LuCalculator
         aria-hidden
-        className="absolute -right-3.5 top-[30px] text-[120px] text-white/[.14]"
+        className="absolute -right-3.5 top-[30px] text-[120px] text-white/[.08]"
       />
       <div className="relative z-[1] flex items-center justify-between px-3.5">
         <button
