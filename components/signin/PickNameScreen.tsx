@@ -1,6 +1,5 @@
 import { useRouter } from "next/router";
-import { Password as PasswordPrimereact } from "primereact/password";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { LuSearch, LuUserX, LuUsers } from "react-icons/lu";
 import { subjectDataLanguage as t } from "../../data/languages";
 import { ErrorMessages, StudentOnSubject } from "../../interfaces";
@@ -14,9 +13,8 @@ import Swal from "../../utils/appSwal";
 import { safeSet } from "../../utils/safeStorage";
 import { signInRequest } from "../../utils/signInRequest";
 import { hiddenQueryReady, searchStudents } from "../../utils/studentSearch";
-import PopupLayout from "../layouts/PopupLayout";
-import SignInStudentForm from "../student/SignInStudentForm";
 import { HiddenListSearch } from "./HiddenListSearch";
+import { PasswordSheet } from "./PasswordSheet";
 import { StudentGrid } from "./StudentGrid";
 import { SubjectCover } from "./SubjectCover";
 import { SubjectLoadError } from "./SubjectLoadError";
@@ -66,10 +64,11 @@ export function PickNameScreen({ subjectCode, announcementId }: Props) {
   const [search, setSearch] = useState("");
   const [teachersOpen, setTeachersOpen] = useState(false);
   const [pendingId, setPendingId] = useState<string | null>(null);
-  // Password prompt (replaced by a sheet in the next task).
-  const [selectStudentId, setSelectStudentId] = useState<string | null>(null);
+  // The student whose password is being asked for; kept while the sheet
+  // slides out so its content does not blank.
+  const [pwStudent, setPwStudent] = useState<StudentOnSubject | null>(null);
+  const [pwOpen, setPwOpen] = useState(false);
   const [passwordError, setPasswordError] = useState<string | null>(null);
-  const passwordInputRef = useRef<PasswordPrimereact>(null);
 
   const data = subject.data;
   const hideList = data?.allowHideStudentList === true;
@@ -88,33 +87,26 @@ export function PickNameScreen({ subjectCode, announcementId }: Props) {
   const goToSubject = () =>
     router.push(
       announcementId
-        ? `/subject/${data?.id}?announcement_id=${announcementId}`
+        ? `/subject/${data?.id}?tab=classwork&announcement_id=${announcementId}`
         : `/subject/${data?.id}`,
     );
 
-  const closePasswordForm = () => {
-    setSelectStudentId(null);
+  const closePasswordSheet = () => {
+    setPwOpen(false);
     setPasswordError(null);
   };
 
-  const handleSignInForm = async (e: React.FormEvent) => {
+  const handlePassword = async (password: string) => {
+    if (!pwStudent) return;
     try {
-      e.preventDefault();
-      if (!selectStudentId) throw new Error("Student id not found");
-      const form = e.currentTarget as HTMLFormElement;
-      const password = (form.elements.namedItem("password") as HTMLInputElement)
-        .value;
-      await signIn.mutateAsync(
-        signInRequest({ studentId: selectStudentId }, password),
-      );
-      goToSubject();
+      await signIn.mutateAsync(signInRequest(pwStudent, password));
+      await goToSubject();
     } catch (error) {
       // The server names the password in its 400 message; show the localized
       // copy for that and the server text for anything else.
       const { text } = errorSwalContent(error);
       const isPasswordError = !text || /password/i.test(text);
       setPasswordError(isPasswordError ? t.wrongPassword(lang) : text);
-      passwordInputRef.current?.focus();
     }
   };
 
@@ -128,8 +120,8 @@ export function PickNameScreen({ subjectCode, announcementId }: Props) {
       console.error(error);
       if (result?.message === "Please enter your password") {
         setPasswordError(null);
-        setSelectStudentId(student.studentId);
-        setTimeout(() => passwordInputRef.current?.focus(), 1000);
+        setPwStudent(student);
+        setPwOpen(true);
       } else {
         Swal.fire({
           title: result?.error ? result.error : "Something Went Wrong",
@@ -214,18 +206,6 @@ export function PickNameScreen({ subjectCode, announcementId }: Props) {
 
   return (
     <div className="app-scroll hideScrollBar h-full w-full bg-[#F7F8FA] font-Anuphan">
-      {selectStudentId && (
-        <PopupLayout onClose={closePasswordForm}>
-          <SignInStudentForm
-            onClose={closePasswordForm}
-            onSubmit={handleSignInForm}
-            isPending={signIn.isPending}
-            passwordInputRef={passwordInputRef}
-            errorMessage={passwordError}
-            onPasswordChange={() => setPasswordError(null)}
-          />
-        </PopupLayout>
-      )}
       <div className="flex min-h-full flex-col">
         {data && (
           <SubjectCover
@@ -258,6 +238,14 @@ export function PickNameScreen({ subjectCode, announcementId }: Props) {
           {renderBody()}
         </main>
       </div>
+      <PasswordSheet
+        open={pwOpen}
+        student={pwStudent}
+        error={passwordError}
+        pending={signIn.isPending}
+        onSubmit={handlePassword}
+        onClose={closePasswordSheet}
+      />
       {data && (
         <TeachersSheet
           open={teachersOpen}

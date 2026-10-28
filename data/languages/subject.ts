@@ -261,6 +261,22 @@ export const subjectDataLanguage = {
         return "This account is protected. Enter the password your teacher gave you.";
     }
   },
+  heyName: (language: Language, name: string) =>
+    language === "th" ? `สวัสดี ${name}!` : `Hey ${name}!`,
+  passwordPrompt: (language: Language) =>
+    language === "th"
+      ? "ใส่รหัสผ่านเพื่อดำเนินการต่อ"
+      : "Enter your password to continue",
+  signInButton: (language: Language) =>
+    language === "th" ? "เข้าสู่ระบบ" : "Sign in",
+  forgotPassword: (language: Language) =>
+    language === "th"
+      ? "ลืมรหัสผ่าน? ขอให้คุณครูรีเซ็ตรหัสผ่านให้"
+      : "Forgot your password? Ask your teacher to reset it.",
+  showPassword: (language: Language) =>
+    language === "th" ? "แสดงรหัสผ่าน" : "Show password",
+  hidePassword: (language: Language) =>
+    language === "th" ? "ซ่อนรหัสผ่าน" : "Hide password",
   searchHint: (language: Language) =>
     language === "th"
       ? "ค้นหาชื่อหรือเลขที่ของคุณ"
