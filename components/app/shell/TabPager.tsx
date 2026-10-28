@@ -198,7 +198,12 @@ export default function TabPager({
             {...inertProps(!active)}
             className="absolute inset-0"
             style={{
-              transform: pos.to((p) => `translate3d(${(i - p) * 100}%,0,0)`),
+              // At rest on screen: no transform. A transform would box a
+              // `position: fixed` modal inside the pane into the pane (and
+              // stack it under the tab bar), leaving the tabs tappable.
+              transform: pos.to((p) =>
+                i === p ? "none" : `translate3d(${(i - p) * 100}%,0,0)`,
+              ),
               visibility: pos.to((p) =>
                 Math.abs(i - p) < 1 ? "visible" : "hidden",
               ),
