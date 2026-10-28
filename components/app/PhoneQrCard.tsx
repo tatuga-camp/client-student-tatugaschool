@@ -1,6 +1,7 @@
 import { useRouter } from "next/router";
 import { QRCodeSVG } from "qrcode.react";
 import { useEffect, useState } from "react";
+import { WIDE_STAGE_QUERY, useMediaQuery } from "./useIsFramed";
 import { LuQrCode } from "react-icons/lu";
 import { frameLanguage } from "../../data/languages";
 import { useGetLanguage, useGetSubjectById } from "../../react-query";
@@ -19,14 +20,15 @@ export function PhoneQrCard() {
   const subjectId =
     typeof router.query.subjectId === "string" ? router.query.subjectId : "";
   const subject = useGetSubjectById({ id: subjectId });
-  const [origin, setOrigin] = useState("");
+  // Only mounted client-side (framed), so lazy reads cannot mismatch hydration.
+  const [origin] = useState(() => window.location.origin);
   const [storedCode, setStoredCode] = useState<string | null>(null);
-  const [hidden, setHidden] = useState(false);
+  const [hidden, setHidden] = useState(() => safeGet(HIDDEN_KEY) === "1");
+  // Narrow stages have no room beside the phone: the card is a button that
+  // opens it on demand instead.
+  const wide = useMediaQuery(WIDE_STAGE_QUERY);
+  const [open, setOpen] = useState(false);
 
-  useEffect(() => {
-    setOrigin(window.location.origin);
-    setHidden(safeGet(HIDDEN_KEY) === "1");
-  }, []);
   // The stored code can change as the student moves around.
   useEffect(() => {
     setStoredCode(safeGet("subject_code"));
@@ -43,14 +45,20 @@ export function PhoneQrCard() {
       })
     : "";
 
-  if (hidden) {
+  const showCard = wide ? !hidden : open;
+
+  if (!showCard) {
     return (
       <button
         type="button"
         aria-label={frameLanguage.qrShow(l)}
         onClick={() => {
-          safeRemove(HIDDEN_KEY);
-          setHidden(false);
+          if (wide) {
+            safeRemove(HIDDEN_KEY);
+            setHidden(false);
+          } else {
+            setOpen(true);
+          }
         }}
         className="absolute bottom-[14px] left-[14px] z-[3] grid h-10 w-10 place-items-center rounded-xl border-2 border-b-4 border-[#E3E8F0] bg-white text-xl text-icon-color"
       >
@@ -60,7 +68,7 @@ export function PhoneQrCard() {
   }
 
   return (
-    <div className="absolute left-[34px] top-1/2 z-[3] w-[196px] -translate-y-[40%] rounded-[22px] border-2 border-b-[5px] border-[#E3E8F0] bg-white px-[14px] pb-3 pt-[14px] text-center shadow-[0_12px_30px_rgba(0,0,0,.12)]">
+    <div className="absolute bottom-[62px] left-[14px] z-[3] w-[196px] font-Anuphan min-[920px]:bottom-auto min-[920px]:left-[34px] min-[920px]:top-1/2 min-[920px]:-translate-y-[40%] rounded-[22px] border-2 border-b-[5px] border-[#E3E8F0] bg-white px-[14px] pb-3 pt-[14px] text-center shadow-[0_12px_30px_rgba(0,0,0,.12)]">
       {MASCOT && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
@@ -84,8 +92,12 @@ export function PhoneQrCard() {
       <button
         type="button"
         onClick={() => {
-          safeSet(HIDDEN_KEY, "1");
-          setHidden(true);
+          if (wide) {
+            safeSet(HIDDEN_KEY, "1");
+            setHidden(true);
+          } else {
+            setOpen(false);
+          }
         }}
         className="mt-2 text-[10px] font-bold text-primary-color"
       >

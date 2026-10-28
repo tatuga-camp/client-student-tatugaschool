@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { OVERLAY_ROOT_ID, isFrameExcluded } from "../../utils/frameRoutes";
 import { DesktopStage, PhoneChrome } from "./DesktopStage";
 import { useIsFramed } from "./useIsFramed";
@@ -15,7 +15,9 @@ const LOCK_PAGE_SCROLL = "html, body { height: 100%; overflow: hidden; }";
  * Wraps every page. Phones get the app full-screen; tablets and desktops get
  * it inside an iPhone frame on a schoolyard stage. Both carry the overlay
  * root that sheets, SweetAlert and PrimeReact panels render into.
- * `scroll` is for legacy pages that do not lay themselves out.
+ * `scroll` is true for legacy pages (no getLayout): they scroll inside a
+ * wrapper padded with the safe areas. Pages with getLayout pass false and
+ * handle `var(--safe-top)` / `var(--safe-bottom)` themselves.
  */
 export function PhoneFrame({
   children,
@@ -26,10 +28,32 @@ export function PhoneFrame({
 }) {
   const router = useRouter();
   const framed = useIsFramed();
+  const scrollRef = useRef<HTMLDivElement>(null);
+  // The scroller persists across pages, so Next's scroll reset no longer
+  // reaches it: reset it when the pathname changes.
+  useEffect(() => {
+    let last = router.asPath.split(/[?#]/)[0];
+    const onDone = (url: string) => {
+      const next = url.split(/[?#]/)[0];
+      if (next !== last && scrollRef.current) scrollRef.current.scrollTop = 0;
+      last = next;
+    };
+    router.events.on("routeChangeComplete", onDone);
+    return () => router.events.off("routeChangeComplete", onDone);
+  }, [router.events, router.asPath]);
   if (isFrameExcluded(router.pathname)) return <>{children}</>;
 
   const content = scroll ? (
-    <div className="app-scroll h-full">{children}</div>
+    <div
+      ref={scrollRef}
+      className="app-scroll h-full"
+      style={{
+        paddingTop: "var(--safe-top)",
+        paddingBottom: "var(--safe-bottom)",
+      }}
+    >
+      {children}
+    </div>
   ) : (
     children
   );
@@ -42,7 +66,7 @@ export function PhoneFrame({
       <div
         className={
           framed
-            ? "fixed inset-0 overflow-hidden font-Anuphan text-icon-color"
+            ? "fixed inset-0 overflow-hidden"
             : "relative overflow-hidden"
         }
         style={framed ? undefined : { height: "100dvh" }}
@@ -51,7 +75,7 @@ export function PhoneFrame({
         <div
           className={
             framed
-              ? "absolute inset-x-0 bottom-0 z-[2] flex justify-center pb-6"
+              ? "absolute inset-0 z-[2] flex items-center justify-center"
               : "h-full"
           }
         >
@@ -80,7 +104,7 @@ export function PhoneFrame({
               }
             >
               {content}
-              {framed && <PhoneChrome />}
+              {framed && <PhoneChrome legacy={scroll} />}
               <div id={OVERLAY_ROOT_ID} />
             </div>
           </div>

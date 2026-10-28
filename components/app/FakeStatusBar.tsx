@@ -6,7 +6,7 @@ const hhmm = (d: Date) =>
   `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 
 /** iPhone-style status bar with the live time, for the desktop frame. */
-export function FakeStatusBar() {
+export function FakeStatusBar({ dark = false }: { dark?: boolean }) {
   const tod = useTimeOfDay();
   const [time, setTime] = useState("");
   useEffect(() => {
@@ -15,7 +15,8 @@ export function FakeStatusBar() {
     const id = setInterval(tick, 10_000);
     return () => clearInterval(id);
   }, []);
-  const color = tod?.palette.statusText === "dark" ? "#383767" : "#fff";
+  const color =
+    dark || tod?.palette.statusText === "dark" ? "#383767" : "#fff";
   return (
     <div
       aria-hidden
