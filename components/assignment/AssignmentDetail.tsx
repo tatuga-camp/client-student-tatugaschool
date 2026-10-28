@@ -11,6 +11,7 @@ import {
   useGetLanguage,
   useGetStudent,
   useGetSubjectById,
+  useUpdateStudentOnAssignment,
 } from "../../react-query";
 import { TAB_BODY_CLASS } from "../app/TabHeader";
 import { type DetailPaneProps, useShellNav } from "../app/shell/useShellRoute";
@@ -25,10 +26,11 @@ import CommentsChat from "./CommentsChat";
 import ReviewedCard from "./ReviewedCard";
 import TurnedInCelebration from "./TurnedInCelebration";
 import DetailHeader from "./DetailHeader";
-import { LegacyVideoQuiz } from "./LegacyVideoQuiz";
+import VideoQuizPlayer from "./video/VideoQuizPlayer";
 import TeacherFiles from "./TeacherFiles";
 import TitleCard from "./TitleCard";
 import { useDetailFocus } from "./useDetailFocus";
+import { workError } from "./workFeedback";
 import YourWorkSheet from "./YourWorkSheet";
 
 const sectionLabel =
@@ -81,12 +83,27 @@ export default function AssignmentDetail({
 
   // "Not found" only once the list has loaded (or failed) without it.
   const loading = assignments.isPending || isQuiz;
+  const updateWork = useUpdateStudentOnAssignment();
+  const [videoState, setVideoState] = useState({
+    playing: false,
+    questionOpen: false,
+  });
   const [celebration, setCelebration] = useState<ReturnType<
     typeof turnInSummary
   > | null>(null);
   const next = assignment
     ? nextAssignmentAfter(assignments.data ?? [], assignment)
     : null;
+  // The quiz score is maxScore / questions x correct (done in the player).
+  const submitVideoScore = (score: number) => {
+    if (!assignment) return;
+    updateWork
+      .mutateAsync({
+        query: { studentOnAssignmentId: assignment.studentOnAssignment.id },
+        body: { status: "REVIEWD", score: Number(score.toFixed(2)) },
+      })
+      .catch((error) => workError(error, lang));
+  };
   const reviewed =
     !!assignment &&
     assignment.type !== "Material" &&
@@ -126,9 +143,15 @@ export default function AssignmentDetail({
           ) : (
             <>
               {assignment.type === "VideoQuiz" && assignment.videoURL && (
-                <LegacyVideoQuiz
-                  assignment={assignment}
-                  subjectId={subjectId}
+                <VideoQuizPlayer
+                  src={assignment.videoURL}
+                  questions={assignment.questions}
+                  preventFastForward={assignment.preventFastForward ?? false}
+                  reviewed={assignment.studentOnAssignment.status === "REVIEWD"}
+                  maxScore={assignment.maxScore}
+                  onSubmit={submitVideoScore}
+                  onNext={next ? () => nav.openAssignment(next.id) : undefined}
+                  onStateChange={setVideoState}
                 />
               )}
               {reviewed && subject.data && student.data && (
@@ -194,6 +217,7 @@ export default function AssignmentDetail({
       {assignment && (
         <YourWorkSheet
           assignment={assignment}
+          hidden={videoState.playing || videoState.questionOpen}
           subject={subject.data}
           onTurnedIn={({ itemCount }) =>
             setCelebration(

@@ -41,7 +41,15 @@ export function useDetailFocus(
           : null;
     const pageEl = page.current;
     entry.current?.focus({ preventScroll: true });
+    // Something mounting a moment later (a video player, an embed) must not
+    // leave focus on BODY: if it did, put it back on the entry.
+    const frame = requestAnimationFrame(() => {
+      if (!document.activeElement || document.activeElement === document.body) {
+        entry.current?.focus({ preventScroll: true });
+      }
+    });
     return () => {
+      cancelAnimationFrame(frame);
       const now = document.activeElement;
       const focusLost = !now || now === document.body;
       if (

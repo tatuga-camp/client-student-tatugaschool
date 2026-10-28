@@ -42,6 +42,8 @@ type Props = {
   subject?: Subject;
   /** Called after Mark as done succeeds. */
   onTurnedIn: (info: { itemCount: number }) => void;
+  /** Hide the peek (a video is playing or a question is open). */
+  hidden?: boolean;
 };
 
 /** How long the guard's "Mark as done" waits for an upload before giving up. */
@@ -61,6 +63,7 @@ export default function YourWorkSheet({
   assignment,
   subject,
   onTurnedIn,
+  hidden = false,
 }: Props) {
   const language = useGetLanguage();
   const lang = language.data ?? "en";
@@ -332,120 +335,122 @@ export default function YourWorkSheet({
       />
       <input ref={filesRef} type="file" multiple hidden onChange={pickFiles} />
 
-      <Sheet
-        open
-        onClose={() => setExpanded(false)}
-        peek={peek}
-        expanded={expanded}
-        onExpandedChange={setExpanded}
-        ariaLabel={assignmentPageLanguage.yourWork(lang)}
-      >
-        <div className="pb-2">
-          <div className="mb-2 flex items-center justify-between gap-2 text-[15px] font-bold text-icon-color">
-            <span>
-              {mode === "reviewed"
-                ? assignmentPageLanguage.reviewedByTeacher(lang)
-                : assignmentPageLanguage.yourWork(lang)}
-            </span>
-            <span className="flex items-center gap-1">
-              {mode === "turnedIn" ? (
-                <>
-                  <span
-                    className={`${pillBase} bg-emerald-100 text-emerald-700`}
-                  >
-                    <LuCheck aria-hidden />
-                    {assignmentPageLanguage.turnedIn(lang)}
-                  </span>
-                  <ActionMenu
-                    ariaLabel={assignmentPageLanguage.moreActions(lang)}
-                    disabled={busy}
-                    items={[
-                      {
-                        key: "undo",
-                        label:
-                          classworkDataLanguage.menuSummitLists.notdone(lang),
-                        icon: <LuUndo2 aria-hidden />,
-                        onSelect: () => void setStatus("PENDDING"),
-                      },
-                    ]}
-                  />
-                </>
-              ) : (
-                countPill
-              )}
-            </span>
-          </div>
-
-          {mode === "turnedIn" && doneAt && (
-            <p className="mb-2 text-xs font-semibold text-emerald-600">
-              {assignmentPageLanguage.markedDoneAt(lang)} {doneAt}
-            </p>
-          )}
-
-          {mode === "open" && unconfirmed && (
-            <div className="mb-2 flex items-start gap-2 rounded-xl bg-[#FFF6D6] p-2 text-[12px] font-bold text-[#8A5E00]">
-              <LuAlertTriangle
-                aria-hidden
-                className="mt-0.5 shrink-0 text-base"
-              />
-              {assignmentPageLanguage.unsubmittedWarning(lang)}
-            </div>
-          )}
-
-          <ul className="list-none">
-            {items.map((file) => (
-              <WorkItemRow
-                key={file.id}
-                file={file}
-                lang={lang}
-                allowStudentDeleteWork={
-                  subject?.allowStudentDeleteWork ?? false
-                }
-                reviewed={mode === "reviewed"}
-                onOpenNote={openNote}
-              />
-            ))}
-          </ul>
-
-          {progress && (
-            <div className="flex min-h-[52px] flex-col justify-center gap-1 border-t-[1.5px] border-[#EEF1F6] py-1.5">
-              <span className="text-xs font-bold text-icon-color">
-                {assignmentPageLanguage.uploadingProgress(
-                  lang,
-                  progress.index,
-                  progress.count,
-                  Math.round(progress.percent),
+      {!hidden && (
+        <Sheet
+          open
+          onClose={() => setExpanded(false)}
+          peek={peek}
+          expanded={expanded}
+          onExpandedChange={setExpanded}
+          ariaLabel={assignmentPageLanguage.yourWork(lang)}
+        >
+          <div className="pb-2">
+            <div className="mb-2 flex items-center justify-between gap-2 text-[15px] font-bold text-icon-color">
+              <span>
+                {mode === "reviewed"
+                  ? assignmentPageLanguage.reviewedByTeacher(lang)
+                  : assignmentPageLanguage.yourWork(lang)}
+              </span>
+              <span className="flex items-center gap-1">
+                {mode === "turnedIn" ? (
+                  <>
+                    <span
+                      className={`${pillBase} bg-emerald-100 text-emerald-700`}
+                    >
+                      <LuCheck aria-hidden />
+                      {assignmentPageLanguage.turnedIn(lang)}
+                    </span>
+                    <ActionMenu
+                      ariaLabel={assignmentPageLanguage.moreActions(lang)}
+                      disabled={busy}
+                      items={[
+                        {
+                          key: "undo",
+                          label:
+                            classworkDataLanguage.menuSummitLists.notdone(lang),
+                          icon: <LuUndo2 aria-hidden />,
+                          onSelect: () => void setStatus("PENDDING"),
+                        },
+                      ]}
+                    />
+                  </>
+                ) : (
+                  countPill
                 )}
               </span>
-              <div
-                role="progressbar"
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-valuenow={Math.round(progress.percent)}
-                className="h-1.5 w-full overflow-hidden rounded-full bg-[#EEF1F6]"
-              >
-                <div
-                  className="h-full rounded-full bg-primary-color"
-                  style={{ width: `${Math.round(progress.percent)}%` }}
-                />
-              </div>
             </div>
-          )}
-          {mode === "open" && (
-            <>
-              <AddWorkOptions
-                lang={lang}
-                disabled={busy}
-                onCamera={() => cameraRef.current?.click()}
-                onFiles={() => filesRef.current?.click()}
-                onNote={() => openNote()}
-                onLink={() => setLinkOpen(true)}
-              />
-              {doneButton}
-            </>
-          )}
-        </div>
-      </Sheet>
+
+            {mode === "turnedIn" && doneAt && (
+              <p className="mb-2 text-xs font-semibold text-emerald-600">
+                {assignmentPageLanguage.markedDoneAt(lang)} {doneAt}
+              </p>
+            )}
+
+            {mode === "open" && unconfirmed && (
+              <div className="mb-2 flex items-start gap-2 rounded-xl bg-[#FFF6D6] p-2 text-[12px] font-bold text-[#8A5E00]">
+                <LuAlertTriangle
+                  aria-hidden
+                  className="mt-0.5 shrink-0 text-base"
+                />
+                {assignmentPageLanguage.unsubmittedWarning(lang)}
+              </div>
+            )}
+
+            <ul className="list-none">
+              {items.map((file) => (
+                <WorkItemRow
+                  key={file.id}
+                  file={file}
+                  lang={lang}
+                  allowStudentDeleteWork={
+                    subject?.allowStudentDeleteWork ?? false
+                  }
+                  reviewed={mode === "reviewed"}
+                  onOpenNote={openNote}
+                />
+              ))}
+            </ul>
+
+            {progress && (
+              <div className="flex min-h-[52px] flex-col justify-center gap-1 border-t-[1.5px] border-[#EEF1F6] py-1.5">
+                <span className="text-xs font-bold text-icon-color">
+                  {assignmentPageLanguage.uploadingProgress(
+                    lang,
+                    progress.index,
+                    progress.count,
+                    Math.round(progress.percent),
+                  )}
+                </span>
+                <div
+                  role="progressbar"
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={Math.round(progress.percent)}
+                  className="h-1.5 w-full overflow-hidden rounded-full bg-[#EEF1F6]"
+                >
+                  <div
+                    className="h-full rounded-full bg-primary-color"
+                    style={{ width: `${Math.round(progress.percent)}%` }}
+                  />
+                </div>
+              </div>
+            )}
+            {mode === "open" && (
+              <>
+                <AddWorkOptions
+                  lang={lang}
+                  disabled={busy}
+                  onCamera={() => cameraRef.current?.click()}
+                  onFiles={() => filesRef.current?.click()}
+                  onNote={() => openNote()}
+                  onLink={() => setLinkOpen(true)}
+                />
+                {doneButton}
+              </>
+            )}
+          </div>
+        </Sheet>
+      )}
 
       <LeaveGuardSheet
         open={guardOpen}

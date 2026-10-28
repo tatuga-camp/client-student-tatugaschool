@@ -34,3 +34,20 @@ export function canSeekTo(input: {
     input.target <= input.maxWatched + 0.5
   );
 }
+
+/**
+ * While fast-forward is locked, a playhead more than a second past what was
+ * watched (native controls, keyboard, a lock-screen scrub) is put back.
+ */
+export function shouldRewind(input: {
+  now: number;
+  maxWatched: number;
+  preventFastForward: boolean;
+  reviewed: boolean;
+}): boolean {
+  return (
+    input.preventFastForward &&
+    !input.reviewed &&
+    input.now > input.maxWatched + 1
+  );
+}

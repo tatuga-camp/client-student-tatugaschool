@@ -129,6 +129,19 @@
   .tg-jump { animation: none; }
 }
 
+/* Video quiz question feedback countdown. */
+.tg-countdown {
+  width: 100%;
+  animation: tg-countdown linear forwards;
+}
+@keyframes tg-countdown {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tg-countdown { animation: none; }
+}
+
 /* Schoolyard scene loops (components/app/scene). Transform/opacity only. */
 .tgs-star { fill: #fff; }
 .tgs-flag, .tgs-sway, .tgs-glow { transform-box: fill-box; }

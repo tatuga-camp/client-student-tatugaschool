@@ -412,6 +412,31 @@ export const assignmentPageLanguage = {
   ),
   updateFailedTitle: t("Couldn't update your work", "อัปเดตงานของคุณไม่สำเร็จ"),
   updateFailedText: t("Please try again.", "กรุณาลองอีกครั้ง"),
+  // Video quiz
+  videoCorrectCount: (l: Language, correct: number, total: number) =>
+    l === "th" ? `ถูก ${correct} / ${total}` : `${correct} / ${total} correct`,
+  videoCompleted: t("Video completed!", "ดูวิดีโอจบแล้ว!"),
+  youScored: t("You scored", "คุณได้"),
+  questionsCorrect: t("questions correct", "ข้อที่ตอบถูก"),
+  retry: t("Retry", "ลองอีกครั้ง"),
+  submitWork: t("Submit work", "ส่งงาน"),
+  nextVideo: t("Next video", "วิดีโอถัดไป"),
+  correctFeedback: t(
+    "Correct! The video continues in 3…",
+    "ถูกต้อง! วิดีโอจะเล่นต่อใน 3 วินาที…",
+  ),
+  incorrectFeedback: t(
+    "Not quite. The video continues in 3…",
+    "ยังไม่ถูก วิดีโอจะเล่นต่อใน 3 วินาที…",
+  ),
+  questionOfCount: (l: Language, i: number, n: number) =>
+    l === "th" ? `คำถามที่ ${i} จาก ${n}` : `Question ${i} of ${n}`,
+  questionMarker: (l: Language, i: number) =>
+    l === "th" ? `คำถามที่ ${i}` : `Question ${i}`,
+  noSkipping: t("No skipping", "ห้ามข้าม"),
+  volume: t("Volume", "ระดับเสียง"),
+  expandVideo: t("Expand video", "ขยายวิดีโอ"),
+  collapseVideo: t("Shrink video", "ย่อวิดีโอ"),
   contentNotShown: t("(content not shown)", "(ไม่แสดงเนื้อหา)"),
   nothingAddedShort: t("Nothing added", "ไม่มีงาน"),
   ok: t("OK", "ตกลง"),
