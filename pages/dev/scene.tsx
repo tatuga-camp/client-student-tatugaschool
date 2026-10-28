@@ -14,6 +14,8 @@ export const getStaticProps: GetStaticProps = async () => {
 
 export default function ScenePreview() {
   const [live, setLive] = useState<DayPeriod>("morning");
+  const [peekOpen, setPeekOpen] = useState(false);
+  const [nested, setNested] = useState(false);
   const [sheet, setSheet] = useState<"auto" | "full" | null>(null);
   return (
     <div style={{ padding: 16, background: "#fff" }}>
@@ -34,6 +36,21 @@ export default function ScenePreview() {
         <h3 className="text-lg font-bold">Demo sheet</h3>
         <p className="py-4">Drag the handle down to close.</p>
         <button className="chunky-btn" onClick={() => setSheet(null)}>Done</button>
+      </Sheet>
+      <Sheet
+        open
+        onClose={() => {}}
+        peek={<p data-testid="peek">Peek: drag up</p>}
+        expanded={peekOpen}
+        onExpandedChange={setPeekOpen}
+        dismissible={false}
+        ariaLabel="Peek demo"
+      >
+        <p>Expanded peek</p>
+        <button id="open-nested" className="chunky-btn" onClick={() => setNested(true)}>Nested</button>
+      </Sheet>
+      <Sheet open={nested} onClose={() => setNested(false)} ariaLabel="Nested demo">
+        <p className="py-4">Nested sheet</p>
       </Sheet>
       <h2>Phone</h2>
       <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>

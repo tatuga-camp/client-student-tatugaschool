@@ -3,6 +3,8 @@ import { useDrag } from "@use-gesture/react";
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { LuX } from "react-icons/lu";
+import { profileLanguage } from "../../data/languages";
+import { useGetLanguage } from "../../react-query";
 import { sheetDragOutcome } from "../../utils/tabs";
 
 type SheetProps = {
@@ -16,6 +18,10 @@ type SheetProps = {
   dismissible?: boolean;
   ariaLabel: string;
 };
+
+// Open modal sheets, topmost last: Esc closes only the topmost one.
+const openStack: number[] = [];
+let nextId = 0;
 
 const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
 
@@ -36,12 +42,18 @@ export function Sheet({
   const bodyRef = useRef<HTMLDivElement>(null);
   const openerRef = useRef<HTMLElement | null>(null);
   const heightRef = useRef(600);
+  const visibleRef = useRef(false);
+  const enteredRef = useRef(false);
+  const idRef = useRef(0);
+  if (idRef.current === 0) idRef.current = ++nextId;
+  const language = useGetLanguage();
   const [{ y }, api] = useSpring(() => ({ y: 600 }));
 
   const isPeek = peek !== undefined;
   const visible = isPeek ? true : open;
   // Peek panel collapsed = no backdrop; expanded or normal sheet = backdrop.
   const modal = isPeek ? expanded : true;
+  visibleRef.current = visible;
 
   useEffect(() => {
     setRoot(document.getElementById("app-overlay-root"));
@@ -52,16 +64,37 @@ export function Sheet({
     if (visible && root) setRendered(true);
   }, [visible, root]);
 
+  // Keep the measured height fresh (expand/collapse, async content).
+  useLayoutEffect(() => {
+    const el = panelRef.current;
+    if (!rendered || !el) return;
+    const measure = () => {
+      heightRef.current = el.offsetHeight || heightRef.current;
+    };
+    measure();
+    if (typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [rendered]);
+
   useLayoutEffect(() => {
     if (!rendered || !panelRef.current) return;
     heightRef.current = panelRef.current.offsetHeight || heightRef.current;
     if (visible) {
-      if (!isPeek) api.start({ from: { y: heightRef.current }, y: 0 });
-      else api.start({ y: 0 });
+      if (!isPeek && !enteredRef.current) {
+        api.start({ from: { y: heightRef.current }, y: 0 });
+      } else api.start({ y: 0 });
+      enteredRef.current = true;
     } else {
       api.start({
         y: heightRef.current,
-        onRest: () => setRendered(false),
+        onRest: (result) => {
+          if (result.finished && !visibleRef.current) {
+            enteredRef.current = false;
+            setRendered(false);
+          }
+        },
       });
     }
   }, [rendered, visible, isPeek, api]);
@@ -85,20 +118,28 @@ export function Sheet({
 
   useEffect(() => {
     if (!visible || !modal || !dismissible) return;
+    const id = idRef.current;
+    openStack.push(id);
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") dismiss();
+      if (e.key === "Escape" && openStack[openStack.length - 1] === id) dismiss();
     };
     document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      const i = openStack.lastIndexOf(id);
+      if (i >= 0) openStack.splice(i, 1);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible, modal, dismissible, isPeek, onClose, onExpandedChange]);
 
   const usePanelDrag = (fromBody: boolean) =>
     useDrag(
       ({ first, last, movement: [, my], velocity: [, vy], direction: [, dirY], event, cancel }) => {
-        if (!dismissible && !isPeek) return cancel();
+        const collapsedPeek = isPeek && !expanded;
+        if (!dismissible && !collapsedPeek) return cancel();
         if (first && fromBody && (bodyRef.current?.scrollTop ?? 0) > 0) return cancel();
-        const height = heightRef.current;
+        const height = panelRef.current?.offsetHeight || heightRef.current;
+        heightRef.current = height;
         if (isPeek && !expanded) {
           // Collapsed peek: dragging up expands.
           if (last && (my < -40 || (vy > 0.5 && dirY < 0))) onExpandedChange?.(true);
@@ -166,7 +207,7 @@ export function Sheet({
           {dismissible && modal && (
             <button
               type="button"
-              aria-label="Close"
+              aria-label={profileLanguage.close(language.data ?? "en")}
               onClick={dismiss}
               onPointerDown={(e) => e.stopPropagation()}
               className="absolute right-3 top-2 flex h-8 w-8 items-center justify-center rounded-full text-[#383767]"
