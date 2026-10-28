@@ -50,3 +50,24 @@
 .hideScrollBar::-webkit-scrollbar {
   display: none; /* Safari and Chrome */
 }
+
+/* Schoolyard scene loops (components/app/scene). Transform/opacity only. */
+.tgs-star { fill: #fff; }
+.tgs-flag, .tgs-sway, .tgs-glow { transform-box: fill-box; }
+.tgs-flag { transform-origin: left center; }
+.tgs-sway { transform-origin: bottom center; }
+.tgs-glow { transform-origin: center; }
+.tgs-loops .tgs-glow { animation: tgs-pulse 4s ease-in-out infinite alternate; }
+.tgs-loops .tgs-drift { animation: tgs-drift 14s ease-in-out infinite alternate; }
+.tgs-loops .tgs-drift.tgs-slow { animation-duration: 20s; animation-direction: alternate-reverse; }
+.tgs-loops.tgs-desktop .tgs-drift { animation-name: tgs-drift-wide; animation-duration: 18s; }
+.tgs-loops.tgs-desktop .tgs-drift.tgs-slow { animation-duration: 26s; }
+.tgs-loops .tgs-star { animation: tgs-twinkle 2.4s ease-in-out infinite alternate; }
+.tgs-loops .tgs-flag { animation: tgs-wave 1.6s ease-in-out infinite alternate; }
+.tgs-loops .tgs-sway { animation: tgs-sway 3.5s ease-in-out infinite alternate; }
+@keyframes tgs-pulse { from { transform: scale(1); } to { transform: scale(1.12); } }
+@keyframes tgs-drift { from { transform: translateX(-14px); } to { transform: translateX(14px); } }
+@keyframes tgs-drift-wide { from { transform: translateX(-30px); } to { transform: translateX(30px); } }
+@keyframes tgs-twinkle { from { opacity: .25; } to { opacity: 1; } }
+@keyframes tgs-wave { from { transform: skewY(-6deg) scaleX(.94); } to { transform: skewY(6deg) scaleX(1); } }
+@keyframes tgs-sway { from { transform: rotate(-2deg); } to { transform: rotate(2deg); } }
