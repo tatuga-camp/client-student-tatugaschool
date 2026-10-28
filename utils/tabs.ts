@@ -53,7 +53,11 @@ export function canStartSwipe(target: EventTarget | null): boolean {
   return true;
 }
 
-/** Where the back control goes: real history when there is some (Next's `history.state.idx`), else the subject page. */
+/**
+ * Where the back control goes: real history when there is some, else the
+ * subject page. `historyIdx` is the shell's own index (utils/historyIndex.ts);
+ * Next's pages router keeps none in `history.state`.
+ */
 export function backTarget(input: {
   historyIdx: number;
   subjectId: string;

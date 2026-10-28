@@ -66,6 +66,7 @@ export default function TabBar({ tab, student, language, onSelect }: Props) {
   const homeLabel = homeLanguage.tabHome(language);
   return (
     <nav
+      aria-label={homeLanguage.tabBar(language)}
       className="relative z-10 flex shrink-0 items-start justify-around border-t-2 border-[#E3E8F0] bg-white px-1.5 pt-1.5 font-Anuphan"
       style={{
         height: "calc(72px + var(--safe-bottom))",

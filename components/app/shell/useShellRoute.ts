@@ -1,6 +1,7 @@
 import Router, { useRouter } from "next/router";
 import { useEffect, useMemo } from "react";
 import { queryString } from "../../common/RouteParamsGate";
+import { createHistoryIndex } from "../../../utils/historyIndex";
 import { backTarget, parseTab, TabKey } from "../../../utils/tabs";
 
 export type ShellRoute = {
@@ -18,24 +19,15 @@ export type DetailPaneProps = { subjectId: string; assignmentId: string };
 
 const ASSIGNMENT_PATHNAME = "/subject/[subjectId]/assignment/[assignmentId]";
 
-// Next's pages router keeps no index in history.state (only url, as,
-// options, __N and a per-entry `key`), so the shell numbers the entries it
-// sees by that key to give backTarget a real history index.
-const entryIdx = new Map<string, number>();
-let lastIdx = -1;
+// Next keeps no history index, so the shell numbers entries by Next's
+// per-entry `key` (see utils/historyIndex.ts) to give backTarget one.
+const historyIndex = createHistoryIndex();
 let tracking = false;
 
 function currentHistoryIdx(): number {
-  const key = (window.history.state as { key?: string } | null)?.key;
-  if (!key) return 0;
-  let idx = entryIdx.get(key);
-  if (idx === undefined) {
-    // A new entry sits right after the one we were on.
-    idx = lastIdx + 1;
-    entryIdx.set(key, idx);
-  }
-  lastIdx = idx;
-  return idx;
+  return historyIndex.visit(
+    (window.history.state as { key?: string } | null)?.key,
+  );
 }
 
 // Set while our own back() pops history, so the detail stack can tell it

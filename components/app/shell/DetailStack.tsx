@@ -9,7 +9,7 @@ import Router from "next/router";
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import AssignmentDetail from "../../assignment/AssignmentDetail";
 import { edgeBackOutcome } from "../../../utils/tabs";
-import { inertProps } from "./TabPager";
+import { inertProps, TAP_SLOP } from "./TabPager";
 import { ShellRoute, takeInAppPop, useShellNav } from "./useShellRoute";
 
 export const DETAIL_SPRING = { tension: 320, friction: 34 };
@@ -19,10 +19,12 @@ type Detail = NonNullable<ShellRoute["detail"]>;
 
 /** Plain mobile Safari (not the installed app) has its own edge-back gesture. */
 function isIosBrowserTab(): boolean {
-  return (
-    /iPad|iPhone|iPod/.test(navigator.userAgent) &&
-    !(navigator as Navigator & { standalone?: boolean }).standalone
-  );
+  const ua = navigator.userAgent;
+  // iPadOS Safari reports a Mac user agent; only touch tells them apart.
+  const ios =
+    /iPad|iPhone|iPod/.test(ua) ||
+    (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+  return ios && !(navigator as Navigator & { standalone?: boolean }).standalone;
 }
 
 type Props = {
@@ -40,6 +42,10 @@ export default function DetailStack({ subjectId, detail, depthApi }: Props) {
   const popped = useRef(false);
   const currentKey = useRef<string | null>(null);
   currentKey.current = detail?.assignmentId ?? null;
+  const suppressClick = useRef(false);
+  // Watches the navigation an edge-back started, until it settles.
+  const stopWatching = useRef<(() => void) | null>(null);
+  useEffect(() => () => stopWatching.current?.(), []);
 
   // Note browser back/forward so Safari's own swipe isn't animated twice;
   // the shell's own back button pops history too, and that one animates.
@@ -87,6 +93,8 @@ export default function DetailStack({ subjectId, detail, depthApi }: Props) {
       args: [ctrl, key],
       first,
       last,
+      tap,
+      canceled,
       initial: [ix],
       movement: [mx],
       velocity: [vx],
@@ -95,6 +103,17 @@ export default function DetailStack({ subjectId, detail, depthApi }: Props) {
       cancel,
       memo,
     }) => {
+      const c = ctrl as Controller<{ x: number }>;
+      const settle = () => {
+        c.start({ x: 0, immediate: false, config: DETAIL_SPRING });
+        depthApi.start({ depth: 1, immediate: false, config: DETAIL_SPRING });
+      };
+      // A tap, or the extra release use-gesture sends after cancel():
+      // nothing to decide, just make sure the page rests in place.
+      if (tap || canceled) {
+        if (last) settle();
+        return memo;
+      }
       const panel = currentTarget as HTMLElement;
       const startX: number = first
         ? ix - panel.getBoundingClientRect().left
@@ -102,32 +121,44 @@ export default function DetailStack({ subjectId, detail, depthApi }: Props) {
       if (first && startX > EDGE) return cancel();
       const width = panel.clientWidth || 1;
       const x = Math.max(0, mx);
-      const c = ctrl as Controller<{ x: number }>;
       if (!last) {
         c.start({ x: (x / width) * 100, immediate: true });
         depthApi.start({ depth: 1 - x / width, immediate: true });
         return startX;
       }
-      const settle = () => {
-        c.start({ x: 0, immediate: false, config: DETAIL_SPRING });
-        depthApi.start({ depth: 1, immediate: false, config: DETAIL_SPRING });
-      };
+      // The click that ends a mouse edge-drag must not hit what it was over.
+      suppressClick.current = true;
+      window.setTimeout(() => {
+        suppressClick.current = false;
+      }, 0);
       const outcome = edgeBackOutcome({
         startX,
         dx: mx,
         vx: dirX > 0 ? vx : 0,
         width,
       });
-      if (outcome === "back") {
-        nav.back();
-        // If the navigation was refused (e.g. the unsent-work prompt), slide back.
-        window.setTimeout(() => {
-          if (currentKey.current === key) settle();
-        }, 700);
-      } else settle();
+      if (outcome !== "back") {
+        settle();
+        return startX;
+      }
+      // Slide back if the navigation is refused (e.g. the unsent-work
+      // prompt cancels it) or ends with this page still open.
+      stopWatching.current?.();
+      const done = () => {
+        stopWatching.current?.();
+        if (currentKey.current === key) settle();
+      };
+      Router.events.on("routeChangeError", done);
+      Router.events.on("routeChangeComplete", done);
+      stopWatching.current = () => {
+        Router.events.off("routeChangeError", done);
+        Router.events.off("routeChangeComplete", done);
+        stopWatching.current = null;
+      };
+      nav.back();
       return startX;
     },
-    { axis: "x", filterTaps: true },
+    { axis: "x", filterTaps: true, tapsThreshold: TAP_SLOP },
   );
 
   return transitions((style, item, t) => {
@@ -135,6 +166,14 @@ export default function DetailStack({ subjectId, detail, depthApi }: Props) {
     return (
       <animated.div
         {...(iosTab ? {} : bind(t.ctrl, item.assignmentId))}
+        // Replaces use-gesture's own click filter, which would also eat
+        // clicks after presses that only jittered or were cancelled.
+        onClickCapture={(e) => {
+          if (!suppressClick.current) return;
+          suppressClick.current = false;
+          e.preventDefault();
+          e.stopPropagation();
+        }}
         data-shell-swipe={iosTab ? undefined : ""}
         aria-hidden={leaving || undefined}
         {...inertProps(leaving)}

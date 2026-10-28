@@ -28,6 +28,9 @@ const PANES: Record<TabKey, React.ComponentType<TabPaneProps>> = {
 const SPRING = { tension: 300, friction: 32 };
 const LAST = TABS.length - 1;
 
+/** Travel below this (px) is a tap, so a little finger jitter still clicks. */
+export const TAP_SLOP = 8;
+
 // React 18 doesn't know `inert`; an empty string sets it, undefined removes it.
 export const inertProps = (inert: boolean) =>
   (inert ? { inert: "" } : {}) as React.HTMLAttributes<HTMLDivElement>;
@@ -77,6 +80,7 @@ export default function TabPager({
       first,
       last,
       tap,
+      canceled,
       axis,
       offset: [ox],
       movement: [mx],
@@ -84,6 +88,13 @@ export default function TabPager({
       direction: [dirX],
       cancel,
     }) => {
+      // A tap, or the extra release use-gesture sends after cancel():
+      // nothing to decide, just make sure the strip rests on its tab.
+      if (tap || canceled) {
+        if (viewportRef.current) viewportRef.current.style.userSelect = "";
+        api.start({ pos: index, config: SPRING });
+        return;
+      }
       // Vertical drags belong to the pane's own scrolling.
       if (
         first &&
@@ -102,13 +113,11 @@ export default function TabPager({
         return;
       }
       if (viewportRef.current) viewportRef.current.style.userSelect = "";
-      if (!tap) {
-        // The click that ends a mouse drag must not open what it was over.
-        suppressClick.current = true;
-        window.setTimeout(() => {
-          suppressClick.current = false;
-        }, 0);
-      }
+      // The click that ends a mouse drag must not open what it was over.
+      suppressClick.current = true;
+      window.setTimeout(() => {
+        suppressClick.current = false;
+      }, 0);
       // A flick only counts in the direction the strip was dragged.
       const sameWay = Math.sign(dirX) === Math.sign(mx);
       const step = swipeOutcome({ dx: mx, vx: sameWay ? vx : 0, width: w });
@@ -122,6 +131,7 @@ export default function TabPager({
     {
       axis: "lock",
       filterTaps: true,
+      tapsThreshold: TAP_SLOP,
       from: () => [-pos.get() * width(), 0],
       bounds: () => ({ left: -LAST * width(), right: 0 }),
       rubberband: true,
