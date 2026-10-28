@@ -37,6 +37,18 @@ export const subjectsPageLanguage = {
       : "New subjects will appear here once added.",
   studentNotFound: (l: Language) =>
     l === "th" ? "ไม่พบนักเรียน" : "Student not found",
+  termYear: (l: Language, term: string, year: string) =>
+    l === "th" ? `เทอม ${term}/${year}` : `Term ${term}/${year}`,
+  pickTermYear: (l: Language) =>
+    l === "th" ? "เลือกเทอมและปีการศึกษา" : "Choose term and year",
+  term: (l: Language) => (l === "th" ? "เทอม" : "Term"),
+  yearLabel: (l: Language) => (l === "th" ? "ปี" : "Year"),
+  doneButton: (l: Language) => (l === "th" ? "เสร็จสิ้น" : "Done"),
+  sortBy: (l: Language) => (l === "th" ? "เรียงตาม" : "Sort by"),
+  current: (l: Language) => (l === "th" ? "ปัจจุบัน" : "CURRENT"),
+  searchShort: (l: Language) =>
+    l === "th" ? "ค้นหาวิชาหรือรหัส" : "Search subject or code",
+  myTitle: (l: Language) => (l === "th" ? "วิชาของฉัน" : "My subjects"),
   sortLabels: {
     th: {
       default: "ค่าเริ่มต้น",
