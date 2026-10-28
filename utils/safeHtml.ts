@@ -3,13 +3,7 @@ import parse, {
   type DOMNode,
   type HTMLReactParserOptions,
 } from "html-react-parser";
-import {
-  Children,
-  createElement,
-  Fragment,
-  isValidElement,
-  type ReactNode,
-} from "react";
+import { createElement, Fragment, isValidElement, type ReactNode } from "react";
 
 // Comment bodies are HTML written by other people (the teacher), so what is
 // rendered is an ALLOWLIST: known formatting tags, known attributes, safe
@@ -159,19 +153,29 @@ export function cleanUrl(attr: "href" | "src", value: string): string | null {
   return /^[/\\]{2}/.test(seen) || seen.startsWith("/\\") ? null : value.trim();
 }
 
+const MAX_STYLE_LENGTH = 500;
+
 /** Only harmless declarations; null when nothing is left. */
-export function cleanStyle(style: string): string | null {
+export function cleanStyle(rawStyle: string): string | null {
+  // Long values are refused before any parsing (no quadratic work).
+  if (rawStyle.length > MAX_STYLE_LENGTH) return null;
+  // Comments can hide a property or a "url(" from the checks below.
+  const style = rawStyle
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/\/\*[\s\S]*$/, "");
   const kept: string[] = [];
   for (const declaration of style.split(";")) {
     const at = declaration.indexOf(":");
     if (at < 0) continue;
     const prop = declaration.slice(0, at).trim().toLowerCase();
     const value = declaration.slice(at + 1).trim();
-    const ok =
-      STYLE_PROPS.has(prop) ||
-      prop.startsWith("padding") ||
-      prop.startsWith("margin");
-    if (!ok || !value || BAD_STYLE_VALUE.test(decodeEntities(value))) continue;
+    // No margin or padding: a comment must not push over the page.
+    if (
+      !STYLE_PROPS.has(prop) ||
+      !value ||
+      BAD_STYLE_VALUE.test(decodeEntities(value))
+    )
+      continue;
     kept.push(`${prop}:${value}`);
   }
   return kept.length > 0 ? kept.join(";") : null;
@@ -247,33 +251,30 @@ export const safeHtmlOptions: HTMLReactParserOptions = {
         domToReact(children, safeHtmlOptions),
       );
     }
+    // An image without a usable source shows nothing but a broken icon.
+    if (name === "img" && !attribs.src) return createElement(Fragment);
     el.attribs = attribs;
     return undefined;
   },
 };
 
-/** Whether anything a student could see is in the rendered tree. */
-function hasVisibleContent(node: ReactNode): boolean {
-  let visible = false;
-  Children.forEach(node, (child) => {
-    if (
-      visible ||
-      child === null ||
-      child === undefined ||
-      typeof child === "boolean"
-    )
-      return;
-    if (typeof child === "string" || typeof child === "number") {
-      if (String(child).trim().length > 0) visible = true;
-    } else if (isValidElement(child)) {
-      if (child.type === "img" || child.type === "hr") visible = true;
-      else
-        visible = hasVisibleContent(
-          (child.props as { children?: ReactNode }).children,
-        );
+/** Whether anything a student could see is in the rendered tree (no recursion). */
+function hasVisibleContent(root: ReactNode): boolean {
+  const stack: ReactNode[] = [root];
+  while (stack.length > 0) {
+    const node = stack.pop();
+    if (node === null || node === undefined || typeof node === "boolean")
+      continue;
+    if (typeof node === "string" || typeof node === "number") {
+      if (String(node).trim().length > 0) return true;
+    } else if (Array.isArray(node)) {
+      stack.push(...node);
+    } else if (isValidElement(node)) {
+      if (node.type === "img" || node.type === "hr") return true;
+      stack.push((node.props as { children?: ReactNode }).children);
     }
-  });
-  return visible;
+  }
+  return false;
 }
 
 /** A comment body as safe React nodes, and whether it shows anything. */
@@ -281,6 +282,11 @@ export function parseSafeHtml(html: string): {
   content: ReactNode;
   visible: boolean;
 } {
-  const content = parse(html ?? "", safeHtmlOptions);
-  return { content, visible: hasVisibleContent(content) };
+  try {
+    const content = parse(html ?? "", safeHtmlOptions);
+    return { content, visible: hasVisibleContent(content) };
+  } catch {
+    // Absurdly deep markup: show nothing rather than break the pane.
+    return { content: null, visible: false };
+  }
 }

@@ -79,7 +79,7 @@ function Bubble({
       >
         {!mine && <Avatar comment={comment} />}
         <div
-          className={`min-w-0 max-w-[78%] break-words px-3 py-1.5 text-[13px] leading-snug [&_a]:underline ${
+          className={`min-w-0 max-w-[78%] overflow-hidden break-words px-3 py-1.5 text-[13px] leading-snug [&_a]:underline ${
             mine
               ? "rounded-2xl rounded-br-[4px] bg-primary-color text-white"
               : "rounded-2xl rounded-bl-[4px] bg-[#EEF1F6] text-icon-color"

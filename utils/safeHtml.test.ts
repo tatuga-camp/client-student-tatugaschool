@@ -126,11 +126,11 @@ test("only allowlisted attributes survive, and none that React treats specially"
 });
 
 test("image sources: https and data:image only", () => {
-  assert.equal(render('<img src="javascript:alert(1)">'), "<img/>");
-  assert.equal(render('<img src="data:text/html;base64,AAAA">'), "<img/>");
-  assert.equal(render('<img src="http://x/a.png">'), "<img/>");
-  assert.equal(render('<img src="//x/a.png">'), "<img/>");
-  assert.equal(render('<img src="data:image/svg+xml;base64,AAAA">'), "<img/>");
+  assert.equal(render('<img src="javascript:alert(1)">'), "");
+  assert.equal(render('<img src="data:text/html;base64,AAAA">'), "");
+  assert.equal(render('<img src="http://x/a.png">'), "");
+  assert.equal(render('<img src="//x/a.png">'), "");
+  assert.equal(render('<img src="data:image/svg+xml;base64,AAAA">'), "");
   assert.equal(
     render('<img src="data:image/png;base64,AAAA">'),
     '<img src="data:image/png;base64,AAAA"/>',
@@ -150,9 +150,10 @@ test("style keeps only safe declarations", () => {
     render('<p style="color:expression(alert(1))">x</p>'),
     "<p>x</p>",
   );
+  // margin and padding could paint over the page: not allowed
   assert.equal(
-    render('<p style="margin-left:4px;padding:1px">x</p>'),
-    '<p style="margin-left:4px;padding:1px">x</p>',
+    render('<p style="margin-left:-999px;padding:99px;color:red">x</p>'),
+    '<p style="color:red">x</p>',
   );
   assert.equal(render('<p style="color:\\72 ed">x</p>'), "<p>x</p>");
 });
@@ -173,4 +174,30 @@ test("parseSafeHtml reports whether anything visible is left", () => {
   assert.equal(parseSafeHtml("<svg><circle/></svg>").visible, false);
   assert.equal(parseSafeHtml("<p> </p>").visible, false);
   assert.equal(parseSafeHtml("").visible, false);
+});
+
+test("img without a valid src is dropped", () => {
+  assert.equal(render('<img alt="a">'), "");
+  assert.equal(render('<img src="javascript:alert(1)" alt="a">'), "");
+  assert.equal(
+    render('<img src="https://x/a.png" alt="a">'),
+    '<img src="https://x/a.png" alt="a"/>',
+  );
+});
+
+test("CSS comments are stripped before the style checks", () => {
+  assert.equal(cleanStyle("col/**/or:red"), "color:red");
+  assert.equal(cleanStyle("color:red/* x */;top:0"), "color:red");
+  assert.equal(cleanStyle("color:ur/**/l(x)"), null);
+  assert.equal(cleanStyle("color:red /* unterminated"), "color:red");
+});
+
+test("an overlong style value is dropped", () => {
+  assert.equal(cleanStyle("color:" + "a".repeat(600)), null);
+});
+
+test("deeply nested markup does not blow the stack", () => {
+  const result = parseSafeHtml("<b>".repeat(1500) + "x");
+  assert.equal(typeof result.visible, "boolean");
+  assert.equal(parseSafeHtml("<p>x</p>".repeat(3000)).visible, true);
 });

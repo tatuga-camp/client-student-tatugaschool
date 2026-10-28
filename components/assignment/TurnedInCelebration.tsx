@@ -17,8 +17,6 @@ type Props = {
   next: { id: string; title: string } | null;
   onNext: () => void;
   onBack: () => void;
-  /** Where focus goes on close if what had it before is gone. */
-  fallbackFocus?: React.RefObject<HTMLElement | null>;
 };
 
 const CONFETTI = [
@@ -44,7 +42,6 @@ export default function TurnedInCelebration({
   next,
   onNext,
   onBack,
-  fallbackFocus,
 }: Props) {
   const scoped = useContext(OverlayRootContext);
   const primaryRef = useRef<HTMLButtonElement>(null);
@@ -53,7 +50,6 @@ export default function TurnedInCelebration({
   onBackRef.current = onBack;
   useEffect(() => {
     if (!open) return;
-    const opener = document.activeElement as HTMLElement | null;
     // After a frame: the Your-work sheet gives focus back to its opener in a
     // microtask when it closes, and would take it from us.
     const frame = requestAnimationFrame(() =>
@@ -69,10 +65,9 @@ export default function TurnedInCelebration({
     return () => {
       cancelAnimationFrame(frame);
       document.removeEventListener("keydown", onKey, true);
-      queueMicrotask(() => {
-        const target = opener?.isConnected ? opener : fallbackFocus?.current; // eslint-disable-line react-hooks/exhaustive-deps
-        target?.focus({ preventScroll: true });
-      });
+      // No focus restore here: every way out (Back, Next, Esc) navigates, and
+      // DetailStack's useDetailFocus then returns focus to the card that
+      // opened this page. Restoring into the leaving panel would fight it.
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
