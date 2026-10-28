@@ -20,12 +20,15 @@ import {
 } from "../../react-query";
 import { fileSizeLabel, workItemMenu } from "../../utils/assignmentDetail";
 import ActionMenu, { ActionMenuItem } from "./ActionMenu";
+import Swal from "../../utils/appSwal";
 import { workError } from "./workFeedback";
 
 type Props = {
   file: FileOnStudentOnAssignment;
   lang: Language;
   allowStudentDeleteWork: boolean;
+  /** Reviewed work can only be opened. */
+  reviewed?: boolean;
   /** TEXT items open in the note sheet. */
   onOpenNote: (file: FileOnStudentOnAssignment) => void;
 };
@@ -38,6 +41,7 @@ export default function WorkItemRow({
   file,
   lang,
   allowStudentDeleteWork,
+  reviewed = false,
   onOpenNote,
 }: Props) {
   const updateFile = useUpdateFileStudentAssignment();
@@ -93,6 +97,8 @@ export default function WorkItemRow({
       });
       setEditing(false);
     } catch (error) {
+      // Back to the original name, out of edit mode: no dead-end edit state.
+      setEditing(false);
       workError(error, lang);
     } finally {
       savingRef.current = false;
@@ -100,6 +106,17 @@ export default function WorkItemRow({
   };
 
   const remove = async () => {
+    const answer = await Swal.fire({
+      icon: "warning",
+      title: assignmentPageLanguage.deleteConfirmTitle(lang),
+      text: displayName,
+      showCancelButton: true,
+      confirmButtonText: assignmentPageLanguage.delete(lang),
+      cancelButtonText: assignmentPageLanguage.cancel(lang),
+      confirmButtonColor: "#F04438",
+      customClass: { popup: "rounded-2xl border border-gray-100 shadow-md" },
+    });
+    if (!answer.isConfirmed) return;
     try {
       await deleteFile.mutateAsync({ fileOnStudentAssignmentId: file.id });
     } catch (error) {
@@ -132,6 +149,7 @@ export default function WorkItemRow({
     contentType: file.contentType,
     type: file.type,
     allowStudentDeleteWork,
+    reviewed,
   }).map((key) => actions[key]);
 
   const tile =

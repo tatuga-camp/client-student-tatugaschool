@@ -18,6 +18,7 @@ import {
   useCreateFileStudentAssignment,
   useGetLanguage,
 } from "../../react-query";
+import { initialUploadProgress } from "../../utils/assignmentDetail";
 import { workError, workToast } from "../assignment/workFeedback";
 
 export type UploadProgress = {
@@ -48,6 +49,7 @@ export function useStudentFileUpload({
     if (files.length === 0) return false;
     try {
       setUploading(true);
+      setProgress(initialUploadProgress(files.length));
       // Copy the picked files into memory right away: on Android the File
       // handles from the picker can go stale before the upload starts,
       // which aborts the request as a network error.

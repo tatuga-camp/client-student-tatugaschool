@@ -68,11 +68,23 @@ export function workItemMenu(input: {
   contentType: StudentAssignmentContentType;
   type: string;
   allowStudentDeleteWork: boolean;
+  /** Reviewed work is locked: the items can only be opened. */
+  reviewed?: boolean;
 }): ("open" | "rename" | "delete")[] {
+  if (input.reviewed) return ["open"];
   const menu: ("open" | "rename" | "delete")[] =
     input.contentType === "TEXT" ? ["open"] : ["open", "rename"];
   if (input.allowStudentDeleteWork) menu.push("delete");
   return menu;
+}
+
+/** The progress shown from the moment files are picked, before any byte is sent. */
+export function initialUploadProgress(count: number): {
+  percent: number;
+  index: number;
+  count: number;
+} {
+  return { percent: 0, index: 1, count };
 }
 
 export function yourWorkMode(

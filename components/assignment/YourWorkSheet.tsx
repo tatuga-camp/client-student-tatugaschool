@@ -281,6 +281,7 @@ export default function YourWorkSheet({
                 file={file}
                 lang={lang}
                 allowStudentDeleteWork={subject.allowStudentDeleteWork}
+                reviewed={mode === "reviewed"}
                 onOpenNote={openNote}
               />
             ))}
@@ -310,13 +311,6 @@ export default function YourWorkSheet({
               </div>
             </div>
           )}
-          {uploading && !progress && (
-            <div className="flex items-center gap-2 py-3 text-xs font-bold text-[#9AA3B8]">
-              <LuLoader aria-hidden className="animate-spin" />
-              {assignmentPageLanguage.uploadingProgress(lang, 1, 1, 0)}
-            </div>
-          )}
-
           {mode === "open" && (
             <>
               <AddWorkOptions

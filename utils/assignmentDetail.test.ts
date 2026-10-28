@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  initialUploadProgress,
   fileSizeLabel,
   hasRichContent,
   isLinkFile,
@@ -205,4 +206,26 @@ test("hasRichContent ignores empty editor markup but keeps media", () => {
   assert.equal(hasRichContent("<p>&nbsp;</p>"), false);
   assert.equal(hasRichContent("<p>Hi</p>"), true);
   assert.equal(hasRichContent('<p><img src="a.png"></p>'), true);
+});
+
+test("workItemMenu in a reviewed assignment only opens", () => {
+  for (const contentType of ["FILE", "LINK", "TEXT"] as const) {
+    assert.deepEqual(
+      workItemMenu({
+        contentType,
+        type: "",
+        allowStudentDeleteWork: true,
+        reviewed: true,
+      }),
+      ["open"],
+    );
+  }
+});
+
+test("initialUploadProgress starts at the first of the picked files", () => {
+  assert.deepEqual(initialUploadProgress(3), {
+    percent: 0,
+    index: 1,
+    count: 3,
+  });
 });

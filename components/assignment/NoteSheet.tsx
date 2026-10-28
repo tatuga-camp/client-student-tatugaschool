@@ -1,8 +1,6 @@
-import React, { useContext } from "react";
+import React from "react";
 import { assignmentPageLanguage } from "../../data/languages";
 import { FileOnStudentOnAssignment, Language } from "../../interfaces";
-import { OVERLAY_ROOT_ID } from "../../utils/frameRoutes";
-import { OverlayRootContext } from "../app/OverlayScope";
 import { Sheet } from "../app/Sheet";
 import AssignmentText from "../subject/AssignmentText";
 import type { AssignmentItem } from "./types";
@@ -26,13 +24,6 @@ export default function NoteSheet({
   readOnly = false,
   onClose,
 }: Props) {
-  // TinyMCE's menus and dialogs must render in the phone, not the page body.
-  const scoped = useContext(OverlayRootContext);
-  const uiContainer =
-    scoped ??
-    (typeof document === "undefined"
-      ? null
-      : document.getElementById(OVERLAY_ROOT_ID));
   return (
     <Sheet
       open={open}
@@ -48,7 +39,6 @@ export default function NoteSheet({
         schoolId={assignment.studentOnAssignment.schoolId}
         text={note}
         readOnly={readOnly}
-        uiContainer={uiContainer}
         onClose={onClose}
       />
     </Sheet>

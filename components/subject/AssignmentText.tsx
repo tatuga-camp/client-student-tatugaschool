@@ -10,6 +10,9 @@ import {
 import { workError, workToast } from "../assignment/workFeedback";
 import TextEditor from "../common/TextEditor";
 
+// Phone-sized: no menubar, and no buttons that open dialogs (link, image).
+const NOTE_TOOLBAR = "undo redo | bold italic | bullist numlist | removeformat";
+
 type Props = {
   studentOnAssignmentId: string;
   /** The note being opened; a new note is pre-filled with the description. */
@@ -17,8 +20,6 @@ type Props = {
   onClose: () => void;
   schoolId: string;
   assignment: Pick<Assignment, "description">;
-  /** Menus and dialogs of the editor render here (inside the phone). */
-  uiContainer?: HTMLElement | null;
   /** View only: no editing, no save. */
   readOnly?: boolean;
 };
@@ -30,7 +31,6 @@ function AssignmentText({
   schoolId,
   assignment,
   onClose,
-  uiContainer,
   readOnly = false,
 }: Props) {
   const language = useGetLanguage();
@@ -88,7 +88,8 @@ function AssignmentText({
           onChange={(content) => setValue(content)}
           schoolId={schoolId}
           disabled={readOnly}
-          uiContainer={uiContainer}
+          menubar={false}
+          toolbar={NOTE_TOOLBAR}
         />
       </div>
       {!readOnly && (

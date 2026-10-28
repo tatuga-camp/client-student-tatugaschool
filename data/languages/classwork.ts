@@ -393,6 +393,8 @@ export const assignmentPageLanguage = {
   rename: t("Rename", "เปลี่ยนชื่อ"),
   delete: t("Delete", "ลบ"),
   fileName: t("File name", "ชื่อไฟล์"),
+  deleteConfirmTitle: t("Delete this item?", "ลบรายการนี้?"),
+  cancel: t("Cancel", "ยกเลิก"),
   addLink: t("Add link", "เพิ่มลิงก์"),
   linkPlaceholder: t("Paste a link", "วางลิงก์"),
   add: t("Add", "เพิ่ม"),
