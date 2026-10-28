@@ -42,14 +42,23 @@ function useDocumentHidden(): boolean {
   return hidden;
 }
 
+const MIN_VISIBLE = 0.02;
+
 /** False while the node is scrolled or swiped out of view. */
 function useOnScreen(ref: React.RefObject<Element>): boolean {
   const [visible, setVisible] = useState(true);
   useEffect(() => {
     const node = ref.current;
     if (!node || typeof IntersectionObserver === "undefined") return;
-    const observer = new IntersectionObserver(([entry]) =>
-      setVisible(entry.isIntersecting),
+    // A pane parked at the screen edge still reports "intersecting" with a
+    // zero (or sliver) ratio, so only a real overlap counts. The cutoff is
+    // also a threshold, so the callback fires whenever it is crossed.
+    const observer = new IntersectionObserver(
+      (entries) =>
+        setVisible(
+          entries[entries.length - 1].intersectionRatio >= MIN_VISIBLE,
+        ),
+      { threshold: [0, MIN_VISIBLE] },
     );
     observer.observe(node);
     return () => observer.disconnect();
