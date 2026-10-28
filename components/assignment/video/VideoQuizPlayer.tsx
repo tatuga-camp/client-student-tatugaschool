@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { LuLock } from "react-icons/lu";
+import { LuLock, LuMinimize } from "react-icons/lu";
 import { assignmentPageLanguage } from "../../../data/languages";
 import { QuestionOnVideo } from "../../../interfaces";
 import { useGetLanguage } from "../../../react-query";
@@ -22,10 +22,15 @@ type Props = {
   preventFastForward: boolean;
   reviewed: boolean;
   maxScore: number;
-  onSubmit: (score: number) => void;
+  /** Resolves true once the server has the score. */
+  onSubmit: (score: number) => Promise<boolean>;
   /** Where "Next video" goes (reviewed quizzes), if there is a next one. */
   onNext?: () => void;
-  onStateChange?: (s: { playing: boolean; questionOpen: boolean }) => void;
+  onStateChange?: (s: {
+    playing: boolean;
+    questionOpen: boolean;
+    expanded: boolean;
+  }) => void;
 };
 
 /**
@@ -61,7 +66,6 @@ export default function VideoQuizPlayer({
     reviewed,
     maxScore,
     onSubmit,
-    onStateChange,
   });
 
   useEffect(() => {
@@ -78,6 +82,33 @@ export default function VideoQuizPlayer({
     };
   }, []);
 
+  // Tell the page when the video plays, a question is open, or it is expanded
+  // (the Your-work peek must stay out of the way of all three).
+  useEffect(() => {
+    onStateChange?.({
+      playing: quiz.playing,
+      questionOpen: quiz.question !== null,
+      expanded: full,
+    });
+  }, [quiz.playing, quiz.question, full, onStateChange]);
+
+  // A question opens over the whole phone screen (video and seek bar stay
+  // above the sheet); it collapses again afterwards unless the student
+  // expanded the player themselves.
+  const autoExpandedRef = useRef(false);
+  const fullRef = useRef(full);
+  fullRef.current = full;
+  const questionOpen = quiz.question !== null;
+  useEffect(() => {
+    if (questionOpen && !fullRef.current) {
+      autoExpandedRef.current = true;
+      setExpanded(true);
+    } else if (!questionOpen && autoExpandedRef.current) {
+      autoExpandedRef.current = false;
+      setExpanded(false);
+    }
+  }, [questionOpen]);
+
   // Esc collapses the expanded player (but never skips an open question).
   useEffect(() => {
     if (!expanded) return;
@@ -89,6 +120,8 @@ export default function VideoQuizPlayer({
   }, [expanded, quiz.question]);
 
   const toggleExpand = () => {
+    // Whatever the student does with it, it is theirs from now on.
+    autoExpandedRef.current = false;
     if (expanded) setExpanded(false);
     else if (getFullscreenElement()) exitFullscreen();
     else if (framed || !canFullscreenElements()) setExpanded(true);
@@ -110,12 +143,14 @@ export default function VideoQuizPlayer({
       <div
         ref={containerRef}
         data-no-swipe
-        className={`relative flex flex-col overflow-hidden bg-black ${
+        className={`flex flex-col overflow-hidden bg-black ${
+          // relative and fixed cannot both be set: Tailwind emits relative
+          // later, so it would win and the expand would never happen.
           expanded
             ? "fixed inset-0 z-50"
             : nativeFs
-              ? "h-full w-full"
-              : "rounded-[20px]"
+              ? "relative h-full w-full"
+              : "relative rounded-[20px]"
         }`}
         style={
           expanded
@@ -125,7 +160,11 @@ export default function VideoQuizPlayer({
                 ...sideInset,
               }
             : nativeFs
-              ? sideInset
+              ? {
+                  paddingTop: "env(safe-area-inset-top)",
+                  paddingBottom: "env(safe-area-inset-bottom)",
+                  ...sideInset,
+                }
               : undefined
         }
       >
@@ -199,6 +238,21 @@ export default function VideoQuizPlayer({
           />
         )}
 
+        {full && (quiz.question || quiz.showEnd) && (
+          // Always reachable: above the question sheet and the end screen.
+          <button
+            type="button"
+            onClick={toggleExpand}
+            aria-label={t.exitFullscreen(lang)}
+            style={{
+              top: "max(8px, env(safe-area-inset-top))",
+              right: "max(8px, env(safe-area-inset-right))",
+            }}
+            className="absolute z-40 grid h-11 w-11 place-items-center rounded-full bg-black/60 text-xl text-white active:bg-black/80"
+          >
+            <LuMinimize aria-hidden />
+          </button>
+        )}
         {quiz.question && (
           <VideoQuestionSheet
             lang={lang}
@@ -219,6 +273,8 @@ export default function VideoQuizPlayer({
             onNext={onNext}
             onRetry={quiz.retry}
             onSubmit={quiz.submit}
+            submitting={quiz.submitting}
+            submitFailed={quiz.submitFailed}
           />
         )}
       </div>

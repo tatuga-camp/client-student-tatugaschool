@@ -52,7 +52,7 @@ export default function VideoQuestionSheet({
           e.stopPropagation();
         }
       }}
-      className="absolute inset-x-0 bottom-0 z-30 max-h-full overflow-y-auto rounded-t-[24px] bg-white px-4 pt-2 font-Anuphan text-icon-color"
+      className="absolute inset-x-0 bottom-0 z-30 max-h-[65%] overflow-y-auto rounded-t-[24px] bg-white px-4 pt-2 font-Anuphan text-icon-color"
       style={{
         boxShadow: "0 -6px 24px rgba(0,0,0,.25)",
         paddingBottom: "max(12px, env(safe-area-inset-bottom))",

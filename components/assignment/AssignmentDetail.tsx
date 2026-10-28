@@ -87,6 +87,7 @@ export default function AssignmentDetail({
   const [videoState, setVideoState] = useState({
     playing: false,
     questionOpen: false,
+    expanded: false,
   });
   const [celebration, setCelebration] = useState<ReturnType<
     typeof turnInSummary
@@ -95,14 +96,22 @@ export default function AssignmentDetail({
     ? nextAssignmentAfter(assignments.data ?? [], assignment)
     : null;
   // The quiz score is maxScore / questions x correct (done in the player).
-  const submitVideoScore = (score: number) => {
-    if (!assignment) return;
-    updateWork
-      .mutateAsync({
+  const submitVideoScore = async (score: number): Promise<boolean> => {
+    if (!assignment) return false;
+    try {
+      await updateWork.mutateAsync({
         query: { studentOnAssignmentId: assignment.studentOnAssignment.id },
         body: { status: "REVIEWD", score: Number(score.toFixed(2)) },
-      })
-      .catch((error) => workError(error, lang));
+      });
+      return true;
+    } catch (error) {
+      // The player keeps the result and offers Try again.
+      workError(error, lang, {
+        title: assignmentPageLanguage.updateFailedTitle(lang),
+        text: assignmentPageLanguage.updateFailedText(lang),
+      });
+      return false;
+    }
   };
   const reviewed =
     !!assignment &&
@@ -217,7 +226,9 @@ export default function AssignmentDetail({
       {assignment && (
         <YourWorkSheet
           assignment={assignment}
-          hidden={videoState.playing || videoState.questionOpen}
+          hidden={
+            videoState.playing || videoState.questionOpen || videoState.expanded
+          }
           subject={subject.data}
           onTurnedIn={({ itemCount }) =>
             setCelebration(

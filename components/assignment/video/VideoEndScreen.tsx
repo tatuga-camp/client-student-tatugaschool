@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { LuArrowRight, LuCheck, LuRotateCcw } from "react-icons/lu";
+import { LuArrowRight, LuCheck, LuLoader, LuRotateCcw } from "react-icons/lu";
 import { assignmentPageLanguage } from "../../../data/languages";
 import { Language } from "../../../interfaces";
 
@@ -13,6 +13,9 @@ type Props = {
   onNext?: () => void;
   onRetry: () => void;
   onSubmit: () => void;
+  /** Saving the score; the result is kept until the server confirms. */
+  submitting?: boolean;
+  submitFailed?: boolean;
 };
 
 /** "x / y correct" with Retry, and Submit work (or Next video once reviewed). */
@@ -24,6 +27,8 @@ export default function VideoEndScreen({
   onNext,
   onRetry,
   onSubmit,
+  submitting = false,
+  submitFailed = false,
 }: Props) {
   const t = assignmentPageLanguage;
   const firstRef = useRef<HTMLButtonElement>(null);
@@ -54,11 +59,20 @@ export default function VideoEndScreen({
         <p className="mb-5 text-xs font-semibold text-[#5B6280]">
           {t.questionsCorrect(lang)}
         </p>
+        {submitFailed && !submitting && (
+          <p
+            role="alert"
+            className="mb-3 rounded-xl bg-[#FDECEA] px-3 py-2 text-xs font-bold text-[#B42318]"
+          >
+            {t.submitFailedVideo(lang)}
+          </p>
+        )}
         <div className="flex w-full gap-2">
           <button
             ref={firstRef}
             type="button"
             onClick={onRetry}
+            disabled={submitting}
             className={secondary}
           >
             <LuRotateCcw aria-hidden />
@@ -75,10 +89,19 @@ export default function VideoEndScreen({
             <button
               type="button"
               onClick={onSubmit}
-              className="chunky-btn h-12 flex-1"
+              disabled={submitting}
+              className="chunky-btn h-12 flex-1 disabled:opacity-60"
             >
-              <LuCheck aria-hidden />
-              {t.submitWork(lang)}
+              {submitting ? (
+                <LuLoader aria-hidden className="animate-spin" />
+              ) : (
+                <LuCheck aria-hidden />
+              )}
+              {submitting
+                ? t.submitting(lang)
+                : submitFailed
+                  ? t.tryAgain(lang)
+                  : t.submitWork(lang)}
             </button>
           )}
         </div>

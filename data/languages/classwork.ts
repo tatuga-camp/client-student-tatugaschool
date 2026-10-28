@@ -433,6 +433,12 @@ export const assignmentPageLanguage = {
     l === "th" ? `คำถามที่ ${i} จาก ${n}` : `Question ${i} of ${n}`,
   questionMarker: (l: Language, i: number) =>
     l === "th" ? `คำถามที่ ${i}` : `Question ${i}`,
+  submitFailedVideo: t(
+    "Your score was not saved. Check your connection and try again.",
+    "ยังไม่ได้บันทึกคะแนน ตรวจสอบการเชื่อมต่อแล้วลองอีกครั้ง",
+  ),
+  tryAgain: t("Try again", "ลองอีกครั้ง"),
+  submitting: t("Saving…", "กำลังบันทึก…"),
   noSkipping: t("No skipping", "ห้ามข้าม"),
   volume: t("Volume", "ระดับเสียง"),
   expandVideo: t("Expand video", "ขยายวิดีโอ"),

@@ -57,7 +57,7 @@ export default function VideoControls({
   const percent = duration > 0 ? (currentTime / duration) * 100 : 0;
   return (
     <div className="px-3 pb-2 pt-1 text-white">
-      <div className="relative flex h-6 items-center">
+      <div className="relative flex h-11 items-center">
         {duration > 0 &&
           markers.map((time, i) => (
             <span
@@ -75,7 +75,7 @@ export default function VideoControls({
           value={currentTime}
           onChange={(e) => onSeek(Number(e.target.value))}
           aria-label={t.seek(lang)}
-          className="block h-6 w-full cursor-pointer appearance-none rounded-full accent-[#569DF8]"
+          className="block h-11 w-full cursor-pointer appearance-none rounded-full accent-[#569DF8]"
           style={{
             background: `linear-gradient(to right, #569DF8 ${percent}%, rgba(255,255,255,.3) ${percent}%) center / 100% 6px no-repeat`,
           }}

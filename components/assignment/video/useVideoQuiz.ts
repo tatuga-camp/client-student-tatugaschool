@@ -18,8 +18,8 @@ type Options = {
   preventFastForward: boolean;
   reviewed: boolean;
   maxScore: number;
-  onSubmit: (score: number) => void;
-  onStateChange?: (s: { playing: boolean; questionOpen: boolean }) => void;
+  /** Resolves true once the server has the score. */
+  onSubmit: (score: number) => Promise<boolean>;
 };
 
 /**
@@ -34,7 +34,6 @@ export function useVideoQuiz({
   reviewed,
   maxScore,
   onSubmit,
-  onStateChange,
 }: Options) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const ytRef = useRef<YouTubeEmbedHandle>(null);
@@ -142,11 +141,6 @@ export function useVideoQuiz({
     };
   }, [youTubeId]);
 
-  // Tell the page when the video plays or a question is open.
-  useEffect(() => {
-    onStateChange?.({ playing, questionOpen: question !== null });
-  }, [playing, question, onStateChange]);
-
   useEffect(() => () => window.clearTimeout(resumeTimer.current), []);
 
   const togglePlay = () => {
@@ -209,14 +203,27 @@ export function useVideoQuiz({
   };
 
   const retry = () => {
+    if (submitting) return;
+    setSubmitFailed(false);
     reset();
     media.play();
     setPlaying(true);
   };
 
-  const submit = () => {
-    onSubmit(videoQuizScore(maxScore, questions.length, correct));
-    reset();
+  // The result is kept until the server confirms; a failure can be retried
+  // with the same score (no re-watching).
+  const [submitting, setSubmitting] = useState(false);
+  const [submitFailed, setSubmitFailed] = useState(false);
+  const submit = async () => {
+    if (submitting) return;
+    setSubmitting(true);
+    setSubmitFailed(false);
+    const ok = await onSubmit(
+      videoQuizScore(maxScore, questions.length, correct),
+    );
+    setSubmitting(false);
+    if (ok) reset();
+    else setSubmitFailed(true);
   };
 
   return {
@@ -245,6 +252,8 @@ export function useVideoQuiz({
     answer,
     retry,
     submit,
+    submitting,
+    submitFailed,
     tick: (now: number) => tickRef.current(now),
     ended: () => endedRef.current(),
     ytState: YT_STATE,
