@@ -132,11 +132,12 @@
 /* Video quiz question feedback countdown. */
 .tg-countdown {
   width: 100%;
+  transform-origin: left;
   animation: tg-countdown linear forwards;
 }
 @keyframes tg-countdown {
-  from { width: 100%; }
-  to { width: 0%; }
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
 }
 @media (prefers-reduced-motion: reduce) {
   .tg-countdown { animation: none; }

@@ -242,6 +242,7 @@ export default function VideoQuizPlayer({
             markers={questions.map((q) => q.timestamp)}
             expanded={full}
             disabled={questionOpen}
+            expandDisabled={questionOpen}
             onTogglePlay={quiz.togglePlay}
             onToggleMute={quiz.toggleMute}
             onVolume={quiz.changeVolume}

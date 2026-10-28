@@ -369,7 +369,9 @@ export function Sheet({
         <div
           {...bindHandle()}
           data-testid="sheet-handle"
-          className="relative flex shrink-0 cursor-grab justify-center pb-2 pt-3"
+          className={`relative flex shrink-0 cursor-grab justify-center pt-3 ${
+            dismissible && modal && closeButton ? "min-h-[44px]" : "pb-2"
+          }`}
           style={{ touchAction: "none" }}
         >
           <div className="h-1.5 w-10 rounded-full bg-[#E3E8F0]" />
@@ -381,8 +383,8 @@ export function Sheet({
             type="button"
             aria-label={profileLanguage.close(language.data ?? "en")}
             onClick={dismiss}
-            className="absolute right-3 flex h-8 w-8 items-center justify-center rounded-full text-[#383767]"
-            style={{ top: full && modal ? "calc(var(--safe-top) + 8px)" : 8 }}
+            className="absolute right-1 flex h-11 w-11 items-center justify-center rounded-full text-[#383767]"
+            style={{ top: full && modal ? "var(--safe-top)" : 0 }}
           >
             <LuX size={20} />
           </button>

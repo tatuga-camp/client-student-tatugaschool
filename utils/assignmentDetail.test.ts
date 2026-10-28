@@ -71,7 +71,6 @@ test("workItemMenu offers rename only for files and links, delete only when allo
   assert.deepEqual(
     workItemMenu({
       contentType: "FILE",
-      type: "image/png",
       allowStudentDeleteWork: false,
     }),
     ["open", "rename"],
@@ -79,7 +78,6 @@ test("workItemMenu offers rename only for files and links, delete only when allo
   assert.deepEqual(
     workItemMenu({
       contentType: "TEXT",
-      type: "",
       allowStudentDeleteWork: true,
     }),
     ["open", "delete"],
@@ -87,7 +85,6 @@ test("workItemMenu offers rename only for files and links, delete only when allo
   assert.deepEqual(
     workItemMenu({
       contentType: "LINK",
-      type: "",
       allowStudentDeleteWork: true,
     }),
     ["open", "rename", "delete"],
@@ -95,7 +92,6 @@ test("workItemMenu offers rename only for files and links, delete only when allo
   assert.deepEqual(
     workItemMenu({
       contentType: "TEXT",
-      type: "",
       allowStudentDeleteWork: false,
     }),
     ["open"],
@@ -216,7 +212,6 @@ test("workItemMenu in a reviewed assignment only opens", () => {
     assert.deepEqual(
       workItemMenu({
         contentType,
-        type: "",
         allowStudentDeleteWork: true,
         reviewed: true,
       }),

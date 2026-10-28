@@ -66,7 +66,6 @@ export function hasRichContent(html: string | null | undefined): boolean {
 
 export function workItemMenu(input: {
   contentType: StudentAssignmentContentType;
-  type: string;
   allowStudentDeleteWork: boolean;
   /** Reviewed work is locked: the items can only be opened. */
   reviewed?: boolean;

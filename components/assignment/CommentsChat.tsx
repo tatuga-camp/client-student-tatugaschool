@@ -216,7 +216,7 @@ export default function CommentsChat({ studentOnAssignmentId, lang }: Props) {
           type="submit"
           disabled={create.isPending || commentDraftIsEmpty(draft)}
           aria-label={assignmentPageLanguage.sendComment(lang)}
-          className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary-color text-lg text-white disabled:opacity-50"
+          className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary-color text-lg text-white disabled:opacity-50"
           style={{ boxShadow: "0 3px 0 #275d96" }}
         >
           <LuSend aria-hidden />

@@ -22,6 +22,8 @@ type Props = {
   expanded: boolean;
   /** A question is open: no play or seek until it is answered. */
   disabled?: boolean;
+  /** The expand/collapse toggle is locked (a question is open). */
+  expandDisabled?: boolean;
   onTogglePlay: () => void;
   onToggleMute: () => void;
   onVolume: (v: number) => void;
@@ -50,6 +52,7 @@ export default function VideoControls({
   markers,
   expanded,
   disabled = false,
+  expandDisabled = false,
   onTogglePlay,
   onToggleMute,
   onVolume,
@@ -123,6 +126,7 @@ export default function VideoControls({
         <button
           type="button"
           onClick={onToggleExpand}
+          disabled={expandDisabled}
           aria-label={expanded ? t.exitFullscreen(lang) : t.fullscreen(lang)}
           className={btn}
         >

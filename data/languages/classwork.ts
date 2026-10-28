@@ -99,16 +99,6 @@ export const classworkDataLanguage = {
         return "ํYour Work";
     }
   },
-  assignment: (language: Language) => {
-    switch (language) {
-      case "en":
-        return "Assignment";
-      case "th":
-        return "งานมอบหมาย";
-      default:
-        return "Assignment";
-    }
-  },
   status: (language: Language) => {
     switch (language) {
       case "en":
@@ -117,86 +107,6 @@ export const classworkDataLanguage = {
         return "สถานะงาน";
       default:
         return "Status";
-    }
-  },
-  score: (language: Language) => {
-    switch (language) {
-      case "en":
-        return "Score";
-      case "th":
-        return "คะแนนของคุณ";
-      default:
-        return "Score";
-    }
-  },
-  summitAt: (language: Language) => {
-    switch (language) {
-      case "en":
-        return "Summit Work At";
-      case "th":
-        return "คุณส่งงานเมื่อ";
-      default:
-        return "Summit Work At";
-    }
-  },
-  reviewAt: (language: Language) => {
-    switch (language) {
-      case "en":
-        return "Review Work At";
-      case "th":
-        return "คุณครูตรวจงานเมื่อ";
-      default:
-        return "Review Work At";
-    }
-  },
-  deadline: (language: Language) => {
-    switch (language) {
-      case "en":
-        return "Deadline";
-      case "th":
-        return "กำหนดส่ง";
-      default:
-        return "Deadline";
-    }
-  },
-  summitWorkTitle: (language: Language) => {
-    switch (language) {
-      case "en":
-        return "Summit Work";
-      case "th":
-        return "การส่งงาน";
-      default:
-        return "Summit Work";
-    }
-  },
-  summitWorkDescription: (language: Language) => {
-    switch (language) {
-      case "en":
-        return "You can summit work here";
-      case "th":
-        return "คุณสามารถอัปเดทสถานะงานได้ที่นี้";
-      default:
-        return "You can summit work here";
-    }
-  },
-  unsubmittedBanner: (language: Language) => {
-    switch (language) {
-      case "en":
-        return "Your work is attached but NOT submitted yet — press the confirm button below to submit.";
-      case "th":
-        return "งานของคุณถูกแนบแล้ว แต่ยังไม่ได้ถูกส่ง — กดปุ่มยืนยันการส่งงานด้านล่างเพื่อส่งงาน";
-      default:
-        return "Your work is attached but NOT submitted yet — press the confirm button below to submit.";
-    }
-  },
-  uploading: (language: Language) => {
-    switch (language) {
-      case "en":
-        return "Uploading";
-      case "th":
-        return "กำลังอัปโหลด";
-      default:
-        return "Uploading";
     }
   },
   uploadNetworkError: (language: Language) => {
@@ -227,36 +137,6 @@ export const classworkDataLanguage = {
         return "ยังไม่ได้ตรวจ";
       default:
         return "Not graded yet";
-    }
-  },
-  ago: (language: Language) => {
-    switch (language) {
-      case "en":
-        return "ago";
-      case "th":
-        return "ที่ผ่านมา";
-      default:
-        return "ago";
-    }
-  },
-  left: (language: Language) => {
-    switch (language) {
-      case "en":
-        return "left";
-      case "th":
-        return "คงเหลือ";
-      default:
-        return "left";
-    }
-  },
-  assignmentFiles: (language: Language) => {
-    switch (language) {
-      case "en":
-        return "Assignment files";
-      case "th":
-        return "ไฟล์ประกอบงาน";
-      default:
-        return "Assignment files";
     }
   },
 } as const;
@@ -413,8 +293,6 @@ export const assignmentPageLanguage = {
   updateFailedTitle: t("Couldn't update your work", "อัปเดตงานของคุณไม่สำเร็จ"),
   updateFailedText: t("Please try again.", "กรุณาลองอีกครั้ง"),
   // Video quiz
-  videoCorrectCount: (l: Language, correct: number, total: number) =>
-    l === "th" ? `ถูก ${correct} / ${total}` : `${correct} / ${total} correct`,
   videoCompleted: t("Video completed!", "ดูวิดีโอจบแล้ว!"),
   youScored: t("You scored", "คุณได้"),
   questionsCorrect: t("questions correct", "ข้อที่ตอบถูก"),
@@ -441,8 +319,6 @@ export const assignmentPageLanguage = {
   submitting: t("Saving…", "กำลังบันทึก…"),
   noSkipping: t("No skipping", "ห้ามข้าม"),
   volume: t("Volume", "ระดับเสียง"),
-  expandVideo: t("Expand video", "ขยายวิดีโอ"),
-  collapseVideo: t("Shrink video", "ย่อวิดีโอ"),
   discardNoteTitle: t("Discard your note?", "ทิ้งบันทึกของคุณ?"),
   discardNoteText: t("What you typed will be lost.", "สิ่งที่คุณพิมพ์จะหายไป"),
   discard: t("Discard", "ทิ้ง"),
@@ -461,8 +337,6 @@ export const assignmentPageLanguage = {
   closeViewer: t("Close", "ปิด"),
   zoomHint: t("Pinch or double-tap to zoom", "บีบหรือแตะสองครั้งเพื่อซูม"),
   markedDoneAt: t("Marked as done at", "ทำเครื่องหมายว่าเสร็จเมื่อ"),
-  workUpdatedTitle: t("Success", "สำเร็จ"),
-  workUpdatedDetail: t("Work updated successfully", "อัปเดตงานเรียบร้อยแล้ว"),
   reviewedVideoNotice: t(
     "You can watch the video, but you cannot submit anymore as it has been reviewed.",
     "คุณสามารถดูวิดีโอได้ แต่ไม่สามารถส่งงานได้อีกต่อไปเนื่องจากได้รับการตรวจแล้ว",

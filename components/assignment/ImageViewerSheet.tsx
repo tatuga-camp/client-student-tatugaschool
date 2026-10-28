@@ -143,7 +143,7 @@ export default function ImageViewerSheet({ url, name, lang, onClose }: Props) {
           type="button"
           onClick={onClose}
           aria-label={assignmentPageLanguage.closeViewer(lang)}
-          className="grid h-10 w-10 place-items-center rounded-full bg-white/15 text-xl active:bg-white/25"
+          className="grid h-11 w-11 place-items-center rounded-full bg-white/15 text-xl active:bg-white/25"
         >
           <LuX aria-hidden />
         </button>

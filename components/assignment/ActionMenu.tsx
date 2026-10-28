@@ -37,7 +37,23 @@ export default function ActionMenu({ items, ariaLabel, disabled }: Props) {
   const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
-  const container = open ? (scoped ?? overlayTarget()) : null;
+  // Inside the sheet's own (aria-modal) subtree when there is one, so screen
+  // readers can reach it; else the page's overlay container.
+  const [host, setHost] = useState<HTMLElement | null>(null);
+  const container = open ? (host ?? scoped ?? overlayTarget()) : null;
+  const wasOpen = useRef(false);
+
+  // Focus moves into the menu on open and back to the button on close.
+  useEffect(() => {
+    if (open && pos) {
+      listRef.current
+        ?.querySelector<HTMLElement>('[role="menuitem"]')
+        ?.focus({ preventScroll: true });
+    }
+    if (!open && wasOpen.current)
+      buttonRef.current?.focus({ preventScroll: true });
+    wasOpen.current = open;
+  }, [open, pos]);
 
   useLayoutEffect(() => {
     if (!container) {
@@ -99,7 +115,13 @@ export default function ActionMenu({ items, ariaLabel, disabled }: Props) {
         aria-label={ariaLabel}
         aria-haspopup="menu"
         aria-expanded={open}
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => {
+          setHost(
+            buttonRef.current?.closest<HTMLElement>("[data-sheet-root]") ??
+              null,
+          );
+          setOpen((v) => !v);
+        }}
         className="grid h-11 w-11 place-items-center rounded-full text-xl text-[#9AA3B8] active:bg-[#EEF1F6] disabled:opacity-40"
       >
         <LuMoreHorizontal aria-hidden />

@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import {
   LuArrowLeft,
   LuMaximize,
+  LuMinimize,
   LuPause,
   LuPlay,
   LuAlertTriangle,
@@ -203,7 +204,7 @@ function FileAssignmentVideoPlayer({
             value={currentTime}
             onChange={handleSeek}
             aria-label={assignmentPageLanguage.seek(lang)}
-            className="block h-6 w-full cursor-pointer appearance-none rounded-full accent-[#569DF8]"
+            className="block h-11 w-full cursor-pointer appearance-none rounded-full accent-[#569DF8]"
             style={{
               background: `linear-gradient(to right, #569DF8 ${percent}%, rgba(255,255,255,.3) ${percent}%) center / 100% 6px no-repeat`,
             }}
@@ -246,7 +247,11 @@ function FileAssignmentVideoPlayer({
               }
               className={controlBtn}
             >
-              <LuMaximize aria-hidden />
+              {isFullscreen ? (
+                <LuMinimize aria-hidden />
+              ) : (
+                <LuMaximize aria-hidden />
+              )}
             </button>
           </div>
         </div>

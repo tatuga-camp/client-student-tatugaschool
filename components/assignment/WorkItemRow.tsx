@@ -19,6 +19,7 @@ import {
   useUpdateFileStudentAssignment,
 } from "../../react-query";
 import { fileSizeLabel, workItemMenu } from "../../utils/assignmentDetail";
+import { withTimeout } from "../../utils/withTimeout";
 import ActionMenu, { ActionMenuItem } from "./ActionMenu";
 import Swal from "../../utils/appSwal";
 import { workError } from "./workFeedback";
@@ -32,6 +33,9 @@ type Props = {
   /** TEXT items open in the note sheet. */
   onOpenNote: (file: FileOnStudentOnAssignment) => void;
 };
+
+/** Longest a rename waits for the server before the student is told. */
+const WRITE_TIMEOUT_MS = 30_000;
 
 const TILE =
   "flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-[10px] text-base";
@@ -91,11 +95,17 @@ export default function WorkItemRow({
     }
     savingRef.current = true;
     try {
-      await updateFile.mutateAsync({
-        query: { id: file.id },
-        body: { name: next },
-      });
+      const result = await withTimeout(
+        updateFile.mutateAsync({
+          query: { id: file.id },
+          body: { name: next },
+        }),
+        WRITE_TIMEOUT_MS,
+      );
       setEditing(false);
+      if (!result.ok) {
+        workError(new Error(assignmentPageLanguage.submitTimeout(lang)), lang);
+      }
     } catch (error) {
       // Back to the original name, out of edit mode: no dead-end edit state.
       setEditing(false);
@@ -147,7 +157,6 @@ export default function WorkItemRow({
   };
   const items = workItemMenu({
     contentType: file.contentType,
-    type: file.type,
     allowStudentDeleteWork,
     reviewed,
   }).map((key) => actions[key]);

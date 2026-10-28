@@ -25,7 +25,7 @@ const DetailHeader = forwardRef<HTMLButtonElement, Props>(function DetailHeader(
           type="button"
           onClick={onBack}
           aria-label={homeLanguage.back(lang)}
-          className="grid h-10 w-10 place-items-center rounded-xl border-2 border-b-4 border-[#E3E8F0] bg-white text-xl text-icon-color active:translate-y-0.5 active:border-b-2"
+          className="grid h-11 w-11 place-items-center rounded-xl border-2 border-b-4 border-[#E3E8F0] bg-white text-xl text-icon-color active:translate-y-0.5 active:border-b-2"
         >
           <LuChevronLeft aria-hidden />
         </button>

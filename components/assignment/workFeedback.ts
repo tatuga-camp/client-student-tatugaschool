@@ -31,13 +31,23 @@ export function workError(
   // errorSwalContent's footer is English ("Code Error: 403"): say it again.
   const code = content.footer.match(/\d+/)?.[0];
   const codeLine = code ? assignmentPageLanguage.errorCode(lang, code) : "";
-  // With a generic message, the server's own text is only a small detail.
-  const detail = generic
+  // An Error made on the client already carries a TH/EN message. Anything
+  // else (a server reply) is English: show a TH/EN message and keep the
+  // server's own text only as a small detail.
+  const message =
+    generic ??
+    (error instanceof Error
+      ? undefined
+      : {
+          title: assignmentPageLanguage.somethingWentWrong(lang),
+          text: assignmentPageLanguage.updateFailedText(lang),
+        });
+  const detail = message
     ? [codeLine, content.text].filter(Boolean).join(" · ")
     : codeLine;
   void Swal.fire({
     ...content,
-    ...(generic ?? {}),
+    ...(message ?? {}),
     footer: detail,
     confirmButtonText: assignmentPageLanguage.ok(lang),
     icon: "error",

@@ -30,6 +30,7 @@ import VideoQuizPlayer from "./video/VideoQuizPlayer";
 import TeacherFiles from "./TeacherFiles";
 import TitleCard from "./TitleCard";
 import { useDetailFocus } from "./useDetailFocus";
+import { withTimeout } from "../../utils/withTimeout";
 import { workError } from "./workFeedback";
 import YourWorkSheet from "./YourWorkSheet";
 
@@ -57,7 +58,7 @@ function DetailSkeleton() {
 /**
  * The assignment page: sky header with back, the reviewed score card, title
  * card, instructions, the teacher's files, the comment chat, and the "Your
- * work" sheet. Still the legacy video quiz block until Part 3 Task 6.
+ * work" sheet, plus the video quiz player for video quizzes.
  */
 export default function AssignmentDetail({
   subjectId,
@@ -99,10 +100,18 @@ export default function AssignmentDetail({
   const submitVideoScore = async (score: number): Promise<boolean> => {
     if (!assignment) return false;
     try {
-      await updateWork.mutateAsync({
-        query: { studentOnAssignmentId: assignment.studentOnAssignment.id },
-        body: { status: "REVIEWD", score: Number(score.toFixed(2)) },
-      });
+      const result = await withTimeout(
+        updateWork.mutateAsync({
+          query: { studentOnAssignmentId: assignment.studentOnAssignment.id },
+          body: { status: "REVIEWD", score: Number(score.toFixed(2)) },
+        }),
+        30_000,
+      );
+      if (!result.ok) {
+        // Not saved (yet): the player keeps the result and offers Try again.
+        workError(new Error(assignmentPageLanguage.submitTimeout(lang)), lang);
+        return false;
+      }
       return true;
     } catch (error) {
       // The player keeps the result and offers Try again.
@@ -254,7 +263,11 @@ export default function AssignmentDetail({
           }}
           onBack={() => {
             setCelebration(null);
-            nav.back();
+            // Lands on the Classwork list, however the student got here.
+            router.replace({
+              pathname: "/subject/[subjectId]",
+              query: { subjectId, tab: "classwork" },
+            });
           }}
         />
       )}

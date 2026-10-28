@@ -131,7 +131,10 @@ export default function YourWorkSheet({
   const markDone = async () => {
     setMarking(true);
     try {
-      if (await setStatus("SUBMITTED")) {
+      const result = await withTimeout(setStatus("SUBMITTED"), SUBMIT_WAIT_MS);
+      if (!result.ok) {
+        workError(new Error(assignmentPageLanguage.submitTimeout(lang)), lang);
+      } else if (result.value) {
         setExpanded(false);
         onTurnedIn({ itemCount: items.length });
       }

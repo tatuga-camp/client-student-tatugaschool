@@ -12,6 +12,7 @@ import {
 } from "react-icons/lu";
 import { assignmentPageLanguage } from "../../data/languages";
 import { FileOnAssignment, Language } from "../../interfaces";
+import { cleanUrl } from "../../utils/safeHtml";
 import {
   fileSizeLabel,
   teacherFileKind,
@@ -49,7 +50,8 @@ export default function TeacherFiles({ files, lang }: Props) {
     const kind = teacherFileKind(file);
     const mode = kind === "link" ? "external" : teacherFileOpenMode(file);
     if (mode === "external") {
-      window.open(file.url, "_blank", "noopener,noreferrer");
+      const href = cleanUrl("href", file.url);
+      if (href) window.open(href, "_blank", "noopener,noreferrer");
       return;
     }
     if (mode === "video") setLastVideo(file);
