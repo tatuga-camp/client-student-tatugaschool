@@ -1,7 +1,10 @@
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { LuSearch, LuUserX, LuUsers } from "react-icons/lu";
-import { subjectDataLanguage as t } from "../../data/languages";
+import {
+  subjectDataLanguage as t,
+  welcomeDataLanguage,
+} from "../../data/languages";
 import { ErrorMessages, StudentOnSubject } from "../../interfaces";
 import {
   useGetLanguage,
@@ -11,6 +14,7 @@ import {
 import { errorSwalContent } from "../../utils";
 import Swal from "../../utils/appSwal";
 import { safeSet } from "../../utils/safeStorage";
+import { isPasswordRejection, needsPassword } from "../../utils/signInError";
 import { signInRequest } from "../../utils/signInRequest";
 import { hiddenQueryReady, searchStudents } from "../../utils/studentSearch";
 import { HiddenListSearch } from "./HiddenListSearch";
@@ -69,6 +73,10 @@ export function PickNameScreen({ subjectCode, announcementId }: Props) {
   const [pwStudent, setPwStudent] = useState<StudentOnSubject | null>(null);
   const [pwOpen, setPwOpen] = useState(false);
   const [passwordError, setPasswordError] = useState<string | null>(null);
+  // Counts failed attempts, so the field refocuses even for a repeat error.
+  const [attempt, setAttempt] = useState(0);
+  // True from submit until navigation ends, so nothing can submit twice.
+  const [pwBusy, setPwBusy] = useState(false);
 
   const data = subject.data;
   const hideList = data?.allowHideStudentList === true;
@@ -97,16 +105,28 @@ export function PickNameScreen({ subjectCode, announcementId }: Props) {
   };
 
   const handlePassword = async (password: string) => {
-    if (!pwStudent) return;
+    if (!pwStudent || pwBusy) return;
+    setPwBusy(true);
     try {
       await signIn.mutateAsync(signInRequest(pwStudent, password));
-      await goToSubject();
     } catch (error) {
       // The server names the password in its 400 message; show the localized
       // copy for that and the server text for anything else.
       const { text } = errorSwalContent(error);
-      const isPasswordError = !text || /password/i.test(text);
-      setPasswordError(isPasswordError ? t.wrongPassword(lang) : text);
+      setPasswordError(
+        isPasswordRejection(text) ? t.wrongPassword(lang) : text,
+      );
+      setAttempt((n) => n + 1);
+      setPwBusy(false);
+      return;
+    }
+    try {
+      await goToSubject();
+    } catch {
+      setPasswordError(welcomeDataLanguage.joinFailed(lang));
+      setAttempt((n) => n + 1);
+    } finally {
+      setPwBusy(false);
     }
   };
 
@@ -114,11 +134,10 @@ export function PickNameScreen({ subjectCode, announcementId }: Props) {
     setPendingId(student.id);
     try {
       await signIn.mutateAsync(signInRequest(student));
-      await goToSubject();
     } catch (error) {
       const result = error as ErrorMessages;
       console.error(error);
-      if (result?.message === "Please enter your password") {
+      if (needsPassword(error)) {
         setPasswordError(null);
         setPwStudent(student);
         setPwOpen(true);
@@ -132,6 +151,16 @@ export function PickNameScreen({ subjectCode, announcementId }: Props) {
           icon: "error",
         });
       }
+      setPendingId(null);
+      return;
+    }
+    try {
+      await goToSubject();
+    } catch {
+      Swal.fire({
+        icon: "error",
+        title: welcomeDataLanguage.joinFailed(lang),
+      });
     } finally {
       setPendingId(null);
     }
@@ -242,7 +271,9 @@ export function PickNameScreen({ subjectCode, announcementId }: Props) {
         open={pwOpen}
         student={pwStudent}
         error={passwordError}
-        pending={signIn.isPending}
+        pending={pwBusy}
+        errorKey={attempt}
+        onEdit={() => setPasswordError(null)}
         onSubmit={handlePassword}
         onClose={closePasswordSheet}
       />

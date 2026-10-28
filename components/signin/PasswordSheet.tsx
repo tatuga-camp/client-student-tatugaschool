@@ -16,7 +16,11 @@ type Props = {
     photo: string;
   } | null;
   error: string | null;
+  /** Changes on every failed attempt; refocuses the field. */
+  errorKey: number;
   pending: boolean;
+  /** The password was edited; the parent clears its error. */
+  onEdit: () => void;
   onSubmit: (password: string) => void;
   onClose: () => void;
 };
@@ -28,7 +32,9 @@ export function PasswordSheet({
   open,
   student,
   error,
+  errorKey,
   pending,
+  onEdit,
   onSubmit,
   onClose,
 }: Props) {
@@ -49,8 +55,8 @@ export function PasswordSheet({
 
   // After a wrong password, put the cursor back in the field.
   useEffect(() => {
-    if (error) inputRef.current?.focus();
-  }, [error]);
+    if (errorKey > 0) inputRef.current?.focus();
+  }, [errorKey]);
 
   const title = student ? t.heyName(lang, student.firstName) : "";
   return (
@@ -78,8 +84,14 @@ export function PasswordSheet({
               name="password"
               type={shown ? "text" : "password"}
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (error) onEdit();
+              }}
               autoComplete="current-password"
+              autoCapitalize="off"
+              autoCorrect="off"
+              spellCheck={false}
               placeholder={t.password(lang)}
               aria-label={t.password(lang)}
               aria-invalid={error ? true : undefined}
