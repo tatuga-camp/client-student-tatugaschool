@@ -1,6 +1,8 @@
 import { GetServerSideProps } from "next";
 import Head from "next/head";
+import { useRouter } from "next/router";
 import { PickNameScreen } from "../components/signin/PickNameScreen";
+import { SubjectLoadError } from "../components/signin/SubjectLoadError";
 import { SubjectNotFound } from "../components/signin/SubjectNotFound";
 import { SubjectQuery } from "../interfaces";
 import { useGetSubjectByCode } from "../react-query";
@@ -14,12 +16,21 @@ type IndexProps = {
   subjectData: ResponseGetSubjectByCodeService;
   code: string;
   announcementId?: string;
-  error?: any;
+  error?: { statusCode: number | null; message: string | null };
 };
 
 function Index({ subjectData, code, announcementId, error }: IndexProps) {
   const subject = useGetSubjectByCode(code, { initialData: subjectData });
-  if (error) return <SubjectNotFound />;
+  const router = useRouter();
+  if (error?.statusCode === 404) return <SubjectNotFound />;
+  if (error) {
+    return (
+      <SubjectLoadError
+        message={error.message}
+        onRetry={() => router.replace(router.asPath)}
+      />
+    );
+  }
   return (
     <>
       <Head>
@@ -64,13 +75,12 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
         },
       };
     }
-    const subject = await GetSubjectByCodeService({
-      code: joinCodeForLookup(query.subject_code),
-    });
+    const code = joinCodeForLookup(query.subject_code);
+    const subject = await GetSubjectByCodeService({ code });
     return {
       props: {
         subjectData: subject,
-        code: joinCodeForLookup(query.subject_code),
+        code,
         ...(query.announcement_id
           ? { announcementId: query.announcement_id }
           : {}),
@@ -80,7 +90,11 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     console.error("Error fetching subject", error);
     return {
       props: {
-        error: error,
+        error: {
+          statusCode:
+            typeof error?.statusCode === "number" ? error.statusCode : null,
+          message: typeof error?.message === "string" ? error.message : null,
+        },
       },
     };
   }

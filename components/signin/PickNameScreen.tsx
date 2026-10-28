@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 import { Password as PasswordPrimereact } from "primereact/password";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { LuSearch, LuAlertTriangle, LuUserX, LuUsers } from "react-icons/lu";
+import { LuSearch, LuUserX, LuUsers } from "react-icons/lu";
 import { subjectDataLanguage as t } from "../../data/languages";
 import { ErrorMessages, StudentOnSubject } from "../../interfaces";
 import {
@@ -18,6 +18,7 @@ import SignInStudentForm from "../student/SignInStudentForm";
 import { HiddenListSearch } from "./HiddenListSearch";
 import { StudentGrid } from "./StudentGrid";
 import { SubjectCover } from "./SubjectCover";
+import { SubjectLoadError } from "./SubjectLoadError";
 import { TeachersSheet } from "./TeachersSheet";
 
 type Props = { subjectCode: string; announcementId: string | null };
@@ -152,24 +153,6 @@ export function PickNameScreen({ subjectCode, announcementId }: Props) {
   );
 
   const renderBody = () => {
-    if (subject.isError && !data) {
-      return (
-        <PickerState
-          icon={<LuAlertTriangle aria-hidden />}
-          title={t.loadErrorTitle(lang)}
-          description={t.loadErrorDescription(lang)}
-          action={
-            <button
-              type="button"
-              onClick={() => subject.refetch()}
-              className="chunky-btn"
-            >
-              {t.retry(lang)}
-            </button>
-          }
-        />
-      );
-    }
     if (!data) return <GridSkeleton label={t.loadingStudents(lang)} />;
     if (hideList) {
       const ready = query.length > 2;
@@ -221,6 +204,10 @@ export function PickNameScreen({ subjectCode, announcementId }: Props) {
       />
     );
   };
+
+  if (subject.isError && !data) {
+    return <SubjectLoadError onRetry={() => subject.refetch()} />;
+  }
 
   return (
     <div className="app-scroll hideScrollBar h-full w-full bg-[#F7F8FA] font-Anuphan">

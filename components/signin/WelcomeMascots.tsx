@@ -1,14 +1,14 @@
 import { mascotForPhoto } from "../../utils/mascot";
 import MascotAvatar from "../student/MascotAvatar";
+import { avatarPhoto } from "./mascotAvatars";
 
 /** Id of the centre mascot, the one that reacts to a wrong code. */
 export const WELCOME_REACT_ID = "welcome-1";
 
-const PHOTO = (n: number) => `https://storage.tatugaschool.com/AVATAR/${n}.png`;
 const TRIO = [
-  { photo: PHOTO(2), size: 78, delay: "0s" },
-  { photo: PHOTO(1), size: 104, delay: ".4s" },
-  { photo: PHOTO(3), size: 78, delay: ".8s" },
+  { photo: avatarPhoto(2), size: 78, delay: "0s" },
+  { photo: avatarPhoto(1), size: 104, delay: ".4s" },
+  { photo: avatarPhoto(3), size: 78, delay: ".8s" },
 ];
 
 /** Three mascots standing on the grass, bobbing out of step. */

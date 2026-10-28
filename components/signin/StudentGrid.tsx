@@ -1,20 +1,9 @@
 import { LuLoader } from "react-icons/lu";
 import { subjectDataLanguage as t } from "../../data/languages";
 import { Language, StudentOnSubject } from "../../interfaces";
-import { mascotForStudent, mascotHash } from "../../utils/mascot";
+import { mascotForStudent } from "../../utils/mascot";
 import MascotAvatar from "../student/MascotAvatar";
-
-const TINTS = [
-  "#FFF6D6",
-  "#E5F7EC",
-  "#FDE8F2",
-  "#F1EAFE",
-  "#E0F5F2",
-  "#E8F1FD",
-];
-
-/** A stable pastel per student, so a mascot keeps its colour. */
-export const tintFor = (id: string) => TINTS[mascotHash(id) % TINTS.length];
+import { tintFor } from "./mascotAvatars";
 
 type Props = {
   students: StudentOnSubject[];
@@ -55,7 +44,7 @@ export function StudentGrid({ students, lang, pendingId, onPick }: Props) {
               <span className="w-full truncate text-xs font-bold text-[#383767]">
                 {student.firstName}
               </span>
-              <span className="text-[10px] font-semibold text-[#7A80A0]">
+              <span className="w-full truncate text-center text-[10px] font-semibold text-[#7A80A0]">
                 {t.numberShort(lang)} {student.number}
                 {off && ` · ${t.disabled(lang)}`}
               </span>

@@ -1,9 +1,9 @@
 import { subjectDataLanguage as t } from "../../data/languages";
 import { Language, StudentOnSubject } from "../../interfaces";
-import { mascotForPhoto, mascotForStudent } from "../../utils/mascot";
+import { mascotForStudent } from "../../utils/mascot";
 import { highlightMatch } from "../../utils/studentSearch";
 import MascotAvatar from "../student/MascotAvatar";
-import { tintFor } from "./StudentGrid";
+import { guideClips, tintFor } from "./mascotAvatars";
 
 type Props = {
   /** Matches for the query; null until enough has been typed. */
@@ -13,8 +13,6 @@ type Props = {
   pendingId: string | null;
   onPick: (student: StudentOnSubject) => void;
 };
-
-const GUIDE = mascotForPhoto("https://storage.tatugaschool.com/AVATAR/1.png");
 
 function Name({ text, query }: { text: string; query: string }) {
   const hit = highlightMatch(text, query);
@@ -38,24 +36,22 @@ export function HiddenListSearch({
 }: Props) {
   return (
     <div>
-      {results === null && (
-        <div className="mb-3 flex items-end gap-1.5">
-          {GUIDE && (
-            <div className="relative h-16 w-16 shrink-0">
-              <MascotAvatar
-                clips={GUIDE}
-                alt=""
-                id="pick-guide"
-                idle={false}
-                sizes="64px"
-              />
-            </div>
-          )}
-          <p className="chunky mb-4 rounded-bl-[4px] px-2.5 py-2 text-xs font-bold leading-snug text-[#383767]">
-            {t.findYourself(lang)}
-          </p>
-        </div>
-      )}
+      <div className="mb-3 flex items-end gap-1.5">
+        {guideClips && (
+          <div className="relative h-16 w-16 shrink-0">
+            <MascotAvatar
+              clips={guideClips}
+              alt=""
+              id="pick-guide"
+              idle={false}
+              sizes="64px"
+            />
+          </div>
+        )}
+        <p className="chunky mb-4 rounded-bl-[4px] px-2.5 py-2 text-xs font-bold leading-snug text-[#383767]">
+          {t.findYourself(lang)}
+        </p>
+      </div>
       <ul className="flex flex-col gap-2">
         {(results ?? []).map((student) => (
           <li

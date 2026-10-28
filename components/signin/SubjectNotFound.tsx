@@ -1,11 +1,9 @@
 import { useRouter } from "next/router";
 import { subjectDataLanguage as t } from "../../data/languages";
 import { useGetLanguage } from "../../react-query";
-import { mascotForPhoto } from "../../utils/mascot";
 import MascotAvatar from "../student/MascotAvatar";
 import { LanguagePill } from "./LanguagePill";
-
-const CLIPS = mascotForPhoto("https://storage.tatugaschool.com/AVATAR/1.png");
+import { guideClips } from "./mascotAvatars";
 
 /** Shown when the code in the link matches no class. */
 export function SubjectNotFound() {
@@ -23,10 +21,10 @@ export function SubjectNotFound() {
         <LanguagePill />
       </div>
       <div className="flex flex-1 flex-col items-center justify-center text-center">
-        {CLIPS && (
+        {guideClips && (
           <div className="relative h-32 w-32">
             <MascotAvatar
-              clips={CLIPS}
+              clips={guideClips}
               alt=""
               id="not-found"
               idle={false}

@@ -267,15 +267,15 @@ export const subjectDataLanguage = {
       : "Search your name or number",
   findYourself: (language: Language) =>
     language === "th"
-      ? "พิมพ์ชื่อหรือเลขที่ของคุณเพื่อค้นหาตัวเอง"
+      ? "พิมพ์ชื่อหรือเลขที่ เพื่อหาชื่อของคุณ"
       : "Type your name or number to find yourself",
   thatsMe: (language: Language) =>
-    language === "th" ? "นี่คือฉัน" : "That's me",
+    language === "th" ? "ใช่ ฉันเอง" : "That's me",
   numberShort: (language: Language) => (language === "th" ? "เลขที่" : "No."),
   disabled: (language: Language) =>
     language === "th" ? "ปิดใช้งาน" : "Disabled",
   teachersSheetTitle: (language: Language) =>
-    language === "th" ? "ครูในรายวิชา" : "Your teachers",
+    language === "th" ? "ครูผู้สอน" : "Your teachers",
   notFoundTitle: (language: Language) =>
     language === "th" ? "ไม่พบห้องเรียนนี้" : "We couldn't find that class",
   notFoundDescription: (language: Language) =>
