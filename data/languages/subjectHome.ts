@@ -16,6 +16,14 @@ export const subjectHomeLanguage = {
   filterSubmitted: t("Submitted", "ส่งแล้ว"),
   filterGraded: t("Graded", "ตรวจแล้ว"),
 
+  // Group headings
+  groupDueSoon: t("Due soon", "ใกล้ถึงกำหนด"),
+  groupTodo: t("To do", "ต้องทำ"),
+  groupSubmitted: t("Submitted", "ส่งแล้ว"),
+  groupGraded: t("Graded", "ตรวจแล้ว"),
+  groupMaterial: t("Materials", "เอกสาร"),
+  groupOrdered: t("In your teacher's order", "ตามลำดับที่คุณครูกำหนด"),
+
   // Card type labels
   typeAssignment: t("Assignment", "งาน"),
   typeQuiz: t("Quiz", "แบบทดสอบ"),
