@@ -30,6 +30,7 @@ export function useGetSubjectById({ id }: { id: string }) {
       GetSubjectByIdService({
         subjectId: id,
       }),
+    enabled: !!id,
   });
 }
 

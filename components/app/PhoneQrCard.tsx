@@ -1,0 +1,96 @@
+import { useRouter } from "next/router";
+import { QRCodeSVG } from "qrcode.react";
+import { useEffect, useState } from "react";
+import { LuQrCode } from "react-icons/lu";
+import { frameLanguage } from "../../data/languages";
+import { useGetLanguage, useGetSubjectById } from "../../react-query";
+import { phoneHandoffUrl } from "../../utils/phoneHandoff";
+import { safeGet, safeRemove, safeSet } from "../../utils/safeStorage";
+import { mascotForPhoto } from "../../utils/mascot";
+
+const HIDDEN_KEY = "frame_qr_hidden";
+const MASCOT = mascotForPhoto("https://storage.tatugaschool.com/AVATAR/1.png");
+
+/** "Scan to open on your phone" card on the desktop stage. */
+export function PhoneQrCard() {
+  const router = useRouter();
+  const language = useGetLanguage();
+  const l = language.data ?? "en";
+  const subjectId =
+    typeof router.query.subjectId === "string" ? router.query.subjectId : "";
+  const subject = useGetSubjectById({ id: subjectId });
+  const [origin, setOrigin] = useState("");
+  const [storedCode, setStoredCode] = useState<string | null>(null);
+  const [hidden, setHidden] = useState(false);
+
+  useEffect(() => {
+    setOrigin(window.location.origin);
+    setHidden(safeGet(HIDDEN_KEY) === "1");
+  }, []);
+  // The stored code can change as the student moves around.
+  useEffect(() => {
+    setStoredCode(safeGet("subject_code"));
+  }, [router.asPath]);
+
+  const subjectCode =
+    (subjectId ? subject.data?.code : null) ?? storedCode ?? null;
+  const url = origin
+    ? phoneHandoffUrl({
+        origin,
+        pathname: router.pathname,
+        asPath: router.asPath,
+        subjectCode,
+      })
+    : "";
+
+  if (hidden) {
+    return (
+      <button
+        type="button"
+        aria-label={frameLanguage.qrShow(l)}
+        onClick={() => {
+          safeRemove(HIDDEN_KEY);
+          setHidden(false);
+        }}
+        className="absolute bottom-[14px] left-[14px] z-[3] grid h-10 w-10 place-items-center rounded-xl border-2 border-b-4 border-[#E3E8F0] bg-white text-xl text-icon-color"
+      >
+        <LuQrCode />
+      </button>
+    );
+  }
+
+  return (
+    <div className="absolute left-[34px] top-1/2 z-[3] w-[196px] -translate-y-[40%] rounded-[22px] border-2 border-b-[5px] border-[#E3E8F0] bg-white px-[14px] pb-3 pt-[14px] text-center shadow-[0_12px_30px_rgba(0,0,0,.12)]">
+      {MASCOT && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={MASCOT.poster}
+          alt=""
+          className="pointer-events-none absolute -top-[46px] right-[10px] h-16 w-16 drop-shadow-md"
+        />
+      )}
+      <div className="relative mx-auto box-content h-[150px] w-[150px] rounded-[14px] border-2 border-[#EEF1F6] bg-white p-2">
+        {url && <QRCodeSVG value={url} size={150} fgColor="#383767" />}
+        <span className="absolute left-1/2 top-1/2 -ml-[15px] -mt-[15px] grid h-[30px] w-[30px] place-items-center rounded-[9px] border-[3px] border-white bg-primary-color text-[13px] font-bold text-white">
+          T
+        </span>
+      </div>
+      <b className="mt-[10px] block text-sm text-icon-color">
+        {frameLanguage.qrTitle(l)}
+      </b>
+      <span className="mt-0.5 block text-[10.5px] font-semibold leading-[1.45] text-[#7A80A0]">
+        {frameLanguage.qrBody(l)}
+      </span>
+      <button
+        type="button"
+        onClick={() => {
+          safeSet(HIDDEN_KEY, "1");
+          setHidden(true);
+        }}
+        className="mt-2 text-[10px] font-bold text-primary-color"
+      >
+        {frameLanguage.qrHide(l)}
+      </button>
+    </div>
+  );
+}

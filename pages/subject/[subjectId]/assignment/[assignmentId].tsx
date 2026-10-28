@@ -14,7 +14,7 @@ import { GrFormNextLink } from "react-icons/gr";
 import { IoChevronDownSharp } from "react-icons/io5";
 import { MdLink, MdOutlineDone, MdOutlineRemoveDone } from "react-icons/md";
 import { RiEmotionHappyFill } from "react-icons/ri";
-import Swal from "sweetalert2";
+import Swal from "../../../../utils/appSwal";
 import FileAssignmentVideoPlayer from "../../../../components/common/FileAssignmentVideoPlayer";
 import LoadingSpinner from "../../../../components/common/LoadingSpinner";
 import StudentVideoPlayer, {

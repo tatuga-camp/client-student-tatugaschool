@@ -11,7 +11,7 @@ import {
   FaUserSlash,
   FaUsers,
 } from "react-icons/fa";
-import Swal from "sweetalert2";
+import Swal from "../utils/appSwal";
 import Footer from "../components/Footer";
 import HomepageLayout from "../components/layouts/HomepageLayout";
 import PopupLayout from "../components/layouts/PopupLayout";

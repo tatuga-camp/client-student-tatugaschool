@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import Swal from "sweetalert2";
+import Swal from "../../utils/appSwal";
 import BottomSheet from "../common/BottomSheet";
 import Password from "../common/Password";
 import { profileLanguage, studentDataLanguage } from "../../data/languages";

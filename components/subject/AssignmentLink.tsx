@@ -1,7 +1,7 @@
 import React from "react";
 import { useCreateFileStudentAssignment } from "../../react-query";
 import { errorSwalContent } from "../../utils";
-import Swal from "sweetalert2";
+import Swal from "../../utils/appSwal";
 import { ProgressSpinner } from "primereact/progressspinner";
 import { Toast } from "primereact/toast";
 import { IoMdClose } from "react-icons/io";

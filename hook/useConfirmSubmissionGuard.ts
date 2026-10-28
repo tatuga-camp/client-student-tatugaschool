@@ -1,6 +1,6 @@
 import { useRouter } from "next/router";
 import React from "react";
-import Swal from "sweetalert2";
+import Swal from "../utils/appSwal";
 import { classworkDataLanguage } from "../data/languages";
 import { Language } from "../interfaces";
 import { isSamePath } from "../utils";

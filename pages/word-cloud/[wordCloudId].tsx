@@ -1,6 +1,6 @@
 import Head from "next/head";
 import React, { useEffect, useRef, useState } from "react";
-import Swal from "sweetalert2";
+import Swal from "../../utils/appSwal";
 import { Password as PasswordPrimereact } from "primereact/password";
 import { IoMdCheckmarkCircleOutline } from "react-icons/io";
 import { FaSearch } from "react-icons/fa";

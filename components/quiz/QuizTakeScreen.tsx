@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { MdCheckCircle, MdCloudOff, MdSync } from "react-icons/md";
-import Swal from "sweetalert2";
+import Swal from "../../utils/appSwal";
 import { quizLanguage } from "../../data/languages";
 import { useQuizAutosave } from "../../hook/useQuizAutosave";
 import { Language, QuizAnswerDraft, StudentQuizView } from "../../interfaces";

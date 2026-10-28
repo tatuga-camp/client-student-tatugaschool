@@ -1,7 +1,11 @@
 import { GetStaticProps } from "next";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Sheet } from "../../components/app/Sheet";
 import { SchoolyardScene } from "../../components/app/scene/SchoolyardScene";
+import Password from "../../components/common/Password";
+import { Toast } from "primereact/toast";
+import AppSwal from "../../utils/appSwal";
+import { reportRateLimit } from "../../utils/rateLimit";
 import type { DayPeriod } from "../../utils/timeOfDay";
 
 const PERIODS: DayPeriod[] = ["morning", "noon", "afternoon", "night"];
@@ -16,14 +20,11 @@ export default function ScenePreview() {
   const [live, setLive] = useState<DayPeriod>("morning");
   const [peekOpen, setPeekOpen] = useState(false);
   const [nested, setNested] = useState(false);
+  const toast = useRef<Toast>(null);
+  const [pw, setPw] = useState("");
   const [sheet, setSheet] = useState<"auto" | "full" | null>(null);
   return (
     <div style={{ padding: 16, background: "#fff" }}>
-      {/* Temporary overlay root: the phone frame (next task) provides the real one. */}
-      <div
-        id="app-overlay-root"
-        style={{ position: "fixed", inset: 0, zIndex: 40, pointerEvents: "none" }}
-      />
       <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
         <button onClick={() => setSheet("auto")} style={{ border: "1px solid #ccc", padding: "2px 8px" }}>
           Open sheet
@@ -31,6 +32,19 @@ export default function ScenePreview() {
         <button onClick={() => setSheet("full")} style={{ border: "1px solid #ccc", padding: "2px 8px" }}>
           Full sheet
         </button>
+      </div>
+      <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+        <button id="demo-swal" onClick={() => AppSwal.fire({ title: "Demo alert", icon: "info" })} style={{ border: "1px solid #ccc", padding: "2px 8px" }}>
+          Swal
+        </button>
+        <button id="demo-toast" onClick={() => toast.current?.show({ severity: "info", summary: "Demo toast" })} style={{ border: "1px solid #ccc", padding: "2px 8px" }}>
+          Toast
+        </button>
+        <button id="demo-429" onClick={() => reportRateLimit({ retryAfter: 20 })} style={{ border: "1px solid #ccc", padding: "2px 8px" }}>
+          Rate limit
+        </button>
+        <Toast ref={toast} />
+        <Password toggleMask feedback value={pw} onChange={(e) => setPw(e.target.value)} placeholder="password" />
       </div>
       <Sheet open={sheet !== null} onClose={() => setSheet(null)} size={sheet ?? "auto"} ariaLabel="Demo sheet">
         <h3 className="text-lg font-bold">Demo sheet</h3>

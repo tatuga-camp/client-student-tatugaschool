@@ -8,7 +8,7 @@ import {
   FaArrowLeft,
 } from "react-icons/fa";
 import { MdReplay10, MdForward10 } from "react-icons/md";
-import Swal from "sweetalert2";
+import Swal from "../../utils/appSwal";
 import {
   canFullscreenElements,
   enterFullscreen,

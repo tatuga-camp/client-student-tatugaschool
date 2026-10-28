@@ -5,7 +5,7 @@ import {
   FileOnStudentOnAssignment,
 } from "../../interfaces";
 import { errorSwalContent } from "../../utils";
-import Swal from "sweetalert2";
+import Swal from "../../utils/appSwal";
 import { Toast } from "primereact/toast";
 import {
   useCreateFileStudentAssignment,

@@ -9,7 +9,12 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { ErrorMessages } from "../interfaces";
 import { classNames } from "primereact/utils";
-import Swal from "sweetalert2";
+import Head from "next/head";
+import type { NextPage } from "next";
+import Swal from "../utils/appSwal";
+import { PhoneFrame } from "../components/app/PhoneFrame";
+import { overlayTarget } from "../utils/frameRoutes";
+import { installPrimeOverlayOffset } from "../utils/primeOverlay";
 import ErrorBoundary from "../components/common/ErrorBoundary";
 import RateLimitNotice from "../components/common/RateLimitNotice";
 import { installDomTranslationGuard } from "../utils/domTranslationGuard";
@@ -19,6 +24,7 @@ import { installSwalRateLimitGuard, isRateLimitError } from "../utils/rateLimit"
 // the app with NotFoundError on removeChild / insertBefore.
 if (typeof window !== "undefined") {
   installDomTranslationGuard();
+  installPrimeOverlayOffset();
   // Pages' own error alerts would stack on the rate-limit popup.
   installSwalRateLimitGuard(Swal);
 }
@@ -28,7 +34,12 @@ const prompt = Prompt({
   weight: ["300", "400", "500", "600", "700"],
 });
 
+type PageWithLayout = NextPage & {
+  getLayout?: (page: React.ReactElement) => React.ReactNode;
+};
+
 function MyApp({ Component, pageProps }: AppProps) {
+  const getLayout = (Component as PageWithLayout).getLayout;
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -65,6 +76,11 @@ function MyApp({ Component, pageProps }: AppProps) {
       <PrimeReactProvider
         value={{
           unstyled: true,
+          // Panels, toasts and dropdowns open inside the phone screen.
+          appendTo: () =>
+            typeof document === "undefined"
+              ? (null as unknown as HTMLElement) // PrimeReact falls back to body on the server
+              : overlayTarget(),
           pt: {
             global: {
               css() {
@@ -133,7 +149,7 @@ function MyApp({ Component, pageProps }: AppProps) {
             },
             toast: {
               root: {
-                className: classNames("w-96", "opacity-90"),
+                className: classNames("w-96 max-w-[calc(100%-40px)]", "opacity-90"),
               },
               message: (option: any) => ({
                 className: classNames("my-4 rounded-2xl w-full", {
@@ -234,11 +250,23 @@ function MyApp({ Component, pageProps }: AppProps) {
           options={{ showSpinner: false }}
           shallowRouting
         />
+        <Head>
+          <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1, viewport-fit=cover"
+          />
+        </Head>
         <div className={prompt.className}>
-          <ErrorBoundary>
-            <Component {...pageProps} />
-          </ErrorBoundary>
-          <RateLimitNotice />
+          <PhoneFrame scroll={!getLayout}>
+            <ErrorBoundary>
+              {getLayout ? (
+                getLayout(<Component {...pageProps} />)
+              ) : (
+                <Component {...pageProps} />
+              )}
+            </ErrorBoundary>
+            <RateLimitNotice />
+          </PhoneFrame>
         </div>
       </PrimeReactProvider>
     </QueryClientProvider>

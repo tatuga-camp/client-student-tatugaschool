@@ -6,7 +6,7 @@ import {
   useUpdateStudent,
 } from "../../../react-query";
 import Layout from "../../../components/layouts/Layout";
-import Swal from "sweetalert2";
+import Swal from "../../../utils/appSwal";
 import {
   getSignedURLStudentService,
   UploadSignURLService,

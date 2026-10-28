@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { overlayTarget } from "../../utils/frameRoutes";
 import { MdAdd, MdClose, MdRemove } from "react-icons/md";
 import { Document, Page, pdfjs } from "react-pdf";
 import { quizLanguage } from "../../data/languages";
@@ -205,6 +206,6 @@ export default function PdfViewerSheet({ url, name, language, onClose }: Props) 
         </footer>
       )}
     </div>,
-    document.body,
+    overlayTarget(),
   );
 }

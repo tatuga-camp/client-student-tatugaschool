@@ -124,3 +124,26 @@
 @keyframes tgs-twinkle { from { opacity: .25; } to { opacity: 1; } }
 @keyframes tgs-wave { from { transform: skewY(-6deg) scaleX(.94); } to { transform: skewY(6deg) scaleX(1); } }
 @keyframes tgs-sway { from { transform: rotate(-2deg); } to { transform: rotate(2deg); } }
+
+/* Everything that pops up renders into the phone screen. */
+#app-overlay-root {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+}
+#app-overlay-root > * {
+  pointer-events: auto;
+}
+
+/* Legacy pages size themselves to the window; inside the phone screen they
+   must size to the screen instead. */
+.app-scroll .h-screen {
+  height: 100%;
+}
+.app-scroll .min-h-screen {
+  min-height: 100%;
+}
+.app-scroll .w-screen {
+  width: 100%;
+}

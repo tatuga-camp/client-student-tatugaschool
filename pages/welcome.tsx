@@ -2,7 +2,7 @@ import Head from "next/head";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import React from "react";
-import Swal from "sweetalert2";
+import Swal from "../utils/appSwal";
 import InputMask from "../components/common/InputMask";
 import Footer from "../components/Footer";
 import LanguageSelect from "../components/LanguageSelect";

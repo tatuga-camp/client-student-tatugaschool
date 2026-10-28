@@ -5,7 +5,7 @@ import { MdDelete } from "react-icons/md";
 import Image from "next/image";
 import { errorSwalContent, timeAgo } from "../../utils";
 import parse from "html-react-parser";
-import Swal from "sweetalert2";
+import Swal from "../../utils/appSwal";
 import {
   useDeleteComment,
   useGetComments,

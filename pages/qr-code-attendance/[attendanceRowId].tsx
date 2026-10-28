@@ -6,7 +6,7 @@ import { FaSearch } from "react-icons/fa";
 import { GrStatusUnknown } from "react-icons/gr";
 import { IoMdClose } from "react-icons/io";
 import { PiNote } from "react-icons/pi";
-import Swal from "sweetalert2";
+import Swal from "../../utils/appSwal";
 import LoadingBar from "../../components/common/LoadingBar";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import TextEditor from "../../components/common/TextEditor";

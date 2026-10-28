@@ -7,6 +7,7 @@ import React, {
   useImperativeHandle,
 } from "react";
 import { createPortal } from "react-dom";
+import { overlayTarget } from "../../utils/frameRoutes";
 import {
   FaExpand,
   FaPause,
@@ -302,7 +303,7 @@ const StudentVideoPlayer = forwardRef<StudentVideoPlayerRef, Props>(
     };
 
     const renderOverlay = (node: React.ReactNode) =>
-      isFullscreen ? node : createPortal(node, document.body);
+      isFullscreen ? node : createPortal(node, overlayTarget());
 
     const formatTime = (seconds: number) => {
       const mins = Math.floor(seconds / 60);

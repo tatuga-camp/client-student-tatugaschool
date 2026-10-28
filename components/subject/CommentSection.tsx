@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { ProgressSpinner } from "primereact/progressspinner";
 import React from "react";
-import Swal from "sweetalert2";
+import Swal from "../../utils/appSwal";
 import { defaultBlurHash } from "../../data";
 import { commentDataLanguage } from "../../data/languages";
 import { errorSwalContent } from "../../utils";

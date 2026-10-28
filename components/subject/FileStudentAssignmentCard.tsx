@@ -8,7 +8,7 @@ import {
   useDeleteFileStudentAssignment,
   useUpdateFileStudentAssignment,
 } from "../../react-query";
-import Swal from "sweetalert2";
+import Swal from "../../utils/appSwal";
 import { ProgressSpinner } from "primereact/progressspinner";
 import { LuLink } from "react-icons/lu";
 
