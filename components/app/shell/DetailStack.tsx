@@ -16,6 +16,8 @@ import { ShellRoute, takeInAppPop, useShellNav } from "./useShellRoute";
 
 export const DETAIL_SPRING = { tension: 320, friction: 34 };
 const EDGE = 24;
+// How long an edge-back waits for the router to start navigating.
+const NO_NAV_MS = 500;
 
 type Detail = NonNullable<ShellRoute["detail"]>;
 
@@ -157,9 +159,21 @@ export default function DetailStack({ subjectId, detail, depthApi }: Props) {
         stopWatching.current?.();
         if (currentKey.current === key) settle();
       };
+      // back() may start no navigation at all (nothing to go back to, or a
+      // refusal before routeChangeStart): the page must not stay off-position.
+      let started = false;
+      const onStart = () => {
+        started = true;
+      };
+      const idle = window.setTimeout(() => {
+        if (!started) done();
+      }, NO_NAV_MS);
+      Router.events.on("routeChangeStart", onStart);
       Router.events.on("routeChangeError", done);
       Router.events.on("routeChangeComplete", done);
       stopWatching.current = () => {
+        window.clearTimeout(idle);
+        Router.events.off("routeChangeStart", onStart);
         Router.events.off("routeChangeError", done);
         Router.events.off("routeChangeComplete", done);
         stopWatching.current = null;

@@ -1,5 +1,8 @@
 import { Language } from "../../interfaces";
 
+const t = (en: string, th: string) => (language: Language) =>
+  language === "th" ? th : en;
+
 export const classworkDataLanguage = {
   attrachs: (language: Language) => {
     switch (language) {
@@ -344,4 +347,30 @@ export const tagsDataLanguage = {
         return "Show All";
     }
   },
+} as const;
+
+/** The assignment detail page (title card, instructions, teacher files). */
+export const assignmentPageLanguage = {
+  pointsCount: (l: Language, n: number) =>
+    l === "th" ? `${n} คะแนน` : `${n} ${n === 1 ? "point" : "points"}`,
+  instructions: t("Instructions", "คำชี้แจง"),
+  fromTeacher: t("From your teacher", "จากครูของคุณ"),
+  timeLeft: (l: Language, d: string) =>
+    l === "th" ? `เหลือ ${d}` : `${d} left`,
+  timeAgo: (l: Language, d: string) => (l === "th" ? `เลยมา ${d}` : `${d} ago`),
+  openFile: t("Open file", "เปิดไฟล์"),
+  link: t("Link", "ลิงก์"),
+  fileKindPdf: t("PDF", "PDF"),
+  fileKindImage: t("Image", "รูปภาพ"),
+  fileKindVideo: t("Video", "วิดีโอ"),
+  fileKindFile: t("File", "ไฟล์"),
+  closeViewer: t("Close", "ปิด"),
+  zoomHint: t("Pinch or double-tap to zoom", "บีบหรือแตะสองครั้งเพื่อซูม"),
+  markedDoneAt: t("Marked as done at", "ทำเครื่องหมายว่าเสร็จเมื่อ"),
+  workUpdatedTitle: t("Success", "สำเร็จ"),
+  workUpdatedDetail: t("Work updated successfully", "อัปเดตงานเรียบร้อยแล้ว"),
+  reviewedVideoNotice: t(
+    "You can watch the video, but you cannot submit anymore as it has been reviewed.",
+    "คุณสามารถดูวิดีโอได้ แต่ไม่สามารถส่งงานได้อีกต่อไปเนื่องจากได้รับการตรวจแล้ว",
+  ),
 } as const;

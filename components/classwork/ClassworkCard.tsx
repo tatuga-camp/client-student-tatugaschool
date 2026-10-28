@@ -43,7 +43,7 @@ type Props = {
 };
 
 // Full class names only: Tailwind cannot see classes built from strings.
-const TONES: Record<
+export const TONES: Record<
   AssignmentType,
   { tile: string; label: string; icon: React.ReactNode }
 > = {
@@ -69,21 +69,21 @@ const TONES: Record<
   },
 };
 
-const DUE_PILL: Record<Exclude<DueUrgency, "none">, string> = {
+export const DUE_PILL: Record<Exclude<DueUrgency, "none">, string> = {
   overdue: "bg-rose-100 text-rose-600",
   soon: "bg-amber-100 text-amber-700",
   later: "bg-gray-100 text-gray-600",
   done: "bg-gray-50 text-gray-400",
 };
 
-const STATUS_PILL: Record<StudentAssignmentStatus, string> = {
+export const STATUS_PILL: Record<StudentAssignmentStatus, string> = {
   PENDDING: "bg-gray-100 text-gray-600",
   SUBMITTED: "bg-amber-100 text-amber-700",
   REVIEWD: "bg-emerald-100 text-emerald-700",
   IMPROVED: "bg-rose-100 text-rose-700",
 };
 
-function statusLabel(status: StudentAssignmentStatus, lang: Language) {
+export function statusLabel(status: StudentAssignmentStatus, lang: Language) {
   switch (status) {
     case "SUBMITTED":
       return classworkCardDataLanguage.WaitReview(lang);
@@ -105,7 +105,7 @@ function stripHtml(html: string) {
     .trim();
 }
 
-function typeLabel(type: AssignmentType, lang: Language) {
+export function typeLabel(type: AssignmentType, lang: Language) {
   switch (type) {
     case "Quiz":
       return subjectHomeLanguage.typeQuiz(lang);
@@ -129,7 +129,7 @@ function displayScore(assignment: Assignment, raw: number) {
   return { score: raw, max: assignment.maxScore };
 }
 
-const pill =
+export const pill =
   "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold";
 
 export default function ClassworkCard({
