@@ -2,78 +2,175 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { createElement, Fragment } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import parse from "html-react-parser";
-import { cleanAttribs, isBlockedTag, safeHtmlReplace } from "./safeHtml";
+import { cleanStyle, cleanUrl, parseSafeHtml } from "./safeHtml";
 
 const render = (html: string) =>
   renderToStaticMarkup(
-    createElement(Fragment, null, parse(html, { replace: safeHtmlReplace })),
+    createElement(Fragment, null, parseSafeHtml(html).content),
   );
 
-test("isBlockedTag lists the dangerous elements, any case", () => {
-  for (const tag of ["script", "STYLE", "iframe", "object", "embed", "form"]) {
-    assert.equal(isBlockedTag(tag), true, tag);
-  }
-  for (const tag of ["p", "b", "a", "img", "ul"]) {
-    assert.equal(isBlockedTag(tag), false, tag);
-  }
+test("normal formatting survives", () => {
+  assert.equal(
+    render("<p>hi <b>bold</b> <i>it</i><br>line</p><ul><li>one</li></ul>"),
+    "<p>hi <b>bold</b> <i>it</i><br/>line</p><ul><li>one</li></ul>",
+  );
+  assert.equal(
+    render(
+      '<table><tbody><tr><th colspan="2">h</th></tr><tr><td>a</td><td>b</td></tr></tbody></table>',
+    ),
+    '<table><tbody><tr><th colSpan="2">h</th></tr><tr><td>a</td><td>b</td></tr></tbody></table>',
+  );
+  assert.equal(
+    render('<span style="color: red; font-weight:bold">x</span>'),
+    '<span style="color:red;font-weight:bold">x</span>',
+  );
 });
 
-test("blocked elements and their content are dropped", () => {
+test("an https link keeps its href and gets target and rel", () => {
+  assert.equal(
+    render('<a href="https://x.com/a?b=1" title="t">link</a>'),
+    '<a href="https://x.com/a?b=1" title="t" target="_blank" rel="noopener noreferrer">link</a>',
+  );
+  assert.equal(
+    render('<a href="mailto:a@b.c">m</a>'),
+    '<a href="mailto:a@b.c" target="_blank" rel="noopener noreferrer">m</a>',
+  );
+});
+
+test("a link that loses its href becomes plain text", () => {
+  assert.equal(render('<a href="javascript:alert(1)">x</a>'), "x");
+  assert.equal(render('<a href=" JaVa\tScRiPt:alert(1)">x</a>'), "x");
+  assert.equal(render('<a href="jav&#x61;script&colon;alert(1)">x</a>'), "x");
+  assert.equal(render('<a href="vbscript:x">x</a>'), "x");
+  assert.equal(render('<a href="data:text/html,<b>x</b>">x</a>'), "x");
+  assert.equal(render('<a href="//evil.example/x">x</a>'), "x");
+  assert.equal(render('<a href="/\\evil.example">x</a>'), "x");
+});
+
+test("relative links are allowed", () => {
+  assert.equal(
+    render('<a href="/subject/1">x</a>'),
+    '<a href="/subject/1" target="_blank" rel="noopener noreferrer">x</a>',
+  );
+});
+
+test("active elements are dropped with their content", () => {
+  for (const html of [
+    "<script>alert(1)</script>",
+    "<style>p{display:none}</style>",
+    '<iframe src="https://x"></iframe>',
+    "<object data=x></object>",
+    "<embed src=x>",
+    '<form action="/x"><input></form>',
+    "<input>",
+    "<button>b</button>",
+    "<textarea>t</textarea>",
+    "<select><option>o</option></select>",
+    '<base href="https://evil.example/">',
+    '<meta http-equiv="refresh" content="0;url=https://evil.example">',
+    '<link rel="stylesheet" href="https://evil.example/x.css">',
+    "<template><b>x</b></template>",
+    "<noscript>n</noscript>",
+    "<math><mi>x</mi></math>",
+    "<frameset><frame src=x></frameset>",
+  ]) {
+    assert.equal(render(`${html}`), "", html);
+  }
   assert.equal(
     render("<p>a</p><script>alert(1)</script><p>b</p>"),
     "<p>a</p><p>b</p>",
   );
-  assert.equal(render("<style>p{display:none}</style>x"), "x");
-  assert.equal(render('<iframe src="https://x"></iframe>x'), "x");
-  assert.equal(render("<object data=x></object><embed src=x>y"), "y");
-  assert.equal(render('<form action="/x"><input></form>z'), "z");
 });
 
-test("on* attributes are stripped", () => {
+test("svg and its payloads are dropped", () => {
   assert.equal(
-    render('<img src="https://x/a.png" onerror="alert(1)">'),
-    '<img src="https://x/a.png"/>',
+    render('<svg><a xlinkhref="javascript:alert(1)"><text>x</text></a></svg>'),
+    "",
+  );
+  assert.equal(
+    render(
+      '<svg><a><animate attributeName="href" values="javascript:alert(1)"/><text>x</text></a></svg>',
+    ),
+    "",
+  );
+  assert.equal(render('<svg onload="alert(1)"></svg>ok'), "ok");
+});
+
+test("blocked elements nested in allowed ones are dropped", () => {
+  assert.equal(
+    render("<b><i><iframe src=x></iframe>t</i></b>"),
+    "<b><i>t</i></b>",
+  );
+  assert.equal(render("<p><script>1</script>t</p>"), "<p>t</p>");
+});
+
+test("unknown tags unwrap to their children", () => {
+  assert.equal(render('<font color="red">x <b>y</b></font>'), "x <b>y</b>");
+  assert.equal(render("<center>c</center>"), "c");
+});
+
+test("only allowlisted attributes survive, and none that React treats specially", () => {
+  assert.equal(
+    render(
+      '<img src="https://x/a.png" alt="a" onerror="alert(1)" class="c" id="i">',
+    ),
+    '<img src="https://x/a.png" alt="a"/>',
   );
   assert.equal(render('<p onclick="x()" ONMOUSEOVER="y()">t</p>'), "<p>t</p>");
+  // used to crash the pane: React maps it to dangerouslySetInnerHTML
+  assert.equal(render('<p dangerouslysetinnerhtml="x">a</p>'), "<p>a</p>");
+  assert.equal(
+    render('<p DangerouslySetInnerHTML="x" ref="r" key="k">a</p>'),
+    "<p>a</p>",
+  );
 });
 
-test("script-like URL schemes are dropped, even disguised", () => {
-  assert.equal(render('<a href="javascript:alert(1)">x</a>'), "<a>x</a>");
-  assert.equal(render('<a href=" JaVa\tScRiPt:alert(1)">x</a>'), "<a>x</a>");
-  assert.equal(render('<a href="vbscript:x">x</a>'), "<a>x</a>");
-  assert.equal(render('<a href="data:text/html,<b>x</b>">x</a>'), "<a>x</a>");
+test("image sources: https and data:image only", () => {
   assert.equal(render('<img src="javascript:alert(1)">'), "<img/>");
   assert.equal(render('<img src="data:text/html;base64,AAAA">'), "<img/>");
-});
-
-test("data:image survives on src only", () => {
+  assert.equal(render('<img src="http://x/a.png">'), "<img/>");
+  assert.equal(render('<img src="//x/a.png">'), "<img/>");
+  assert.equal(render('<img src="data:image/svg+xml;base64,AAAA">'), "<img/>");
   assert.equal(
     render('<img src="data:image/png;base64,AAAA">'),
     '<img src="data:image/png;base64,AAAA"/>',
   );
-  assert.equal(
-    render('<a href="data:image/png;base64,AAAA">x</a>'),
-    "<a>x</a>",
-  );
 });
 
-test("normal formatting survives", () => {
+test("style keeps only safe declarations", () => {
   assert.equal(
-    render(
-      '<p>hi <b>bold</b> <i>it</i><br>line</p><ul><li>one</li></ul><a href="https://x.com/a?b=1">link</a>',
-    ),
-    '<p>hi <b>bold</b> <i>it</i><br/>line</p><ul><li>one</li></ul><a href="https://x.com/a?b=1">link</a>',
+    render('<p style="background:url(javascript:alert(1))">x</p>'),
+    "<p>x</p>",
   );
+  assert.equal(
+    render('<p style="position:fixed;top:0;color:blue">x</p>'),
+    '<p style="color:blue">x</p>',
+  );
+  assert.equal(
+    render('<p style="color:expression(alert(1))">x</p>'),
+    "<p>x</p>",
+  );
+  assert.equal(
+    render('<p style="margin-left:4px;padding:1px">x</p>'),
+    '<p style="margin-left:4px;padding:1px">x</p>',
+  );
+  assert.equal(render('<p style="color:\\72 ed">x</p>'), "<p>x</p>");
 });
 
-test("cleanAttribs keeps harmless attributes", () => {
-  assert.deepEqual(
-    cleanAttribs({ href: "https://x", class: "c", title: "t" }),
-    {
-      href: "https://x",
-      class: "c",
-      title: "t",
-    },
-  );
+test("cleanUrl and cleanStyle", () => {
+  assert.equal(cleanUrl("href", "https://x"), "https://x");
+  assert.equal(cleanUrl("href", "javascript:1"), null);
+  assert.equal(cleanUrl("src", "https://x"), "https://x");
+  assert.equal(cleanUrl("src", "mailto:a@b"), null);
+  assert.equal(cleanStyle("color:red"), "color:red");
+  assert.equal(cleanStyle("top:0"), null);
+});
+
+test("parseSafeHtml reports whether anything visible is left", () => {
+  assert.equal(parseSafeHtml("<p>hi</p>").visible, true);
+  assert.equal(parseSafeHtml('<img src="https://x/a.png">').visible, true);
+  assert.equal(parseSafeHtml("<script>x</script>").visible, false);
+  assert.equal(parseSafeHtml("<svg><circle/></svg>").visible, false);
+  assert.equal(parseSafeHtml("<p> </p>").visible, false);
+  assert.equal(parseSafeHtml("").visible, false);
 });

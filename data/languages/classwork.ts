@@ -442,6 +442,7 @@ export const assignmentPageLanguage = {
   addComment: t("Add a comment…", "เขียนความคิดเห็น…"),
   sendComment: t("Send", "ส่ง"),
   teacherRole: t("Teacher", "ครู"),
+  contentNotShown: t("(content not shown)", "(ไม่แสดงเนื้อหา)"),
   nothingAddedShort: t("Nothing added", "ไม่มีงาน"),
   ok: t("OK", "ตกลง"),
   errorCode: (l: Language, code: string) =>

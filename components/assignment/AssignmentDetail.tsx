@@ -209,6 +209,7 @@ export default function AssignmentDetail({
       {assignment && student.data && celebration && (
         <TurnedInCelebration
           open
+          fallbackFocus={backRef}
           lang={lang}
           student={student.data}
           summary={celebration}

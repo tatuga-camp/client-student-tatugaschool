@@ -1,8 +1,7 @@
-import parse from "html-react-parser";
 import React, { useEffect, useRef, useState } from "react";
 import { LuSend, LuTrash2 } from "react-icons/lu";
 import { useDetailActive } from "../app/shell/DetailActive";
-import { safeHtmlReplace } from "../../utils/safeHtml";
+import { parseSafeHtml } from "../../utils/safeHtml";
 import { assignmentPageLanguage } from "../../data/languages";
 import { CommentOnAssignment, Language } from "../../interfaces";
 import {
@@ -66,6 +65,7 @@ function Bubble({
   const name = [comment.title, comment.firstName, comment.lastName]
     .filter(Boolean)
     .join(" ");
+  const safe = parseSafeHtml(comment.content);
   const ago = timeAgo({ pastTime: comment.createAt, language: lang });
   return (
     <li className={`flex flex-col ${mine ? "items-end" : "items-start"}`}>
@@ -85,7 +85,13 @@ function Bubble({
               : "rounded-2xl rounded-bl-[4px] bg-[#EEF1F6] text-icon-color"
           }`}
         >
-          {parse(comment.content, { replace: safeHtmlReplace })}
+          {safe.visible ? (
+            safe.content
+          ) : (
+            <span className="italic opacity-70">
+              {assignmentPageLanguage.contentNotShown(lang)}
+            </span>
+          )}
           <span
             className={`mt-0.5 block text-[10px] ${mine ? "text-white/70" : "text-[#9AA3B8]"}`}
           >

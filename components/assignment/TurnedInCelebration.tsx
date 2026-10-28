@@ -17,6 +17,8 @@ type Props = {
   next: { id: string; title: string } | null;
   onNext: () => void;
   onBack: () => void;
+  /** Where focus goes on close if what had it before is gone. */
+  fallbackFocus?: React.RefObject<HTMLElement | null>;
 };
 
 const CONFETTI = [
@@ -42,29 +44,42 @@ export default function TurnedInCelebration({
   next,
   onNext,
   onBack,
+  fallbackFocus,
 }: Props) {
   const scoped = useContext(OverlayRootContext);
   const primaryRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
+  const onBackRef = useRef(onBack);
+  onBackRef.current = onBack;
   useEffect(() => {
     if (!open) return;
     const opener = document.activeElement as HTMLElement | null;
-    primaryRef.current?.focus({ preventScroll: true });
+    // After a frame: the Your-work sheet gives focus back to its opener in a
+    // microtask when it closes, and would take it from us.
+    const frame = requestAnimationFrame(() =>
+      primaryRef.current?.focus({ preventScroll: true }),
+    );
+    // Esc works wherever focus is.
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      e.stopPropagation();
+      onBackRef.current();
+    };
+    document.addEventListener("keydown", onKey, true);
     return () => {
+      cancelAnimationFrame(frame);
+      document.removeEventListener("keydown", onKey, true);
       queueMicrotask(() => {
-        if (opener?.isConnected) opener.focus({ preventScroll: true });
+        const target = opener?.isConnected ? opener : fallbackFocus?.current; // eslint-disable-line react-hooks/exhaustive-deps
+        target?.focus({ preventScroll: true });
       });
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
   if (!open) return null;
 
   // Esc = Back; Tab stays inside the dialog.
   const onKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Escape") {
-      e.stopPropagation();
-      onBack();
-      return;
-    }
     if (e.key !== "Tab") return;
     const buttons = Array.from(
       dialogRef.current?.querySelectorAll<HTMLElement>("button") ?? [],

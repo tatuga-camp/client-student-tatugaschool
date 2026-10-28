@@ -16,6 +16,8 @@ function levelTone(points: number, max: number) {
   return "bg-amber-100 text-amber-700";
 }
 
+const scorePill =
+  "inline-block shrink-0 whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-bold";
 const pill =
   "inline-block max-w-[60%] truncate rounded-full px-2 py-0.5 text-[11px] font-bold";
 
@@ -46,7 +48,7 @@ function RubricBreakdown({ studentOnAssignmentId }: Props) {
         <span className="min-w-0 truncate text-[13px] font-bold text-icon-color">
           {rubric.title || assignmentPageLanguage.rubric(lang)}
         </span>
-        <span className={`${pill} bg-emerald-100 text-emerald-700`}>
+        <span className={`${scorePill} bg-emerald-100 text-emerald-700`}>
           {data.finalScore ?? 0}
           {data.maxScore !== null ? ` / ${data.maxScore}` : ""}
         </span>
