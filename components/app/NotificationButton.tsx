@@ -19,9 +19,9 @@ export function NotificationButton() {
         onClick={() => setOpen(true)}
         aria-haspopup="dialog"
         aria-label={unread > 0 ? `${title}, ${homeLanguage.unread(lang, unread)}` : title}
-        className="relative grid h-9 w-11 shrink-0 place-items-center rounded-[13px] border-2 border-b-4 border-[#E3E8F0] bg-white text-icon-color [-webkit-tap-highlight-color:transparent] active:translate-y-px active:border-b-2"
+        className="relative grid h-[30px] w-10 shrink-0 place-items-center rounded-[12px] border-2 border-b-4 border-[#E3E8F0] bg-white text-icon-color [-webkit-tap-highlight-color:transparent] active:translate-y-px active:border-b-2"
       >
-        <LuBell aria-hidden size={18} />
+        <LuBell aria-hidden size={16} />
         {unread > 0 && (
           <span
             aria-hidden

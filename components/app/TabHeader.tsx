@@ -48,20 +48,25 @@ const CLOUDS = {
 
 /**
  * The sky band on top of a tab: the current time of day's sky (noon until
- * it is known), two clouds, the title bottom-left and `right` bottom-right.
- * 112px tall (176px when `tall`) on the 47px-status-bar reference phone:
- * the band is var(--safe-top) plus a fixed part, so the title never sits
- * under a taller notch.
+ * it is known), two clouds, the title bottom-left and `right` centred on
+ * the title line. 112px tall (176px when `tall`), and taller under a notch
+ * deeper than the 47px reference status bar, so nothing sits beneath it.
+ * The title is dark on the light morning sky (the palette's statusText),
+ * white otherwise.
  */
 export function TabHeader({ title, right, tall = false }: Props) {
   const timeOfDay = useTimeOfDay();
-  const sky = (timeOfDay?.palette ?? SCENE_PALETTES.noon).skyTop;
+  const palette = timeOfDay?.palette ?? SCENE_PALETTES.noon;
+  const sky = palette.skyTop;
   const clouds = tall ? CLOUDS.tall : CLOUDS.normal;
+  const height = tall
+    ? "max(176px, calc(var(--safe-top) + 129px))"
+    : "max(112px, calc(var(--safe-top) + 65px))";
   return (
     <header
       className="relative shrink-0 overflow-hidden font-Anuphan"
       style={{
-        height: `calc(var(--safe-top) + ${tall ? 129 : 65}px)`,
+        height,
         background: `linear-gradient(180deg, ${sky}, ${lighten(sky, 0.25)})`,
       }}
     >
@@ -74,15 +79,16 @@ export function TabHeader({ title, right, tall = false }: Props) {
       >
         {clouds.shapes}
       </svg>
-      <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 pb-7 pl-4 pr-3.5">
+      <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-3 pb-7 pl-4 pr-3.5">
         <h1
-          className="min-w-0 truncate text-[22px] font-bold leading-tight text-white"
-          // Keeps white text readable on the light morning sky.
-          style={{ textShadow: "0 1px 2px rgba(20,24,48,.25)" }}
+          className="min-w-0 truncate text-[22px] font-bold leading-tight"
+          style={{
+            color: palette.statusText === "dark" ? "#383767" : "#FFFFFF",
+          }}
         >
           {title}
         </h1>
-        {right && <div className="mb-0.5 shrink-0">{right}</div>}
+        {right && <div className="shrink-0">{right}</div>}
       </div>
     </header>
   );

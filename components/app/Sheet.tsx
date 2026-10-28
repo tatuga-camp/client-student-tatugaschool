@@ -303,7 +303,11 @@ export function Sheet({
         <div
           ref={bodyRef}
           {...bindBody()}
-          className="app-scroll min-h-0 flex-1 px-4 pb-6"
+          className="app-scroll min-h-0 flex-1 px-4"
+          style={{
+            // Clear the home indicator, unless it sits on the keyboard.
+            paddingBottom: fit ? 24 : "calc(24px + var(--safe-bottom, 0px))",
+          }}
         >
           {isPeek && !expanded ? peek : children}
         </div>
