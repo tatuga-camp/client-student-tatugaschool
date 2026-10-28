@@ -134,12 +134,19 @@ export function Sheet({
     else onClose();
   };
 
+  // Latest props for Esc, so re-renders (inline onClose lambdas) don't
+  // re-register: the stack must follow the order sheets opened in.
+  const escRef = useRef({ dismiss, dismissible });
+  escRef.current = { dismiss, dismissible };
+
   useEffect(() => {
-    if (!visible || !modal || !dismissible) return;
+    if (!visible || !modal) return;
     const id = idRef.current;
     openStack.push(id);
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && openStack[openStack.length - 1] === id) dismiss();
+      if (e.key !== "Escape" || openStack[openStack.length - 1] !== id) return;
+      // A non-dismissible sheet on top keeps Esc from closing the one below.
+      if (escRef.current.dismissible) escRef.current.dismiss();
     };
     document.addEventListener("keydown", onKey);
     return () => {
@@ -147,8 +154,7 @@ export function Sheet({
       const i = openStack.lastIndexOf(id);
       if (i >= 0) openStack.splice(i, 1);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visible, modal, dismissible, isPeek, onClose, onExpandedChange]);
+  }, [visible, modal]);
 
   const usePanelDrag = (fromBody: boolean) =>
     useDrag(
