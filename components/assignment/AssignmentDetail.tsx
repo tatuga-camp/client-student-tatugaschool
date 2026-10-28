@@ -191,7 +191,7 @@ export default function AssignmentDetail({
           )}
         </div>
       </div>
-      {assignment && subject.data && (
+      {assignment && (
         <YourWorkSheet
           assignment={assignment}
           subject={subject.data}

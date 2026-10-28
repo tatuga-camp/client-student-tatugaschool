@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   LuAlertTriangle,
   LuCheck,
@@ -27,6 +27,7 @@ import { Sheet } from "../app/Sheet";
 import { useStudentFileUpload } from "../subject/AssignmentUploadFile";
 import ActionMenu from "./ActionMenu";
 import AddWorkOptions from "./AddWorkOptions";
+import LeaveGuardSheet from "./LeaveGuardSheet";
 import LinkSheet from "./LinkSheet";
 import NoteSheet from "./NoteSheet";
 import type { AssignmentItem } from "./types";
@@ -35,7 +36,8 @@ import { workError, workToast } from "./workFeedback";
 
 type Props = {
   assignment: AssignmentItem;
-  subject: Subject;
+  /** Only the delete rule needs it; the guard works without it. */
+  subject?: Subject;
   /** Called after Mark as done succeeds. */
   onTurnedIn: (info: { itemCount: number }) => void;
 };
@@ -77,6 +79,13 @@ export default function YourWorkSheet({
     status: soa.status,
   });
 
+  const [justSubmitted, setJustSubmitted] = useState(false);
+  useEffect(() => {
+    if (soa.status === "SUBMITTED" || soa.status === "REVIEWD") {
+      setJustSubmitted(false);
+    }
+  }, [soa.status]);
+
   const setStatus = async (
     status: StudentAssignmentStatus,
   ): Promise<boolean> => {
@@ -85,6 +94,8 @@ export default function YourWorkSheet({
         query: { studentOnAssignmentId: soa.id },
         body: { status },
       });
+      // The list refetch lags a moment; until it lands, don't ask again.
+      setJustSubmitted(status === "SUBMITTED");
       workToast(
         status === "SUBMITTED"
           ? assignmentPageLanguage.markedDone(lang)
@@ -104,11 +115,37 @@ export default function YourWorkSheet({
     }
   };
 
-  // Leaving with unsent work asks first (Task 5 reworks this prompt).
+  // Leaving with unsent work, or mid-upload, asks first (the guard sheet).
+  // The answer comes through a promise the guard waits on.
+  const [guardOpen, setGuardOpen] = useState(false);
+  const answerRef = useRef<((c: "submit" | "leave" | "stay") => void) | null>(
+    null,
+  );
+  const uploadingRef = useRef(false);
+  uploadingRef.current = uploading;
+  const ask = () =>
+    new Promise<"submit" | "leave" | "stay">((resolve) => {
+      answerRef.current = resolve;
+      setGuardOpen(true);
+    });
+  const choose = (choice: "submit" | "leave" | "stay") => {
+    setGuardOpen(false);
+    answerRef.current?.(choice);
+    answerRef.current = null;
+  };
+  // Never leave a question hanging if the page goes away.
+  useEffect(() => () => answerRef.current?.("stay"), []);
   useConfirmSubmissionGuard({
-    enabled: unconfirmed && !updateWork.isPending,
-    onConfirm: () => setStatus("SUBMITTED"),
-    language: lang,
+    enabled:
+      (unconfirmed || uploading) && !justSubmitted && !updateWork.isPending,
+    onConfirm: async () => {
+      // Submitting while a file is still going up would turn in without it.
+      while (uploadingRef.current) {
+        await new Promise((r) => setTimeout(r, 200));
+      }
+      return setStatus("SUBMITTED");
+    },
+    ask,
   });
 
   if (mode === "none") return null;
@@ -287,7 +324,9 @@ export default function YourWorkSheet({
                 key={file.id}
                 file={file}
                 lang={lang}
-                allowStudentDeleteWork={subject.allowStudentDeleteWork}
+                allowStudentDeleteWork={
+                  subject?.allowStudentDeleteWork ?? false
+                }
                 reviewed={mode === "reviewed"}
                 onOpenNote={openNote}
               />
@@ -334,6 +373,7 @@ export default function YourWorkSheet({
         </div>
       </Sheet>
 
+      <LeaveGuardSheet open={guardOpen} onChoose={choose} />
       <NoteSheet
         open={noteOpen}
         lang={lang}

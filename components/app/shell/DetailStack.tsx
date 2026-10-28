@@ -11,6 +11,7 @@ import AssignmentDetail from "../../assignment/AssignmentDetail";
 import { OverlayScope } from "../OverlayScope";
 import { canStartShellSwipe, edgeBackOutcome } from "../../../utils/tabs";
 import { DetailActiveContext } from "./DetailActive";
+import { leaveGuardActive } from "../../../utils/leaveGuard";
 import PaneErrorBoundary from "./PaneErrorBoundary";
 import { inertProps, TAP_SLOP } from "./TabPager";
 import { ShellRoute, takeInAppPop, useShellNav } from "./useShellRoute";
@@ -153,8 +154,17 @@ export default function DetailStack({ subjectId, detail, depthApi }: Props) {
         settle();
         return startX;
       }
-      // Slide back if the navigation is refused (e.g. the unsent-work
-      // prompt cancels it) or ends with this page still open.
+      // Unsent work: the guard sheet decides. Park the page at x: 0 now, and
+      // watch nothing (no settle timer, no route events), so nothing can
+      // move it again while the student chooses; leaving then slides it out.
+      if (leaveGuardActive()) {
+        stopWatching.current?.();
+        settle();
+        void nav.back();
+        return startX;
+      }
+      // Slide back if the navigation is refused or ends with this page
+      // still open.
       stopWatching.current?.();
       const done = () => {
         stopWatching.current?.();

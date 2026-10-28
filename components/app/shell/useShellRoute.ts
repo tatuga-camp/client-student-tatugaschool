@@ -1,6 +1,7 @@
 import Router, { useRouter } from "next/router";
 import { useEffect, useMemo } from "react";
 import { queryString } from "../../common/RouteParamsGate";
+import { leaveIfAllowed } from "../../../utils/leaveGuard";
 import { createHistoryIndex } from "../../../utils/historyIndex";
 import { backTarget, parseTab, TabKey } from "../../../utils/tabs";
 
@@ -79,7 +80,8 @@ export function useShellRoute(): ShellRoute | null {
 export function useShellNav(): {
   goTab(tab: TabKey): void;
   openAssignment(id: string): void;
-  back(): void;
+  /** Resolves "stayed" when the unsent-work guard kept the student here. */
+  back(): Promise<"left" | "stayed">;
   switchSubject(id: string): void;
 } {
   const router = useRouter();
@@ -103,15 +105,19 @@ export function useShellNav(): {
       },
       back() {
         const subjectId = queryString(router.query.subjectId);
-        if (!subjectId) return;
-        const target = backTarget({
-          historyIdx: currentHistoryIdx(),
-          subjectId,
+        if (!subjectId) return Promise.resolve("left" as const);
+        // The unsent-work guard is asked first; history is only popped once
+        // it allows leaving, so "stay" never changes the URL.
+        return leaveIfAllowed(() => {
+          const target = backTarget({
+            historyIdx: currentHistoryIdx(),
+            subjectId,
+          });
+          if (target.kind === "history") {
+            inAppPop = true;
+            router.back();
+          } else router.replace(target.url);
         });
-        if (target.kind === "history") {
-          inAppPop = true;
-          router.back();
-        } else router.replace(target.url);
       },
       switchSubject(id: string) {
         router.push(`/subject/${id}`);

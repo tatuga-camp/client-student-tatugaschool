@@ -189,58 +189,6 @@ export const classworkDataLanguage = {
         return "Your work is attached but NOT submitted yet — press the confirm button below to submit.";
     }
   },
-  leaveDialog: {
-    title: (language: Language) => {
-      switch (language) {
-        case "en":
-          return "You haven't submitted your work!";
-        case "th":
-          return "คุณยังไม่ได้ส่งงาน!";
-        default:
-          return "You haven't submitted your work!";
-      }
-    },
-    text: (language: Language) => {
-      switch (language) {
-        case "en":
-          return "You attached work but haven't confirmed the submission, so your teacher will not see it as submitted.";
-        case "th":
-          return "คุณแนบงานแล้ว แต่ยังไม่ได้กดยืนยันการส่งงาน คุณครูจะยังไม่เห็นว่างานของคุณถูกส่ง";
-        default:
-          return "You attached work but haven't confirmed the submission, so your teacher will not see it as submitted.";
-      }
-    },
-    confirm: (language: Language) => {
-      switch (language) {
-        case "en":
-          return "Confirm submission";
-        case "th":
-          return "ยืนยันการส่งงาน";
-        default:
-          return "Confirm submission";
-      }
-    },
-    leave: (language: Language) => {
-      switch (language) {
-        case "en":
-          return "Leave without submitting";
-        case "th":
-          return "ออกโดยไม่ส่งงาน";
-        default:
-          return "Leave without submitting";
-      }
-    },
-    stay: (language: Language) => {
-      switch (language) {
-        case "en":
-          return "Stay on this page";
-        case "th":
-          return "อยู่ในหน้านี้ต่อ";
-        default:
-          return "Stay on this page";
-      }
-    },
-  },
   uploading: (language: Language) => {
     switch (language) {
       case "en":
@@ -442,6 +390,16 @@ export const assignmentPageLanguage = {
   addComment: t("Add a comment…", "เขียนความคิดเห็น…"),
   sendComment: t("Send", "ส่ง"),
   teacherRole: t("Teacher", "ครู"),
+  leaveGuardTitle: t(
+    "You added work but didn't mark it as done",
+    "คุณเพิ่มงานแล้วแต่ยังไม่ได้ทำเครื่องหมายว่าเสร็จ",
+  ),
+  leaveGuardBody: t(
+    "Your teacher can't see it as turned in yet.",
+    "ครูจะยังไม่เห็นว่าคุณส่งงานแล้ว",
+  ),
+  leaveAnyway: t("Leave anyway", "ออกเลย"),
+  stay: t("Stay", "อยู่ต่อ"),
   contentNotShown: t("(content not shown)", "(ไม่แสดงเนื้อหา)"),
   nothingAddedShort: t("Nothing added", "ไม่มีงาน"),
   ok: t("OK", "ตกลง"),
