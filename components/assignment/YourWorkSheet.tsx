@@ -142,12 +142,12 @@ export default function YourWorkSheet({
       })
     : null;
 
-  const doneButton = (
+  const doneButtonFor = (className: string) => (
     <button
       type="button"
       disabled={busy}
       onClick={markDone}
-      className="chunky-btn w-full disabled:opacity-60"
+      className={`chunky-btn w-full whitespace-nowrap disabled:opacity-60 ${className}`}
     >
       {updateWork.isPending ? (
         <LuLoader aria-hidden className="animate-spin" />
@@ -158,6 +158,8 @@ export default function YourWorkSheet({
     </button>
   );
 
+  const doneButton = doneButtonFor("");
+  const peekDoneButton = doneButtonFor("gap-1 px-2 text-[13px]");
   const peek =
     mode === "open" ? (
       <div className="pb-2">
@@ -169,17 +171,22 @@ export default function YourWorkSheet({
           <button
             type="button"
             onClick={() => setExpanded(true)}
-            className="chunky-btn chunky-btn-secondary flex-1 px-2"
+            className="chunky-btn chunky-btn-secondary min-w-0 flex-1 gap-1 whitespace-nowrap px-2 text-[13px]"
           >
             <LuPlus aria-hidden />
             {assignmentPageLanguage.addWork(lang)}
           </button>
-          <div className="flex-1">{doneButton}</div>
+          <div className="min-w-0 flex-1">{peekDoneButton}</div>
         </div>
       </div>
     ) : (
-      <div className="pb-2">
-        <div className="flex items-center justify-between text-[13px] font-bold text-icon-color">
+      <button
+        type="button"
+        aria-expanded={expanded}
+        onClick={() => setExpanded(true)}
+        className="block w-full pb-2 text-left"
+      >
+        <span className="flex items-center justify-between text-[13px] font-bold text-icon-color">
           <span>
             {mode === "reviewed"
               ? assignmentPageLanguage.reviewedByTeacher(lang)
@@ -193,13 +200,13 @@ export default function YourWorkSheet({
           ) : (
             countPill
           )}
-        </div>
+        </span>
         {mode === "turnedIn" && doneAt && (
-          <p className="mt-1 text-xs font-semibold text-emerald-600">
+          <span className="mt-1 block text-xs font-semibold text-emerald-600">
             {assignmentPageLanguage.markedDoneAt(lang)} {doneAt}
-          </p>
+          </span>
         )}
-      </div>
+      </button>
     );
 
   return (

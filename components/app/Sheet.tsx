@@ -46,6 +46,22 @@ type SheetProps = {
 const openStack: number[] = [];
 let nextId = 0;
 
+// Sheets over the same overlay hold each other inert; a count keeps a sheet
+// inert until every sheet above it has closed.
+const inertHolds = new WeakMap<Element, number>();
+function holdInert(el: HTMLElement) {
+  inertHolds.set(el, (inertHolds.get(el) ?? 0) + 1);
+  el.setAttribute("inert", "");
+  el.setAttribute("aria-hidden", "true");
+}
+function releaseInert(el: HTMLElement) {
+  const n = (inertHolds.get(el) ?? 1) - 1;
+  inertHolds.set(el, n);
+  if (n > 0) return;
+  el.removeAttribute("inert");
+  el.removeAttribute("aria-hidden");
+}
+
 const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
 
 /** Bottom sheet; see SheetProps for where it renders. */
@@ -67,6 +83,7 @@ export function Sheet({
   const [rendered, setRendered] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
+  const sheetRootRef = useRef<HTMLDivElement>(null);
   const openerRef = useRef<HTMLElement | null>(null);
   const heightRef = useRef(600);
   const visibleRef = useRef(false);
@@ -190,6 +207,12 @@ export function Sheet({
     };
   }, [visible, rendered, modal]);
 
+  // A peek that collapses (drag, X, Esc or the parent) must land back at y=0,
+  // not stay where a drag left it.
+  useEffect(() => {
+    if (isPeek && rendered) api.start({ y: 0 });
+  }, [expanded, isPeek, rendered, api]);
+
   const dismiss = () => {
     if (isPeek) onExpandedChange?.(false);
     else onClose();
@@ -216,6 +239,19 @@ export function Sheet({
       if (i >= 0) openStack.splice(i, 1);
     };
   }, [visible, modal]);
+
+  // While this modal sheet is on top, the other sheets in the same overlay
+  // (e.g. a peek) are inert and hidden from assistive tech.
+  useEffect(() => {
+    const mine = sheetRootRef.current;
+    if (!visible || !modal || !rendered || !mine) return;
+    const others = Array.from(mine.parentElement?.children ?? []).filter(
+      (el): el is HTMLElement =>
+        el !== mine && el instanceof HTMLElement && "sheetRoot" in el.dataset,
+    );
+    others.forEach(holdInert);
+    return () => others.forEach(releaseInert);
+  }, [visible, modal, rendered]);
 
   const usePanelDrag = (fromBody: boolean) =>
     useDrag(
@@ -251,6 +287,8 @@ export function Sheet({
   const full = size === "full";
   return createPortal(
     <div
+      ref={sheetRootRef}
+      data-sheet-root=""
       data-no-swipe
       className="absolute inset-0 z-50"
       style={{ pointerEvents: modal ? "auto" : "none" }}
@@ -296,18 +334,20 @@ export function Sheet({
           style={{ touchAction: "none" }}
         >
           <div className="h-1.5 w-10 rounded-full bg-[#E3E8F0]" />
-          {dismissible && modal && closeButton && (
-            <button
-              type="button"
-              aria-label={profileLanguage.close(language.data ?? "en")}
-              onClick={dismiss}
-              onPointerDown={(e) => e.stopPropagation()}
-              className="absolute right-3 top-2 flex h-8 w-8 items-center justify-center rounded-full text-[#383767]"
-            >
-              <LuX size={20} />
-            </button>
-          )}
         </div>
+        {dismissible && modal && closeButton && (
+          // Outside the handle: use-gesture's tap filter on the handle eats
+          // real clicks (detail > 0) that did not start a gesture.
+          <button
+            type="button"
+            aria-label={profileLanguage.close(language.data ?? "en")}
+            onClick={dismiss}
+            className="absolute right-3 flex h-8 w-8 items-center justify-center rounded-full text-[#383767]"
+            style={{ top: full && modal ? "calc(var(--safe-top) + 8px)" : 8 }}
+          >
+            <LuX size={20} />
+          </button>
+        )}
         <div
           ref={bodyRef}
           {...bindBody()}

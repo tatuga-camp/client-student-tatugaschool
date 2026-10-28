@@ -16,6 +16,8 @@ type Props = {
   disabled?: boolean;
   /** Read-only view: grows with its content, no status bar, no inner scroll. */
   autoHeight?: boolean;
+  /** Show the status bar (default: only when not autoHeight). */
+  statusbar?: boolean;
 };
 function TextEditor({
   value,
@@ -23,6 +25,7 @@ function TextEditor({
   schoolId,
   disabled = false,
   autoHeight = false,
+  statusbar,
   menubar = true,
   toolbar = "undo redo | formatselect | blocks | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | image | link",
 }: Props) {
@@ -45,7 +48,7 @@ function TextEditor({
           link_context_toolbar: true,
           height: autoHeight ? undefined : "100%",
           width: "100%",
-          statusbar: !autoHeight,
+          statusbar: statusbar ?? !autoHeight,
           ...(autoHeight && {
             resize: false,
             min_height: 40,

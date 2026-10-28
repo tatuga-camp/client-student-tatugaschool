@@ -89,6 +89,7 @@ function AssignmentText({
           schoolId={schoolId}
           disabled={readOnly}
           menubar={false}
+          statusbar={false}
           toolbar={NOTE_TOOLBAR}
         />
       </div>
