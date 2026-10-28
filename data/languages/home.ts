@@ -1,7 +1,16 @@
 import { Language } from "../../interfaces";
 import { DayPeriod } from "../../utils/timeOfDay";
 
+const t = (l: Language, en: string, th: string) => (l === "th" ? th : en);
+
 export const homeLanguage = {
+  tabClasswork: (l: Language) => t(l, "Classwork", "งานในชั้น"),
+  tabProgress: (l: Language) => t(l, "Progress", "ความก้าวหน้า"),
+  tabHome: (l: Language) => t(l, "Home", "หน้าหลัก"),
+  tabSubjects: (l: Language) => t(l, "Subjects", "รายวิชา"),
+  tabMe: (l: Language) => t(l, "Me", "ฉัน"),
+  studentNotFound: (l: Language) => t(l, "Student not found", "ไม่พบนักเรียน"),
+  back: (l: Language) => t(l, "Back", "ย้อนกลับ"),
   greeting: (l: Language, period: DayPeriod, firstName: string) => {
     const th = l === "th";
     switch (period) {

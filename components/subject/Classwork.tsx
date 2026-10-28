@@ -195,7 +195,10 @@ function Classwork({ subjectId }: Props) {
           {assignments.isLoading && <LoadingBar />}
 
           {sortedAssignments.length > 0 && (
-            <ul className="-mx-3 flex gap-2 overflow-x-auto px-3 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
+            <ul
+              data-no-swipe
+              className="-mx-3 flex gap-2 overflow-x-auto px-3 pb-1 sm:mx-0 sm:flex-wrap sm:px-0"
+            >
               {filters.map((f) => {
                 const active = filter === f.key;
                 return (
@@ -225,13 +228,18 @@ function Classwork({ subjectId }: Props) {
             </ul>
           )}
 
-          <AssignmentTagFilterBar
-            uniqueTags={uniqueTags}
-            counts={tagCounts}
-            selectedTags={selectedTags}
-            onChange={setSelectedTags}
-            totalCount={sortedAssignments.length}
-          />
+          {/* Dragging a chip row sideways must not switch tabs. */}
+          {uniqueTags.length > 0 && (
+            <div data-no-swipe>
+              <AssignmentTagFilterBar
+                uniqueTags={uniqueTags}
+                counts={tagCounts}
+                selectedTags={selectedTags}
+                onChange={setSelectedTags}
+                totalCount={sortedAssignments.length}
+              />
+            </div>
+          )}
 
           {!assignments.isLoading && visibleAssignments.length === 0 ? (
             <SubjectEmptyState

@@ -136,6 +136,15 @@
   pointer-events: auto;
 }
 
+/* Shell swipe areas (tab pager, detail edge-back): vertical panning stays
+   native and sideways drags reach the gesture. A scroller re-enables panning
+   for itself, so the panes' scrollers need the rule too. */
+[data-shell-swipe],
+[data-shell-swipe] .app-scroll {
+  touch-action: pan-y;
+  touch-action: pan-y pinch-zoom;
+}
+
 /* Legacy pages size themselves to the window; inside the phone screen they
    must size to the screen instead. */
 .app-scroll .h-screen {

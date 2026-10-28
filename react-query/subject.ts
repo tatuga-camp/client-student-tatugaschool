@@ -40,5 +40,7 @@ export function useGetSubjectByStudent(
   return useQuery({
     queryKey: ["subjects", request],
     queryFn: () => GetSubjectFromStudentService(request),
+    // The Subjects tab mounts before the student and the year are known.
+    enabled: !!request.studentId && !!request.educationYear,
   });
 }
