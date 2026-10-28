@@ -85,6 +85,7 @@ export function Sheet({
   const bodyRef = useRef<HTMLDivElement>(null);
   const sheetRootRef = useRef<HTMLDivElement>(null);
   const openerRef = useRef<HTMLElement | null>(null);
+  const openerAtOpenRef = useRef<HTMLElement | null>(null);
   const heightRef = useRef(600);
   const visibleRef = useRef(false);
   const enteredRef = useRef(false);
@@ -100,6 +101,11 @@ export function Sheet({
   // Peek panel collapsed = no backdrop; expanded or normal sheet = backdrop.
   const modal = isPeek ? expanded : true;
   visibleRef.current = visible;
+  // Who had focus the moment this sheet was asked to open: render runs before
+  // the children mount, so before an autoFocus field inside takes focus.
+  if (!visible) openerAtOpenRef.current = null;
+  else if (!openerAtOpenRef.current && typeof document !== "undefined")
+    openerAtOpenRef.current = document.activeElement as HTMLElement | null;
 
   useEffect(() => {
     if (scopedRoot === undefined) {
@@ -198,7 +204,12 @@ export function Sheet({
   // Focus in on open, back to the opener on close.
   useEffect(() => {
     if (!visible || !rendered || !modal) return;
-    openerRef.current = document.activeElement as HTMLElement | null;
+    // A peek captures at expand time; a sheet uses the focus from open time.
+    const atOpen = isPeek ? null : openerAtOpenRef.current;
+    openerRef.current =
+      atOpen && atOpen !== document.body
+        ? atOpen
+        : (document.activeElement as HTMLElement | null);
     panelRef.current?.focus({ preventScroll: true });
     return () => {
       const opener = openerRef.current;
@@ -209,7 +220,7 @@ export function Sheet({
         if (opener && document.contains(opener)) opener.focus({ preventScroll: true });
       });
     };
-  }, [visible, rendered, modal]);
+  }, [visible, rendered, modal, isPeek]);
 
   // A peek that collapses (drag, X, Esc or the parent) must land back at y=0,
   // not stay where a drag left it.
