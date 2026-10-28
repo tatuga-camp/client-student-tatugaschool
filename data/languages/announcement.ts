@@ -164,6 +164,36 @@ export const announcementDataLanguage = {
         return "Delete";
     }
   },
+  noComments: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "No comments yet";
+      case "th":
+        return "ยังไม่มีความคิดเห็น";
+      default:
+        return "No comments yet";
+    }
+  },
+  moreActions: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "More actions";
+      case "th":
+        return "ตัวเลือกเพิ่มเติม";
+      default:
+        return "More actions";
+    }
+  },
+  react: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "React";
+      case "th":
+        return "แสดงความรู้สึก";
+      default:
+        return "React";
+    }
+  },
   attachments: (language: Language) => {
     switch (language) {
       case "en":

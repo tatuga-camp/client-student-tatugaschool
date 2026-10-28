@@ -5,15 +5,12 @@ import {
   useGetAnnouncements,
   useGetAssignments,
   useGetLanguage,
-  useGetStudent,
 } from "../../react-query";
 import { countClassworkBuckets } from "../../utils";
 import { SubjectChip } from "../app/SubjectChip";
 import { TAB_BODY_CLASS, TabHeader } from "../app/TabHeader";
 import { useShellRoute, type TabPaneProps } from "../app/shell/useShellRoute";
-import LoadingBar from "../common/LoadingBar";
-import AnnouncementCard from "../subject/AnnouncementCard";
-import SubjectEmptyState from "../subject/SubjectEmptyState";
+import AnnouncementsView from "./AnnouncementsView";
 import AssignmentsView from "./AssignmentsView";
 
 type View = "assignments" | "announcements";
@@ -36,6 +33,8 @@ export default function ClassworkTab({ subjectId }: TabPaneProps) {
   }, [announcementId]);
 
   const assignments = useGetAssignments({ subjectId });
+  const announcements = useGetAnnouncements({ subjectId });
+  const announcementCount = announcements.data?.length ?? 0;
   const todo = assignments.data
     ? countClassworkBuckets(assignments.data).todo
     : 0;
@@ -54,7 +53,8 @@ export default function ClassworkTab({ subjectId }: TabPaneProps) {
       />
       <div ref={scroller} className={`${TAB_BODY_CLASS} pt-3`}>
         <div
-          role="tablist"
+          role="group"
+          aria-label={homeLanguage.tabClasswork(lang)}
           className="mx-3 flex rounded-[14px] bg-[#E9EEF5] p-[3px] font-Anuphan"
         >
           <SwitchButton
@@ -69,7 +69,7 @@ export default function ClassworkTab({ subjectId }: TabPaneProps) {
             onClick={() => switchTo("announcements")}
             icon={<LuMegaphone aria-hidden />}
             label={subjectHomeLanguage.tabAnnouncements(lang)}
-            badge={null}
+            badge={announcementCount > 0 ? String(announcementCount) : null}
           />
         </div>
         <div className="h-2" />
@@ -80,7 +80,11 @@ export default function ClassworkTab({ subjectId }: TabPaneProps) {
             scrollToTop={scrollToTop}
           />
         ) : (
-          <AnnouncementsPlaceholder subjectId={subjectId} lang={lang} />
+          <AnnouncementsView
+            subjectId={subjectId}
+            lang={lang}
+            deepLinkId={announcementId}
+          />
         )}
       </div>
     </div>
@@ -103,8 +107,7 @@ function SwitchButton({
   return (
     <button
       type="button"
-      role="tab"
-      aria-selected={on}
+      aria-pressed={on}
       onClick={onClick}
       className={`flex min-h-10 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-[11px] px-2 text-sm font-bold ${
         on ? "bg-white text-primary-color" : "text-[#7A80A0]"
@@ -122,38 +125,3 @@ function SwitchButton({
   );
 }
 
-/** Stand-in until Task 4: today's announcement cards in a plain list. */
-function AnnouncementsPlaceholder({
-  subjectId,
-  lang,
-}: {
-  subjectId: string;
-  lang: "en" | "th";
-}) {
-  const announcements = useGetAnnouncements({ subjectId });
-  const student = useGetStudent();
-  const count = announcements.data?.length ?? 0;
-  return (
-    <div className="px-3 pb-10">
-      {announcements.isLoading && <LoadingBar />}
-      {!announcements.isLoading && count === 0 ? (
-        <SubjectEmptyState
-          text={subjectHomeLanguage.emptyAnnouncements(lang)}
-        />
-      ) : (
-        student.data && (
-          <ul className="flex flex-col gap-3">
-            {announcements.data?.map((announcement) => (
-              <AnnouncementCard
-                key={announcement.id}
-                announcement={announcement}
-                subjectId={subjectId}
-                studentId={student.data.id}
-              />
-            ))}
-          </ul>
-        )
-      )}
-    </div>
-  );
-}

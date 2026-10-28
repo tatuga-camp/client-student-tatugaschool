@@ -238,18 +238,18 @@ export default function ClassworkCard({
           )}
         </div>
 
-        {locked ? (
-          <LuLock aria-hidden className="shrink-0 text-xl text-[#9AA3B8]" />
-        ) : (
-          hasScore && (
-            <div className="flex shrink-0 items-center">
-              {canViewScore ? (
+        {(hasScore || locked) && (
+          <div className="flex shrink-0 items-center gap-2">
+            {hasScore &&
+              (canViewScore ? (
                 <ScoreRing {...displayScore(classwork, soa.score ?? 0)} />
               ) : (
                 <ScoreHiddenBadge size="sm" />
-              )}
-            </div>
-          )
+              ))}
+            {locked && (
+              <LuLock aria-hidden className="text-xl text-[#9AA3B8]" />
+            )}
+          </div>
         )}
       </button>
 
