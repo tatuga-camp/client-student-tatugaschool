@@ -8,6 +8,7 @@ import { Language } from "../../interfaces";
 import { overlayTarget } from "../../utils/frameRoutes";
 import { anchoredZoom, wheelScaleFactor } from "../../utils/zoomMath";
 import { OverlayRootContext } from "../app/OverlayScope";
+import { useModalLayer } from "../app/modalLayers";
 
 const MIN_SCALE = 1;
 const MAX_SCALE = 5;
@@ -33,6 +34,8 @@ export default function ImageViewerSheet({ url, name, lang, onClose }: Props) {
   const viewportRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const lastTap = useRef(0);
+  // A back press closes the viewer; the sheets below are inert meanwhile.
+  useModalLayer(true, onClose);
   const [{ x, y, scale }, api] = useSpring(() => ({ x: 0, y: 0, scale: 1 }));
 
   const onCloseRef = useRef(onClose);

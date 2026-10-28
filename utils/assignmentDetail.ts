@@ -142,6 +142,11 @@ export function shouldSubmitAfterUpload(input: {
   return !input.timedOut && input.results.every(Boolean);
 }
 
+/** Closing the note editor: a dirty draft is confirmed first, never lost silently. */
+export function noteCloseAction(dirty: boolean): "close" | "confirm" {
+  return dirty ? "confirm" : "close";
+}
+
 /** A score as the student sees it: up to 2 decimals, none when whole. */
 export function formatScore(score: number): string {
   return String(Number(score.toFixed(2)));

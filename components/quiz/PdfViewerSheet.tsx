@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { overlayTarget } from "../../utils/frameRoutes";
+import { useModalLayer } from "../app/modalLayers";
 import { MdAdd, MdClose, MdRemove } from "react-icons/md";
 import { Document, Page, pdfjs } from "react-pdf";
 import { quizLanguage } from "../../data/languages";
@@ -31,6 +32,19 @@ export default function PdfViewerSheet({ url, name, language, onClose }: Props) 
   const [zoomIndex, setZoomIndex] = useState(1);
   const [error, setError] = useState(false);
   const [attempt, setAttempt] = useState(0);
+
+  // A back press closes the reader; the sheets below are inert meanwhile.
+  useModalLayer(true, onClose);
+
+  // Focus goes into the reader, and back to where it was when it closes.
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const opener = document.activeElement as HTMLElement | null;
+    dialogRef.current?.focus({ preventScroll: true });
+    return () => {
+      if (opener?.isConnected) opener.focus({ preventScroll: true });
+    };
+  }, []);
 
   useEffect(() => {
     const previous = document.body.style.overflow;
@@ -113,10 +127,12 @@ export default function PdfViewerSheet({ url, name, language, onClose }: Props) 
 
   return createPortal(
     <div
+      ref={dialogRef}
+      tabIndex={-1}
       role="dialog"
       aria-modal="true"
       aria-label={name}
-      className="fixed inset-0 z-[1000] flex flex-col bg-icon-color/95 font-Anuphan"
+      className="fixed inset-0 z-[1000] outline-none flex flex-col bg-icon-color/95 font-Anuphan"
     >
       <header className="flex items-center gap-3 bg-white px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
         <h2 className="min-w-0 flex-1 truncate font-semibold text-icon-color">{name}</h2>

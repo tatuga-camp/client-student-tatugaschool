@@ -1,6 +1,8 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { assignmentPageLanguage } from "../../data/languages";
 import { FileOnStudentOnAssignment, Language } from "../../interfaces";
+import Swal from "../../utils/appSwal";
+import { noteCloseAction } from "../../utils/assignmentDetail";
 import { Sheet } from "../app/Sheet";
 import AssignmentText from "../subject/AssignmentText";
 import type { AssignmentItem } from "./types";
@@ -24,10 +26,31 @@ export default function NoteSheet({
   readOnly = false,
   onClose,
 }: Props) {
+  // Unsaved text: a flick, the backdrop and Esc do nothing; the X (and a back
+  // press) ask before throwing the draft away.
+  const [dirty, setDirty] = useState(false);
+  useEffect(() => {
+    if (!open) setDirty(false);
+  }, [open]);
+  const requestClose = async () => {
+    if (noteCloseAction(dirty) === "close") return onClose();
+    const answer = await Swal.fire({
+      icon: "warning",
+      title: assignmentPageLanguage.discardNoteTitle(lang),
+      text: assignmentPageLanguage.discardNoteText(lang),
+      showCancelButton: true,
+      confirmButtonText: assignmentPageLanguage.discard(lang),
+      cancelButtonText: assignmentPageLanguage.keepEditing(lang),
+      confirmButtonColor: "#F04438",
+      customClass: { popup: "rounded-2xl border border-gray-100 shadow-md" },
+    });
+    if (answer.isConfirmed) onClose();
+  };
   return (
     <Sheet
       open={open}
-      onClose={onClose}
+      onClose={requestClose}
+      guardClose={dirty}
       size="full"
       ariaLabel={assignmentPageLanguage.note(lang)}
     >
@@ -39,6 +62,7 @@ export default function NoteSheet({
         schoolId={assignment.studentOnAssignment.schoolId}
         text={note}
         readOnly={readOnly}
+        onDirtyChange={setDirty}
         onClose={onClose}
       />
     </Sheet>

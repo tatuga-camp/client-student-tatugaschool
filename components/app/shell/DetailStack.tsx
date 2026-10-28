@@ -11,6 +11,7 @@ import AssignmentDetail from "../../assignment/AssignmentDetail";
 import { OverlayScope } from "../OverlayScope";
 import { canStartShellSwipe, edgeBackOutcome } from "../../../utils/tabs";
 import { DetailActiveContext } from "./DetailActive";
+import { interceptLayerPop } from "./layerBack";
 import { interceptPop, leaveGuardActive } from "../../../utils/leaveGuard";
 import PaneErrorBoundary from "./PaneErrorBoundary";
 import { inertProps, TAP_SLOP } from "./TabPager";
@@ -59,6 +60,8 @@ export default function DetailStack({ subjectId, detail, depthApi }: Props) {
   // the shell's own back button pops history too, and that one animates.
   useEffect(() => {
     Router.beforePopState((state) => {
+      // A modal layer open on the page closes first (back = close the sheet).
+      if (currentKey.current !== null && interceptLayerPop()) return false;
       // The unsent-work guard may take a browser back over (and cancel it).
       if (interceptPop(state)) return false;
       popped.current = !takeInAppPop();

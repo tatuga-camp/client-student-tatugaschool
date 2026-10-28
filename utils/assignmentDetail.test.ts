@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  noteCloseAction,
   shouldSubmitAfterUpload,
   formatScore,
   initialUploadProgress,
@@ -258,4 +259,9 @@ test("shouldSubmitAfterUpload turns in only when every upload landed in time", (
     shouldSubmitAfterUpload({ results: [true], timedOut: true }),
     false,
   );
+});
+
+test("noteCloseAction confirms only a dirty draft", () => {
+  assert.equal(noteCloseAction(false), "close");
+  assert.equal(noteCloseAction(true), "confirm");
 });

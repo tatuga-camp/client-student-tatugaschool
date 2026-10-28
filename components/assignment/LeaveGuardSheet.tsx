@@ -38,6 +38,7 @@ export default function LeaveGuardSheet({
       open={open}
       onClose={() => onChoose("stay")}
       dismissible={!busy}
+      ownsBack
       ariaLabel={t.leaveGuardTitle(lang)}
     >
       <div className="flex flex-col items-center gap-3 pb-2 text-center">

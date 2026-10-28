@@ -15,6 +15,14 @@ import { OVERLAY_ROOT_ID } from "../../utils/frameRoutes";
 import { keyboardFit } from "../../utils/keyboardFit";
 import { isEditableTarget, sheetDragOutcome } from "../../utils/tabs";
 import { OverlayRootContext } from "./OverlayScope";
+import {
+  allocLayerId,
+  notifyStack,
+  openStack,
+  registerLayerCloser,
+  stackListeners,
+  unregisterLayerCloser,
+} from "./modalLayers";
 
 /**
  * Where it renders: the nearest OverlayScope's container (each detail panel
@@ -36,22 +44,21 @@ type SheetProps = {
   expanded?: boolean;
   onExpandedChange?: (v: boolean) => void;
   dismissible?: boolean;
+  /** Content with unsaved work: a flick, the backdrop and Esc do nothing. The
+   *  X (and a back press) still call `onClose`, which should confirm. */
+  guardClose?: boolean;
+  /** This sheet handles a browser back itself (the leave-guard sheet). */
+  ownsBack?: boolean;
   /** Render the ✕ in the handle row (default). Off when the content brings
    *  its own visible close, so assistive tech doesn't find two. */
   closeButton?: boolean;
   ariaLabel: string;
 };
 
-// Open modal sheets, topmost last: Esc closes only the topmost one.
-const openStack: number[] = [];
-let nextId = 0;
-
-// A sheet is inert (and hidden from assistive tech) while a modal sheet is
+// A sheet is inert (and hidden from assistive tech) while a modal layer is
 // open above it: a collapsed peek under any open modal, or a modal that is
-// not the topmost. Sheets re-evaluate whenever the open stack changes, so
-// ones that mount later are covered too.
-const stackListeners = new Set<() => void>();
-const notifyStack = () => stackListeners.forEach((listener) => listener());
+// not the topmost. Sheets re-evaluate whenever the open stack changes
+// (components/app/modalLayers.ts), so ones that mount later are covered too.
 function setInert(el: HTMLElement, inert: boolean) {
   if (inert) {
     el.setAttribute("inert", "");
@@ -74,6 +81,8 @@ export function Sheet({
   expanded = false,
   onExpandedChange,
   dismissible = true,
+  guardClose = false,
+  ownsBack = false,
   closeButton = true,
   ariaLabel,
 }: SheetProps) {
@@ -90,7 +99,7 @@ export function Sheet({
   const visibleRef = useRef(false);
   const enteredRef = useRef(false);
   const idRef = useRef(0);
-  if (idRef.current === 0) idRef.current = ++nextId;
+  if (idRef.current === 0) idRef.current = allocLayerId();
   const language = useGetLanguage();
   const [{ y }, api] = useSpring(() => ({ y: 600 }));
   // Set while the keyboard (visual viewport) hides part of the root.
@@ -235,13 +244,21 @@ export function Sheet({
 
   // Latest props for Esc, so re-renders (inline onClose lambdas) don't
   // re-register: the stack must follow the order sheets opened in.
-  const escRef = useRef({ dismiss, dismissible });
-  escRef.current = { dismiss, dismissible };
+  const gestureClosable = dismissible && !guardClose;
+  const escRef = useRef({ dismiss, dismissible: gestureClosable, plain: dismissible });
+  escRef.current = { dismiss, dismissible: gestureClosable, plain: dismissible };
 
   useEffect(() => {
     if (!visible || !modal) return;
     const id = idRef.current;
     openStack.push(id);
+    registerLayerCloser(id, {
+      // A back press closes this sheet (through onClose, which may confirm).
+      close: () => {
+        if (escRef.current.plain) escRef.current.dismiss();
+      },
+      ownsBack,
+    });
     notifyStack();
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape" || openStack[openStack.length - 1] !== id) return;
@@ -253,8 +270,10 @@ export function Sheet({
       document.removeEventListener("keydown", onKey);
       const i = openStack.lastIndexOf(id);
       if (i >= 0) openStack.splice(i, 1);
+      unregisterLayerCloser(id);
       notifyStack();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible, modal]);
 
   // Keep this sheet's own inert state in step with the open stack.
@@ -277,7 +296,7 @@ export function Sheet({
     useDrag(
       ({ first, last, movement: [, my], velocity: [, vy], direction: [, dirY], event, cancel }) => {
         const collapsedPeek = isPeek && !expanded;
-        if (!dismissible && !collapsedPeek) return cancel();
+        if (!gestureClosable && !collapsedPeek) return cancel();
         if (first && fromBody && (bodyRef.current?.scrollTop ?? 0) > 0) return cancel();
         const height = panelRef.current?.offsetHeight || heightRef.current;
         heightRef.current = height;
@@ -316,7 +335,7 @@ export function Sheet({
       {modal && (
         <animated.div
           data-testid="sheet-backdrop"
-          onClick={dismissible ? dismiss : undefined}
+          onClick={gestureClosable ? dismiss : undefined}
           className="absolute inset-0"
           style={{
             background: "rgba(20,24,48,.45)",

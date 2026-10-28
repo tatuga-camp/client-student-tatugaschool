@@ -22,6 +22,8 @@ type Props = {
   assignment: Pick<Assignment, "description">;
   /** View only: no editing, no save. */
   readOnly?: boolean;
+  /** Reports whether there are unsaved changes. */
+  onDirtyChange?: (dirty: boolean) => void;
 };
 
 /** The note editor (rendered inside NoteSheet). */
@@ -32,6 +34,7 @@ function AssignmentText({
   assignment,
   onClose,
   readOnly = false,
+  onDirtyChange,
 }: Props) {
   const language = useGetLanguage();
   const lang = language.data ?? "en";
@@ -41,6 +44,18 @@ function AssignmentText({
   const [title, setTitle] = React.useState<string | null>(
     text ? text.name : "",
   );
+  const initial = React.useRef({
+    value: text ? text.body : (assignment.description ?? ""),
+    title: text ? text.name : "",
+  });
+  const dirty =
+    !readOnly &&
+    (value !== initial.current.value ||
+      (title ?? "") !== (initial.current.title ?? ""));
+  React.useEffect(() => {
+    onDirtyChange?.(dirty);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dirty]);
   const update = useUpdateFileStudentAssignment();
   const create = useCreateFileStudentAssignment();
   const pending = update.isPending || create.isPending;
