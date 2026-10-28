@@ -5,6 +5,9 @@ import { isSamePath } from "../utils";
 import { setLeaveInterceptor, setPopInterceptor } from "../utils/leaveGuard";
 import { decidePop, popOutcome } from "../utils/popGuard";
 
+/** How long a Leave/Submit lets the navigation it asked for through. */
+const BYPASS_MS = 2000;
+
 const ABORT_MESSAGE =
   "Route change aborted by useConfirmSubmissionGuard (safe to ignore)";
 
@@ -49,6 +52,8 @@ function useConfirmSubmissionGuard({
   const latestPopRef = React.useRef<{ as: string } | null>(null);
   const cancelledByPopRef = React.useRef(false);
   const restoredRef = React.useRef(false);
+  // Steps the browser is away from the current entry after cancelled pops.
+  const awayByRef = React.useRef(0);
   // The handlers are registered once, so they read the latest props through
   // refs instead of closing over stale values.
   const enabledRef = React.useRef(enabled);
@@ -62,6 +67,7 @@ function useConfirmSubmissionGuard({
 
   React.useEffect(() => {
     aliveRef.current = true;
+    let bypassTimer: number | undefined;
     const needsAnswer = () =>
       pendingRef.current !== null || (enabledRef.current && !bypassRef.current);
 
@@ -78,6 +84,11 @@ function useConfirmSubmissionGuard({
         if (choice === "submit" && !(await onConfirmRef.current()))
           return false;
         bypassRef.current = true;
+        // The bypass is for the navigation that follows; if none happens the
+        // guard must arm again.
+        bypassTimer = window.setTimeout(() => {
+          bypassRef.current = false;
+        }, BYPASS_MS);
         return true;
       })().finally(() => {
         pendingRef.current = null;
@@ -89,26 +100,24 @@ function useConfirmSubmissionGuard({
     const interceptor = { active: needsAnswer, confirm: () => decide("app") };
     setLeaveInterceptor(interceptor);
 
-    /** Put the URL back on the entry we were on, once. */
-    const restore = (
-      restoreTo: { go: number } | { push: true },
-      key: string | null,
-    ) => {
+    /**
+     * Put the URL back on the entry we were on, once, with history.go()
+     * (never a push: that would overwrite an entry the shell never saw).
+     */
+    const restore = (go: number | null, key: string | null) => {
       restoredRef.current = true;
-      if ("go" in restoreTo) {
-        restoringKeyRef.current = key;
-        window.history.go(restoreTo.go);
-      } else {
-        // Index unknown: no flag (nothing will land to clear it).
-        router.push(router.asPath, undefined, { scroll: false });
-      }
+      awayByRef.current = 0;
+      if (go === null || go === 0) return; // the URL already matches
+      restoringKeyRef.current = key;
+      window.history.go(go);
     };
 
     // Browser back/forward: cancel, then decide with utils/popGuard.
     const onPop = (state: { as: string }): boolean => {
       if (bypassRef.current) return false;
       const info = popInfo();
-      const { action, restoringKey } = decidePop({
+      const { action, restoringKey, awayBy } = decidePop({
+        awayBy: awayByRef.current,
         restoringKey: restoringKeyRef.current,
         poppedKey: info.poppedKey,
         currentKey: info.currentKey,
@@ -117,6 +126,7 @@ function useConfirmSubmissionGuard({
         delta: info.delta,
       });
       restoringKeyRef.current = restoringKey;
+      awayByRef.current = awayBy;
       latestPopRef.current = state;
       switch (action.kind) {
         case "pass":
@@ -126,7 +136,7 @@ function useConfirmSubmissionGuard({
         case "stay":
           // A pop never joins an open question: it closes it as Stay.
           cancelledByPopRef.current = true;
-          restore(action.restore, info.currentKey);
+          restore(action.go, info.currentKey);
           cancelAskRef.current();
           return true;
         case "ask": {
@@ -141,12 +151,7 @@ function useConfirmSubmissionGuard({
             if (outcome === "replace" && latestPopRef.current) {
               router.replace(latestPopRef.current.as);
             } else if (outcome === "restore") {
-              restore(
-                info.delta !== null && info.delta !== 0
-                  ? { go: info.delta }
-                  : { push: true },
-                info.currentKey,
-              );
+              restore(awayByRef.current, info.currentKey);
             }
           });
           return true;
@@ -169,6 +174,8 @@ function useConfirmSubmissionGuard({
     router.events.on("routeChangeStart", handleRouteChangeStart);
     return () => {
       aliveRef.current = false;
+      window.clearTimeout(bypassTimer);
+      bypassRef.current = false;
       router.events.off("routeChangeStart", handleRouteChangeStart);
       setLeaveInterceptor(null, interceptor);
       setPopInterceptor(null, onPop);

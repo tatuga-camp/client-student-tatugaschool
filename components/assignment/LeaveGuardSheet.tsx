@@ -13,6 +13,8 @@ type Props = {
   open: boolean;
   /** Set while "Mark as done" is working (waiting for an upload, or saving). */
   busy?: "upload" | "submit" | null;
+  /** A mark-done request is still in flight (e.g. after a timeout). */
+  submitDisabled?: boolean;
   onChoose: (choice: "submit" | "leave" | "stay") => void;
 };
 
@@ -24,6 +26,7 @@ type Props = {
 export default function LeaveGuardSheet({
   open,
   busy = null,
+  submitDisabled = false,
   onChoose,
 }: Props) {
   const language = useGetLanguage();
@@ -58,7 +61,7 @@ export default function LeaveGuardSheet({
         <div className="mt-1 flex w-full flex-col gap-2">
           <button
             type="button"
-            disabled={!!busy}
+            disabled={!!busy || submitDisabled}
             onClick={() => onChoose("submit")}
             className="chunky-btn w-full disabled:opacity-60"
           >

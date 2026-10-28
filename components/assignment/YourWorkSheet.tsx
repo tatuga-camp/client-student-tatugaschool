@@ -118,10 +118,18 @@ export default function YourWorkSheet({
     }
   };
 
+  // True only while the Mark as done BUTTON is saving; the guard's own
+  // submit is tracked by the guard, so a hanging request can't disarm it.
+  const [marking, setMarking] = useState(false);
   const markDone = async () => {
-    if (await setStatus("SUBMITTED")) {
-      setExpanded(false);
-      onTurnedIn({ itemCount: items.length });
+    setMarking(true);
+    try {
+      if (await setStatus("SUBMITTED")) {
+        setExpanded(false);
+        onTurnedIn({ itemCount: items.length });
+      }
+    } finally {
+      setMarking(false);
     }
   };
 
@@ -157,8 +165,7 @@ export default function YourWorkSheet({
       answerRef.current?.("stay");
     };
   }, []);
-  const guardEnabled =
-    (unconfirmed || uploading) && !justSubmitted && !updateWork.isPending;
+  const guardEnabled = (unconfirmed || uploading) && !justSubmitted && !marking;
   // Nothing left to protect (e.g. the upload failed before any item landed)
   // while the question is open: the student asked to leave, so let them.
   useEffect(() => {
@@ -440,7 +447,12 @@ export default function YourWorkSheet({
         </div>
       </Sheet>
 
-      <LeaveGuardSheet open={guardOpen} busy={guardBusy} onChoose={choose} />
+      <LeaveGuardSheet
+        open={guardOpen}
+        busy={guardBusy}
+        submitDisabled={updateWork.isPending}
+        onChoose={choose}
+      />
       <NoteSheet
         open={noteOpen}
         lang={lang}
