@@ -46,20 +46,20 @@ type SheetProps = {
 const openStack: number[] = [];
 let nextId = 0;
 
-// Sheets over the same overlay hold each other inert; a count keeps a sheet
-// inert until every sheet above it has closed.
-const inertHolds = new WeakMap<Element, number>();
-function holdInert(el: HTMLElement) {
-  inertHolds.set(el, (inertHolds.get(el) ?? 0) + 1);
-  el.setAttribute("inert", "");
-  el.setAttribute("aria-hidden", "true");
-}
-function releaseInert(el: HTMLElement) {
-  const n = (inertHolds.get(el) ?? 1) - 1;
-  inertHolds.set(el, n);
-  if (n > 0) return;
-  el.removeAttribute("inert");
-  el.removeAttribute("aria-hidden");
+// A sheet is inert (and hidden from assistive tech) while a modal sheet is
+// open above it: a collapsed peek under any open modal, or a modal that is
+// not the topmost. Sheets re-evaluate whenever the open stack changes, so
+// ones that mount later are covered too.
+const stackListeners = new Set<() => void>();
+const notifyStack = () => stackListeners.forEach((listener) => listener());
+function setInert(el: HTMLElement, inert: boolean) {
+  if (inert) {
+    el.setAttribute("inert", "");
+    el.setAttribute("aria-hidden", "true");
+  } else {
+    el.removeAttribute("inert");
+    el.removeAttribute("aria-hidden");
+  }
 }
 
 const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
@@ -203,7 +203,11 @@ export function Sheet({
     return () => {
       const opener = openerRef.current;
       openerRef.current = null;
-      if (opener && document.contains(opener)) opener.focus({ preventScroll: true });
+      // Deferred: the openStack effect below (declared later, so cleaned up
+      // later) un-inerts the sheet under us, and the opener may be in it.
+      queueMicrotask(() => {
+        if (opener && document.contains(opener)) opener.focus({ preventScroll: true });
+      });
     };
   }, [visible, rendered, modal]);
 
@@ -227,6 +231,7 @@ export function Sheet({
     if (!visible || !modal) return;
     const id = idRef.current;
     openStack.push(id);
+    notifyStack();
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape" || openStack[openStack.length - 1] !== id) return;
       // A non-dismissible sheet on top keeps Esc from closing the one below.
@@ -237,21 +242,25 @@ export function Sheet({
       document.removeEventListener("keydown", onKey);
       const i = openStack.lastIndexOf(id);
       if (i >= 0) openStack.splice(i, 1);
+      notifyStack();
     };
   }, [visible, modal]);
 
-  // While this modal sheet is on top, the other sheets in the same overlay
-  // (e.g. a peek) are inert and hidden from assistive tech.
+  // Keep this sheet's own inert state in step with the open stack.
   useEffect(() => {
     const mine = sheetRootRef.current;
-    if (!visible || !modal || !rendered || !mine) return;
-    const others = Array.from(mine.parentElement?.children ?? []).filter(
-      (el): el is HTMLElement =>
-        el !== mine && el instanceof HTMLElement && "sheetRoot" in el.dataset,
-    );
-    others.forEach(holdInert);
-    return () => others.forEach(releaseInert);
-  }, [visible, modal, rendered]);
+    if (!rendered || !mine) return;
+    const apply = () => {
+      const i = openStack.indexOf(idRef.current);
+      setInert(mine, i >= 0 ? i < openStack.length - 1 : openStack.length > 0);
+    };
+    apply();
+    stackListeners.add(apply);
+    return () => {
+      stackListeners.delete(apply);
+      setInert(mine, false);
+    };
+  }, [rendered]);
 
   const usePanelDrag = (fromBody: boolean) =>
     useDrag(
