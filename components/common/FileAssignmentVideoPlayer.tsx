@@ -55,7 +55,18 @@ function FileAssignmentVideoPlayer({
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const maxWatchedRef = useRef(0);
+
+  useEffect(() => {
+    const sync = () => setIsFullscreen(getFullscreenElement() !== null);
+    document.addEventListener("fullscreenchange", sync);
+    document.addEventListener("webkitfullscreenchange", sync);
+    return () => {
+      document.removeEventListener("fullscreenchange", sync);
+      document.removeEventListener("webkitfullscreenchange", sync);
+    };
+  }, []);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -153,75 +164,87 @@ function FileAssignmentVideoPlayer({
         <h2 className="min-w-0 flex-1 truncate text-sm font-bold">{name}</h2>
       </div>
 
-      <div
-        ref={containerRef}
-        className="flex min-h-0 flex-1 flex-col justify-center bg-black"
-      >
-        <video
-          ref={videoRef}
-          src={src}
-          playsInline
-          className="max-h-full w-full object-contain"
-          onClick={togglePlay}
-        />
-      </div>
-
-      <div className="shrink-0 px-3 pb-2 pt-1">
-        {preventFastForward && (
-          <p className="mb-1 flex items-center justify-center gap-1.5 text-center text-xs font-semibold text-[#FFCD1B]">
-            <LuAlertTriangle aria-hidden />
-            {assignmentPageLanguage.fastForwardOff(lang)}
-          </p>
-        )}
-        <input
-          type="range"
-          min={0}
-          max={duration || 0}
-          step="any"
-          value={currentTime}
-          onChange={handleSeek}
-          aria-label={assignmentPageLanguage.seek(lang)}
-          className="block h-6 w-full cursor-pointer appearance-none rounded-full accent-[#569DF8]"
-          style={{
-            background: `linear-gradient(to right, #569DF8 ${percent}%, rgba(255,255,255,.3) ${percent}%) center / 100% 6px no-repeat`,
-          }}
-        />
-        <div className="mt-1 flex items-center gap-1">
-          <button
-            type="button"
+      {/* The fullscreen target: video and controls, so the controls (and the
+          way out of fullscreen) stay on screen. */}
+      <div ref={containerRef} className="flex min-h-0 flex-1 flex-col bg-black">
+        <div className="flex min-h-0 flex-1 flex-col justify-center">
+          <video
+            ref={videoRef}
+            src={src}
+            playsInline
+            className="max-h-full w-full object-contain"
             onClick={togglePlay}
-            aria-label={
-              isPlaying
-                ? assignmentPageLanguage.pause(lang)
-                : assignmentPageLanguage.play(lang)
-            }
-            className={controlBtn}
-          >
-            {isPlaying ? <LuPause aria-hidden /> : <LuPlay aria-hidden />}
-          </button>
-          <button
-            type="button"
-            onClick={toggleMute}
-            aria-label={
-              isMuted
-                ? assignmentPageLanguage.unmute(lang)
-                : assignmentPageLanguage.mute(lang)
-            }
-            className={controlBtn}
-          >
-            {isMuted ? <LuVolumeX aria-hidden /> : <LuVolume2 aria-hidden />}
-          </button>
-          <span className="flex-1 text-center font-mono text-sm font-medium">
-            {formatTime(currentTime)} / {formatTime(duration)}
-          </span>
-          <button
-            type="button"
-            onClick={handleFullScreen}
-            aria-label={assignmentPageLanguage.fullscreen(lang)}
-            className={controlBtn}
-          >
-            <LuMaximize aria-hidden />
-          </button>
+          />
+        </div>
+
+        <div
+          className="shrink-0 px-3 pb-2 pt-1"
+          style={
+            isFullscreen
+              ? {
+                  paddingLeft: "max(0.75rem, env(safe-area-inset-left))",
+                  paddingRight: "max(0.75rem, env(safe-area-inset-right))",
+                  paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))",
+                }
+              : undefined
+          }
+        >
+          {preventFastForward && (
+            <p className="mb-1 flex items-center justify-center gap-1.5 text-center text-xs font-semibold text-[#FFCD1B]">
+              <LuAlertTriangle aria-hidden />
+              {assignmentPageLanguage.fastForwardOff(lang)}
+            </p>
+          )}
+          <input
+            type="range"
+            min={0}
+            max={duration || 0}
+            step="any"
+            value={currentTime}
+            onChange={handleSeek}
+            aria-label={assignmentPageLanguage.seek(lang)}
+            className="block h-6 w-full cursor-pointer appearance-none rounded-full accent-[#569DF8]"
+            style={{
+              background: `linear-gradient(to right, #569DF8 ${percent}%, rgba(255,255,255,.3) ${percent}%) center / 100% 6px no-repeat`,
+            }}
+          />
+          <div className="mt-1 flex items-center gap-1">
+            <button
+              type="button"
+              onClick={togglePlay}
+              aria-label={
+                isPlaying
+                  ? assignmentPageLanguage.pause(lang)
+                  : assignmentPageLanguage.play(lang)
+              }
+              className={controlBtn}
+            >
+              {isPlaying ? <LuPause aria-hidden /> : <LuPlay aria-hidden />}
+            </button>
+            <button
+              type="button"
+              onClick={toggleMute}
+              aria-label={
+                isMuted
+                  ? assignmentPageLanguage.unmute(lang)
+                  : assignmentPageLanguage.mute(lang)
+              }
+              className={controlBtn}
+            >
+              {isMuted ? <LuVolumeX aria-hidden /> : <LuVolume2 aria-hidden />}
+            </button>
+            <span className="flex-1 text-center font-mono text-sm font-medium">
+              {formatTime(currentTime)} / {formatTime(duration)}
+            </span>
+            <button
+              type="button"
+              onClick={handleFullScreen}
+              aria-label={assignmentPageLanguage.fullscreen(lang)}
+              className={controlBtn}
+            >
+              <LuMaximize aria-hidden />
+            </button>
+          </div>
         </div>
       </div>
     </div>
