@@ -14,12 +14,18 @@ type Props = {
   schoolId: string;
   toolbar?: string | false;
   disabled?: boolean;
+  /** Read-only view: grows with its content, no status bar, no inner scroll. */
+  autoHeight?: boolean;
+  /** Where menus and dialogs render (default: the page body). */
+  uiContainer?: HTMLElement | null;
 };
 function TextEditor({
   value,
   onChange,
   schoolId,
   disabled = false,
+  autoHeight = false,
+  uiContainer,
   menubar = true,
   toolbar = "undo redo | formatselect | blocks | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | image | link",
 }: Props) {
@@ -40,8 +46,15 @@ function TextEditor({
         init={{
           object_resizing: true,
           link_context_toolbar: true,
-          height: "100%",
+          height: autoHeight ? undefined : "100%",
           width: "100%",
+          statusbar: !autoHeight,
+          ...(autoHeight && {
+            resize: false,
+            min_height: 40,
+            autoresize_bottom_margin: 0,
+          }),
+          ...(uiContainer && { ui_container: uiContainer }),
           menubar: menubar,
           toolbar: toolbar,
 
@@ -95,6 +108,7 @@ function TextEditor({
             "help",
             "image",
             "wordcount",
+            ...(autoHeight ? ["autoresize"] : []),
           ],
           contextmenu:
             "paste | link  inserttable | cell row column deletetable",

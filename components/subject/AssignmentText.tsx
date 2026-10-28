@@ -1,63 +1,58 @@
-import React, { useEffect } from "react";
-import TextEditor from "../common/TextEditor";
-import {
-  Assignment,
-  FileOnStudentOnAssignment,
-} from "../../interfaces";
-import { errorSwalContent } from "../../utils";
-import Swal from "../../utils/appSwal";
-import { Toast } from "primereact/toast";
+import React from "react";
+import { LuLoader } from "react-icons/lu";
+import { assignmentPageLanguage } from "../../data/languages";
+import { Assignment, FileOnStudentOnAssignment } from "../../interfaces";
 import {
   useCreateFileStudentAssignment,
   useGetLanguage,
   useUpdateFileStudentAssignment,
 } from "../../react-query";
-import { ProgressSpinner } from "primereact/progressspinner";
-import { MdCopyAll } from "react-icons/md";
+import { workError, workToast } from "../assignment/workFeedback";
+import TextEditor from "../common/TextEditor";
 
 type Props = {
-  toast: React.RefObject<Toast>;
   studentOnAssignmentId: string;
+  /** The note being opened; a new note is pre-filled with the description. */
   text?: FileOnStudentOnAssignment | undefined;
   onClose: () => void;
   schoolId: string;
-  assignment: Assignment;
+  assignment: Pick<Assignment, "description">;
+  /** Menus and dialogs of the editor render here (inside the phone). */
+  uiContainer?: HTMLElement | null;
+  /** View only: no editing, no save. */
+  readOnly?: boolean;
 };
+
+/** The note editor (rendered inside NoteSheet). */
 function AssignmentText({
   studentOnAssignmentId,
   text,
-  toast,
   schoolId,
   assignment,
   onClose,
+  uiContainer,
+  readOnly = false,
 }: Props) {
-  const [value, setValue] = React.useState(text ? text.body : "");
+  const language = useGetLanguage();
+  const lang = language.data ?? "en";
+  const [value, setValue] = React.useState(
+    text ? text.body : (assignment.description ?? ""),
+  );
   const [title, setTitle] = React.useState<string | null>(
     text ? text.name : "",
   );
-  const lanague = useGetLanguage();
   const update = useUpdateFileStudentAssignment();
   const create = useCreateFileStudentAssignment();
+  const pending = update.isPending || create.isPending;
+
   const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
     try {
-      e.preventDefault();
       if (text) {
         await update.mutateAsync({
-          query: {
-            id: text.id,
-          },
-          body: {
-            body: value,
-            name: title ?? "",
-          },
+          query: { id: text.id },
+          body: { body: value, name: title ?? "" },
         });
-        toast.current?.show({
-          severity: "success",
-          summary: "Success",
-          detail: "Document updated successfully",
-          life: 3000,
-        });
-        onClose();
       } else {
         await create.mutateAsync({
           studentOnAssignmentId: studentOnAssignmentId,
@@ -67,81 +62,48 @@ function AssignmentText({
           size: 0,
           type: "tiny-editor",
         });
-        toast.current?.show({
-          severity: "success",
-          summary: "Success",
-          detail: "Document created successfully",
-          life: 3000,
-        });
-        onClose();
       }
+      workToast(assignmentPageLanguage.noteSaved(lang));
+      onClose();
     } catch (error) {
-      Swal.fire({
-        ...errorSwalContent(error),
-        icon: "error",
-      });
+      workError(error, lang);
     }
   };
-
-  const handleCopyAssignmentToText = () => {
-    setValue(assignment.description);
-  };
-
-  useEffect(() => {
-    if (assignment.description && !text) {
-      handleCopyAssignmentToText();
-    }
-  }, []);
 
   return (
-    <form
-      onSubmit={handleSave}
-      className="flex h-dvh w-full flex-col gap-2 rounded-2xl bg-white p-2 md:h-5/6 md:w-8/12"
-    >
-      <div className="mt-2 flex w-full justify-between gap-2">
-        <input
-          onChange={(e) => setTitle(e.target.value)}
-          value={title ?? ""}
-          type="text"
-          placeholder="Add Your Title"
-          required
-          className="main-input h-10 grow"
-        />
-      </div>
-
-      <div className="grow">
+    <form onSubmit={handleSave} className="flex h-full flex-col gap-2 pb-2">
+      <input
+        onChange={(e) => setTitle(e.target.value)}
+        value={title ?? ""}
+        type="text"
+        placeholder={assignmentPageLanguage.noteTitlePlaceholder(lang)}
+        aria-label={assignmentPageLanguage.noteTitlePlaceholder(lang)}
+        required
+        readOnly={readOnly}
+        className="h-11 w-full shrink-0 rounded-xl border-2 border-[#E3E8F0] px-3 text-base font-bold text-icon-color outline-none focus:border-primary-color"
+      />
+      <div data-no-swipe className="min-h-0 flex-1">
         <TextEditor
           value={value}
           onChange={(content) => setValue(content)}
           schoolId={schoolId}
+          disabled={readOnly}
+          uiContainer={uiContainer}
         />
       </div>
-      <footer className="flex items-center justify-end gap-2 border-t pt-4">
+      {!readOnly && (
         <button
-          type="button"
-          onClick={() => {
-            onClose();
-          }}
-          className="second-button flex w-40 items-center justify-center border"
+          type="submit"
+          disabled={pending}
+          className="chunky-btn w-full shrink-0 disabled:opacity-60"
         >
-          Close
-        </button>
-        <button
-          disabled={update.isPending || create.isPending}
-          className="main-button flex w-40 items-center justify-center"
-        >
-          {update.isPending || create.isPending ? (
-            <ProgressSpinner
-              animationDuration="1s"
-              style={{ width: "20px" }}
-              className="h-5 w-5"
-              strokeWidth="8"
-            />
+          {pending ? (
+            <LuLoader aria-hidden className="animate-spin" />
           ) : (
-            "Save"
+            assignmentPageLanguage.save(lang)
           )}
         </button>
-      </footer>
+      )}
     </form>
   );
 }

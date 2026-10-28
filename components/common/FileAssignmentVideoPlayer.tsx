@@ -239,7 +239,11 @@ function FileAssignmentVideoPlayer({
             <button
               type="button"
               onClick={handleFullScreen}
-              aria-label={assignmentPageLanguage.fullscreen(lang)}
+              aria-label={
+                isFullscreen
+                  ? assignmentPageLanguage.exitFullscreen(lang)
+                  : assignmentPageLanguage.fullscreen(lang)
+              }
               className={controlBtn}
             >
               <LuMaximize aria-hidden />

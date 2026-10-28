@@ -13,13 +13,14 @@ import {
 import { TAB_BODY_CLASS } from "../app/TabHeader";
 import { type DetailPaneProps, useShellNav } from "../app/shell/useShellRoute";
 import TextEditor from "../common/TextEditor";
-import { hasRichContent } from "../../utils/assignmentDetail";
+import { hasRichContent, yourWorkMode } from "../../utils/assignmentDetail";
 import DetailHeader from "./DetailHeader";
 import { LegacyVideoQuiz } from "./LegacyVideoQuiz";
 import { LegacyWorkPanels } from "./LegacyWorkPanels";
 import TeacherFiles from "./TeacherFiles";
 import TitleCard from "./TitleCard";
 import { useDetailFocus } from "./useDetailFocus";
+import YourWorkSheet from "./YourWorkSheet";
 
 const sectionLabel =
   "mx-0.5 mb-1.5 mt-1 text-[10px] font-bold uppercase tracking-wider text-[#7A80A0]";
@@ -57,9 +58,7 @@ export default function AssignmentDetail({
   const lang = language.data ?? "en";
   const subject = useGetSubjectById({ id: subjectId });
   const assignments = useGetAssignments({ subjectId });
-  const assignment = assignments.data?.find(
-    (item) => item.id === assignmentId,
-  );
+  const assignment = assignments.data?.find((item) => item.id === assignmentId);
   const pageRef = useRef<HTMLDivElement>(null);
   const backRef = useRef<HTMLButtonElement>(null);
   useDetailFocus(backRef, pageRef);
@@ -72,6 +71,11 @@ export default function AssignmentDetail({
 
   // "Not found" only once the list has loaded (or failed) without it.
   const loading = assignments.isPending || isQuiz;
+  // Room under the content for the "Your work" peek.
+  const hasSheet =
+    !!assignment &&
+    yourWorkMode(assignment.type, assignment.studentOnAssignment.status) !==
+      "none";
 
   return (
     <div ref={pageRef} className="flex h-full w-full flex-col font-Anuphan">
@@ -90,7 +94,9 @@ export default function AssignmentDetail({
         className={TAB_BODY_CLASS}
         style={{ paddingBottom: "var(--safe-bottom)" }}
       >
-        <div className="flex flex-col gap-3 px-3 pb-6 pt-4">
+        <div
+          className={`flex flex-col gap-3 px-3 pt-4 ${hasSheet ? "pb-44" : "pb-6"}`}
+        >
           {loading ? (
             <DetailSkeleton />
           ) : !assignment ? (
@@ -113,17 +119,16 @@ export default function AssignmentDetail({
                     <h3 className={sectionLabel}>
                       {assignmentPageLanguage.instructions(lang)}
                     </h3>
-                    <div className="chunky overflow-hidden p-1">
-                      <div className="h-60 lg:h-96">
-                        <TextEditor
-                          disabled={false}
-                          schoolId={assignment.schoolId}
-                          value={assignment.description}
-                          onChange={() => {}}
-                          menubar={false}
-                          toolbar={false}
-                        />
-                      </div>
+                    <div className="chunky overflow-hidden p-2">
+                      <TextEditor
+                        disabled
+                        autoHeight
+                        schoolId={assignment.schoolId}
+                        value={assignment.description}
+                        onChange={() => {}}
+                        menubar={false}
+                        toolbar={false}
+                      />
                     </div>
                   </section>
                 )}
@@ -140,6 +145,14 @@ export default function AssignmentDetail({
           )}
         </div>
       </div>
+      {assignment && subject.data && (
+        <YourWorkSheet
+          assignment={assignment}
+          subject={subject.data}
+          // Task 4 plays the turned-in celebration from here.
+          onTurnedIn={() => {}}
+        />
+      )}
     </div>
   );
 }

@@ -27,7 +27,13 @@ export default function VideoFileSheet({
   onClose,
 }: Props) {
   return (
-    <Sheet open={open} onClose={onClose} size="full" ariaLabel={name}>
+    <Sheet
+      open={open}
+      onClose={onClose}
+      size="full"
+      closeButton={false}
+      ariaLabel={name}
+    >
       <FileAssignmentVideoPlayer
         src={url}
         name={name}

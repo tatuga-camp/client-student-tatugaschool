@@ -24,14 +24,21 @@ import { OverlayRootContext } from "./OverlayScope";
  * shrinks to the visible area, so its fields stay in view.
  */
 type SheetProps = {
+  /** The parent must flip this to false in `onClose`, or a dragged-away
+   *  sheet stays stranded at the dragged position. Ignored with `peek`. */
   open: boolean;
   onClose: () => void;
   children: React.ReactNode;
   size?: "auto" | "full";
+  /** A peek sheet is always shown (it ignores `open`); `children` is the
+   *  expanded content. */
   peek?: React.ReactNode;
   expanded?: boolean;
   onExpandedChange?: (v: boolean) => void;
   dismissible?: boolean;
+  /** Render the ✕ in the handle row (default). Off when the content brings
+   *  its own visible close, so assistive tech doesn't find two. */
+  closeButton?: boolean;
   ariaLabel: string;
 };
 
@@ -51,6 +58,7 @@ export function Sheet({
   expanded = false,
   onExpandedChange,
   dismissible = true,
+  closeButton = true,
   ariaLabel,
 }: SheetProps) {
   const scopedRoot = useContext(OverlayRootContext);
@@ -288,7 +296,7 @@ export function Sheet({
           style={{ touchAction: "none" }}
         >
           <div className="h-1.5 w-10 rounded-full bg-[#E3E8F0]" />
-          {dismissible && modal && (
+          {dismissible && modal && closeButton && (
             <button
               type="button"
               aria-label={profileLanguage.close(language.data ?? "en")}
