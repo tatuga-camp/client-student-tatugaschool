@@ -6,6 +6,8 @@ import PhotoEditor from "../common/PhotoEditor";
 type Props = {
   file: File | null;
   lang: Language;
+  /** False while an upload is in flight. */
+  dismissible: boolean;
   onClose: () => void;
   onSave: (file: File) => Promise<void>;
 };
@@ -14,6 +16,7 @@ type Props = {
 export default function PhotoEditorSheet({
   file,
   lang,
+  dismissible,
   onClose,
   onSave,
 }: Props) {
@@ -22,6 +25,7 @@ export default function PhotoEditorSheet({
       open={file !== null}
       onClose={onClose}
       size="full"
+      dismissible={dismissible}
       ariaLabel={profileLanguage.adjustPhoto(lang)}
     >
       {file && <PhotoEditor file={file} onClose={onClose} onSave={onSave} />}

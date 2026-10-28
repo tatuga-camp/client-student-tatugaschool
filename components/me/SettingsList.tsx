@@ -140,7 +140,7 @@ export default function SettingsList({
                   aria-pressed={on}
                   disabled={updateLanguage.isPending}
                   onClick={() => !on && updateLanguage.mutate(value)}
-                  className={`min-h-8 min-w-11 rounded-[8px] px-2.5 font-bold ${
+                  className={`min-h-11 min-w-11 rounded-[8px] px-2.5 font-bold ${
                     on ? "bg-white text-primary-color" : "text-[#7A80A0]"
                   }`}
                   style={on ? { boxShadow: "0 1px 0 #D6DEEA" } : undefined}

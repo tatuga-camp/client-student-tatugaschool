@@ -30,6 +30,8 @@ export const profileLanguage = {
     pick(language, "Enter a new password.", "กรุณากรอกรหัสผ่านใหม่"),
   settings: (language: Language) => pick(language, "Settings", "ตั้งค่า"),
   submitted: (language: Language) => pick(language, "Submitted", "ส่งแล้ว"),
+  submittedNoData: (language: Language) =>
+    pick(language, "Submitted: no classwork yet", "ส่งแล้ว: ยังไม่มีงาน"),
   attendance: (language: Language) => pick(language, "Attendance", "เข้าเรียน"),
   careerMatch: (language: Language) =>
     pick(language, "My career match", "อาชีพที่เหมาะกับฉัน"),

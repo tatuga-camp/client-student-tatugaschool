@@ -11,8 +11,12 @@ export function useGetAttendanceTables(request: {
   studentId: string;
 }) {
   return useQuery({
-    queryKey: ["attendance-tables", { subjectId: request.subjectId }],
+    queryKey: [
+      "attendance-tables",
+      { subjectId: request.subjectId, studentId: request.studentId },
+    ],
     queryFn: () => GetAttendanceTablesService(request),
+    enabled: !!request.studentId,
   });
 }
 

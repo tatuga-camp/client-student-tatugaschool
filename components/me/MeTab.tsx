@@ -233,7 +233,7 @@ export default function MeTab({ subjectId, active }: TabPaneProps) {
               role="img"
               aria-label={
                 completion.percentage === null
-                  ? undefined
+                  ? profileLanguage.submittedNoData(lang)
                   : navbarLanguageData.submittedLabel(
                       completion.submittedCount,
                       completion.applicableCount,
@@ -328,7 +328,8 @@ export default function MeTab({ subjectId, active }: TabPaneProps) {
       <PhotoEditorSheet
         file={photoFile}
         lang={lang}
-        onClose={() => !uploading && setPhotoFile(null)}
+        dismissible={!uploading}
+        onClose={() => setPhotoFile(null)}
         onSave={handleSavePhoto}
       />
       <CareerSheet open={sheet === "career"} onClose={closeSheet} lang={lang} />

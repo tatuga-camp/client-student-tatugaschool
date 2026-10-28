@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { getLocalStorage, setLocalStorage } from "../utils";
 import { Language } from "../interfaces";
 
@@ -11,10 +12,15 @@ function detectInitialLanguage(): Language {
 }
 
 export function useGetLanguage() {
-  return useQuery({
+  const query = useQuery({
     queryKey: ["language"],
     queryFn: () => detectInitialLanguage(),
   });
+  // Keep <html lang> in step with the chosen language.
+  useEffect(() => {
+    if (query.data) document.documentElement.lang = query.data;
+  }, [query.data]);
+  return query;
 }
 
 export function useUpdateLanguage() {
