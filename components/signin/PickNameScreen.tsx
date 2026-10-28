@@ -13,7 +13,7 @@ import { errorSwalContent } from "../../utils";
 import Swal from "../../utils/appSwal";
 import { safeSet } from "../../utils/safeStorage";
 import { signInRequest } from "../../utils/signInRequest";
-import { searchStudents } from "../../utils/studentSearch";
+import { hiddenQueryReady, searchStudents } from "../../utils/studentSearch";
 import PopupLayout from "../layouts/PopupLayout";
 import SignInStudentForm from "../student/SignInStudentForm";
 import { HiddenListSearch } from "./HiddenListSearch";
@@ -158,7 +158,7 @@ export function PickNameScreen({ subjectCode, announcementId }: Props) {
   const renderBody = () => {
     if (!data) return <GridSkeleton label={t.loadingStudents(lang)} />;
     if (hideList) {
-      const ready = query.length > 2;
+      const ready = hiddenQueryReady(query);
       if (ready && visible.length === 0) {
         return (
           <PickerState

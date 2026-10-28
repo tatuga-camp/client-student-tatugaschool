@@ -1,5 +1,13 @@
 type Searchable = { firstName: string; lastName: string; number: string };
 
+const isNumberQuery = (q: string) => /^\d+$/.test(q);
+
+/** True once a hidden-list query is enough to search: a number, or 3+ characters. */
+export function hiddenQueryReady(query: string): boolean {
+  const q = query.trim();
+  return isNumberQuery(q) || q.length > 2;
+}
+
 export function searchStudents<T extends Searchable>(
   students: T[],
   query: string,
@@ -8,7 +16,7 @@ export function searchStudents<T extends Searchable>(
   const trimmed = query.trim();
   // A number is a precise key, so it needs no minimum length; text keeps the
   // 3-character rule so the class list cannot be browsed by name.
-  if (hideList && /^\d+$/.test(trimmed)) {
+  if (hideList && isNumberQuery(trimmed)) {
     return students
       .filter((s) => s.number.toString() === trimmed)
       .sort(byNumber);

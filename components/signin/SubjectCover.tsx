@@ -52,7 +52,7 @@ export function SubjectCover({ subject, lang, onTeachers }: Props) {
           type="button"
           aria-label={t.back(lang)}
           onClick={() => router.push("/welcome")}
-          className="flex h-11 w-11 items-center justify-center rounded-full bg-white/25"
+          className="flex h-11 w-11 items-center justify-center rounded-full border border-white/35 bg-black/20"
         >
           <LuArrowLeft aria-hidden />
         </button>
@@ -69,7 +69,7 @@ export function SubjectCover({ subject, lang, onTeachers }: Props) {
           <button
             type="button"
             onClick={onTeachers}
-            className="mt-2 inline-flex min-h-[32px] max-w-full items-center gap-1.5 rounded-full bg-white/25 py-1 pl-1.5 pr-2.5 text-xs font-semibold"
+            className="mt-2 inline-flex min-h-[32px] max-w-full items-center gap-1.5 rounded-full border border-white/35 bg-black/20 py-1 pl-1.5 pr-2.5 text-xs font-semibold"
           >
             <span className="flex">
               {shown.map((teacher) => (

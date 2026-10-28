@@ -1,6 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { highlightMatch, searchStudents } from "./studentSearch";
+import {
+  hiddenQueryReady,
+  highlightMatch,
+  searchStudents,
+} from "./studentSearch";
 
 const kids = [
   { firstName: "สมชาย", lastName: "ใจดี", number: "12" },
@@ -75,4 +79,13 @@ test("searchStudents in a hidden list matches a numeric query exactly at any len
 test("searchStudents in a hidden list still needs 3+ characters for text", () => {
   const roster = [{ firstName: "Al", lastName: "Bo", number: "5" }];
   assert.deepEqual(searchStudents(roster, "Al", true), []);
+});
+
+test("hiddenQueryReady: text needs 3+ characters, a number needs one digit", () => {
+  assert.equal(hiddenQueryReady(""), false);
+  assert.equal(hiddenQueryReady("ab"), false);
+  assert.equal(hiddenQueryReady(" abc "), true);
+  assert.equal(hiddenQueryReady("3"), true);
+  assert.equal(hiddenQueryReady(" 12 "), true);
+  assert.equal(hiddenQueryReady("a1"), false);
 });
