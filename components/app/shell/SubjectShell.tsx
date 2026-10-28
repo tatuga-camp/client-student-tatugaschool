@@ -2,6 +2,7 @@ import { animated, useSpring } from "@react-spring/web";
 import Head from "next/head";
 import React, { useEffect, useRef } from "react";
 import { homeLanguage } from "../../../data/languages";
+import { usePushSync } from "../../../hook/usePushSync";
 import {
   useGetLanguage,
   useGetStudent,
@@ -119,6 +120,8 @@ export default function SubjectShell({
   children?: React.ReactNode;
 }) {
   const route = useShellRoute();
+  // Service worker + daily push re-subscribe, once for the whole app shell.
+  usePushSync();
   return (
     <>
       {route ? (

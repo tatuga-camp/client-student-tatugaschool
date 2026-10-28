@@ -5,13 +5,12 @@ import {
   homeLanguage,
 } from "../../data/languages";
 import { useGetLanguage, useGetStudent } from "../../react-query";
-import { SubscribeStudentToPushService } from "../../services";
 import { mascotForStudent } from "../../utils/mascot";
 import {
   autoPushPrompt,
   getPushStatus,
   PushStatus,
-  registerServiceWorker,
+  subscribePush,
 } from "../../utils/notifications";
 import { safeGet, safeSet } from "../../utils/safeStorage";
 import MascotAvatar from "../student/MascotAvatar";
@@ -20,72 +19,53 @@ import { Sheet } from "./Sheet";
 // Same key as the old AskNotification, so a past "Later" still counts.
 const DISMISSED_KEY = "ask-notification-dismissed";
 
-// Browsers rotate or drop push subscriptions and the server deletes dead
-// ones, so once allowed we quietly re-send ours, at most once a day.
-const SYNC_INTERVAL_MS = 24 * 60 * 60 * 1000;
-const syncKey = (studentId: string) => `push-sync-at:${studentId}`;
-
 const markDismissed = () => safeSet(DISMISSED_KEY, String(Date.now()));
-
-/** Registers this device for push (call once permission is granted). */
-export async function subscribePush(): Promise<void> {
-  // Subscribing waits for an active service worker.
-  await registerServiceWorker();
-  await SubscribeStudentToPushService();
-}
 
 type RequestState = "idle" | "pending" | "dismissed" | "blocked";
 
 type Props = {
+  /**
+   * Show on its own when the old AskNotification rules say so: until
+   * allowed or dismissed, with the install steps on iPhone Safari. Home
+   * passes it while it is on screen with no detail page over it; turning
+   * it off hides the prompt (not a dismissal) until it is on again.
+   */
+  auto?: boolean;
   /** Open now, whatever the rules say (Me → Notifications). */
   forceOpen?: boolean;
+  /** Called when it closes: Later, Done, Got it, ✕, or allowed. */
   onClose?: () => void;
 };
 
 /**
- * The mascot asking to allow notifications. Without `forceOpen` it decides
- * by itself, once per mount (mount it only while Home is active): shown
- * until allowed or dismissed, with the install steps on iPhone Safari.
- * Also registers the service worker and re-sends the subscription daily.
+ * The mascot asking to allow notifications. Shows only with `auto` (and
+ * the rules agree) or `forceOpen`; mounting it alone never opens it. UI
+ * only: SubjectShell's usePushSync registers the service worker and keeps
+ * the subscription fresh.
  */
 export function NotificationPromptSheet({
+  auto = false,
   forceOpen = false,
   onClose,
 }: Props): JSX.Element | null {
   const language = useGetLanguage();
   const lang = language.data ?? "en";
   const student = useGetStudent();
-  const studentId = student.data?.id;
   const [autoOpen, setAutoOpen] = useState(false);
   const [status, setStatus] = useState<PushStatus>("unsupported");
   const [requestState, setRequestState] = useState<RequestState>("idle");
   const [subscribing, setSubscribing] = useState(false);
 
+  // The rules, checked each time `auto` turns on.
   useEffect(() => {
-    registerServiceWorker().catch((error) =>
-      console.error("Service worker registration failed:", error),
-    );
-  }, []);
-
-  useEffect(() => {
-    if (!studentId || typeof Notification === "undefined") return;
-    if (Notification.permission !== "granted") return;
-    const last = Number(safeGet(syncKey(studentId)));
-    if (last && Date.now() - last <= SYNC_INTERVAL_MS) return;
-    SubscribeStudentToPushService()
-      .then(() => safeSet(syncKey(studentId), String(Date.now())))
-      .catch((error) => console.error("Push subscription re-sync failed:", error));
-  }, [studentId]);
-
-  // The old AskNotification rules, checked once on mount.
-  useEffect(() => {
+    if (!auto) return;
     const current = getPushStatus();
     const dismissed = safeGet(DISMISSED_KEY) !== null;
     // A blocked browser can't be asked again: remember it like a "Later".
     if (!dismissed && current === "denied") markDismissed();
     setStatus(current);
     setAutoOpen(autoPushPrompt({ dismissed, status: current }) !== null);
-  }, []);
+  }, [auto]);
 
   useEffect(() => {
     if (!forceOpen) return;
@@ -208,7 +188,7 @@ export function NotificationPromptSheet({
 
   return (
     <Sheet
-      open={forceOpen || autoOpen}
+      open={forceOpen || (auto && autoOpen)}
       onClose={close}
       ariaLabel={announcementDataLanguage.notifications(lang)}
     >

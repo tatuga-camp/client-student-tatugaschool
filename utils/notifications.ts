@@ -44,6 +44,16 @@ export async function registerServiceWorker() {
   return null;
 }
 
+/** Registers this device for push (call once permission is granted). */
+export async function subscribePush(): Promise<void> {
+  // Subscribing waits for an active service worker.
+  await registerServiceWorker();
+  // Loaded on use: services/push imports this module (a static import
+  // would be a cycle through services/apiService and utils/index).
+  const { SubscribeStudentToPushService } = await import("../services/push");
+  await SubscribeStudentToPushService();
+}
+
 export async function subscribeUserToPush() {
   try {
     const registration = await navigator.serviceWorker.ready;

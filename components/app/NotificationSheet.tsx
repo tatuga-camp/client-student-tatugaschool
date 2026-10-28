@@ -1,4 +1,3 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import {
@@ -22,9 +21,12 @@ import {
   useMarkAsReadStudentNotification,
 } from "../../react-query";
 import { notificationHref } from "../../utils/notificationLink";
-import { getPushStatus, PushStatus } from "../../utils/notifications";
+import {
+  getPushStatus,
+  PushStatus,
+  subscribePush,
+} from "../../utils/notifications";
 import LoadingSpinner from "../common/LoadingSpinner";
-import { subscribePush } from "./NotificationPromptSheet";
 import { Sheet } from "./Sheet";
 
 type Props = { open: boolean; onClose: () => void };
@@ -69,7 +71,6 @@ const OTHER_TILE = {
 
 function NotificationList({ onDone, lang }: { onDone: () => void; lang: Language }) {
   const router = useRouter();
-  const queryClient = useQueryClient();
   const notifications = useGetStudentNotifications();
   const markAsRead = useMarkAsReadStudentNotification();
   const markAllAsRead = useMarkAllAsReadStudentNotifications();
@@ -77,13 +78,8 @@ function NotificationList({ onDone, lang }: { onDone: () => void; lang: Language
   const unread = list.filter((n) => !n.isRead).length;
 
   const select = (n: StudentNotification) => {
+    // Marks it read in the cache at once (see the hook).
     markAsRead.mutate({ id: n.id });
-    // Drop it from the badge now: after a jump to another subject no bell
-    // is mounted to refetch, and the app never refetches on mount.
-    queryClient.setQueryData<StudentNotification[]>(
-      ["student-notifications"],
-      (old) => old?.map((x) => (x.id === n.id ? { ...x, isRead: true } : x)),
-    );
     onDone();
     router.push(notificationHref(n));
   };
