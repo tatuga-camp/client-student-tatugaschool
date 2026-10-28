@@ -1,6 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  interceptPop,
+  setPopInterceptor,
   leaveGuardActive,
   leaveIfAllowed,
   setLeaveInterceptor,
@@ -72,4 +74,58 @@ test("a stale interceptor cannot clear a newer one", () => {
   setLeaveInterceptor(null, b);
   assert.equal(leaveGuardActive(), true);
   setLeaveInterceptor(null);
+});
+
+test("two concurrent callers produce exactly one question and one navigation", async () => {
+  const answer = deferred<boolean>();
+  let asked = 0;
+  let left = 0;
+  setLeaveInterceptor({
+    active: () => true,
+    confirm: () => (asked++, answer.promise),
+  });
+  const first = leaveIfAllowed(() => void left++);
+  const second = leaveIfAllowed(() => void left++);
+  answer.resolve(true);
+  assert.deepEqual(await Promise.all([first, second]), ["left", "left"]);
+  assert.equal(asked, 1);
+  assert.equal(left, 1);
+  setLeaveInterceptor(null);
+});
+
+test("concurrent callers after a Stay all stay, and a later call asks again", async () => {
+  let asked = 0;
+  let left = 0;
+  setLeaveInterceptor({
+    active: () => true,
+    confirm: async () => (asked++, asked > 1),
+  });
+  const results = await Promise.all([
+    leaveIfAllowed(() => void left++),
+    leaveIfAllowed(() => void left++),
+  ]);
+  assert.deepEqual(results, ["stayed", "stayed"]);
+  assert.equal(left, 0);
+  assert.equal(await leaveIfAllowed(() => void left++), "left");
+  assert.equal(asked, 2);
+  assert.equal(left, 1);
+  setLeaveInterceptor(null);
+});
+
+test("two quick presses with no guard leave once", async () => {
+  setLeaveInterceptor(null);
+  let left = 0;
+  await Promise.all([
+    leaveIfAllowed(() => void left++),
+    leaveIfAllowed(() => void left++),
+  ]);
+  assert.equal(left, 1);
+});
+
+test("a pop interceptor decides whether a browser back is cancelled", () => {
+  assert.equal(interceptPop({ as: "/x" }), false);
+  setPopInterceptor((state) => state.as === "/x");
+  assert.equal(interceptPop({ as: "/x" }), true);
+  assert.equal(interceptPop({ as: "/y" }), false);
+  setPopInterceptor(null);
 });

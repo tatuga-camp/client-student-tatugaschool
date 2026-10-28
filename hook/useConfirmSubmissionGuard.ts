@@ -1,7 +1,8 @@
 import { useRouter } from "next/router";
 import React from "react";
+import { popRestoreDelta } from "../components/app/shell/useShellRoute";
 import { isSamePath } from "../utils";
-import { setLeaveInterceptor } from "../utils/leaveGuard";
+import { setLeaveInterceptor, setPopInterceptor } from "../utils/leaveGuard";
 
 const ABORT_MESSAGE =
   "Route change aborted by useConfirmSubmissionGuard (safe to ignore)";
@@ -13,10 +14,13 @@ type Choice = "submit" | "leave" | "stay";
  *
  * - The in-app back button/edge swipe ask first (utils/leaveGuard) and only
  *   then pop history, so "stay" never touches the URL.
- * - Any other route change (a push, or the browser's own back) is cancelled,
- *   the student is asked, and it is redone on leave/submit. On a cancelled
- *   browser back, "stay" puts the URL back.
+ * - The browser's own back/forward is cancelled through beforePopState (no
+ *   throw), the student is asked, and on leave/submit the route is rendered;
+ *   on stay history.go() steps back to the entry we were on.
+ * - A programmatic push from elsewhere can only be cancelled by throwing in
+ *   routeChangeStart (Next's idiom); it is redone on leave/submit.
  * - `ask` shows the choice (the sheet owns the copy); `onConfirm` submits.
+ * - The guard stays active while its decision (or the submit) is pending.
  */
 function useConfirmSubmissionGuard({
   enabled,
@@ -29,6 +33,8 @@ function useConfirmSubmissionGuard({
 }): void {
   const router = useRouter();
   const bypassRef = React.useRef(false);
+  const aliveRef = React.useRef(true);
+  const restoringRef = React.useRef(false);
   const pendingRef = React.useRef<Promise<boolean> | null>(null);
   // The handlers are registered once, so they read the latest props through
   // refs instead of closing over stale values.
@@ -40,11 +46,14 @@ function useConfirmSubmissionGuard({
   askRef.current = ask;
 
   React.useEffect(() => {
+    aliveRef.current = true;
+    const needsAnswer = () =>
+      pendingRef.current !== null || (enabledRef.current && !bypassRef.current);
+
     /** true = the student may leave. One question at a time. */
     const decide = (): Promise<boolean> => {
-      if (!enabledRef.current || bypassRef.current)
-        return Promise.resolve(true);
       if (pendingRef.current) return pendingRef.current;
+      if (!needsAnswer()) return Promise.resolve(true);
       const run = (async () => {
         const choice = await askRef.current();
         if (choice === "stay") return false;
@@ -59,36 +68,52 @@ function useConfirmSubmissionGuard({
       return run;
     };
 
-    const interceptor = {
-      active: () => enabledRef.current && !bypassRef.current,
-      confirm: decide,
-    };
+    const interceptor = { active: needsAnswer, confirm: decide };
     setLeaveInterceptor(interceptor);
 
-    const handleRouteChangeStart = (url: string) => {
-      if (!enabledRef.current || bypassRef.current) return;
-      if (isSamePath(router.asPath, url)) return;
-      // A browser back/forward has already moved the address bar.
-      const poppedByBrowser = !isSamePath(
-        window.location.pathname,
-        router.asPath,
-      );
+    // Browser back/forward: cancel, ask, then render or step back.
+    const onPop = (state: { as: string }): boolean => {
+      if (restoringRef.current) {
+        // The pop we caused to undo the cancelled one: nothing to render.
+        restoringRef.current = false;
+        return true;
+      }
+      if (!needsAnswer() || bypassRef.current) return false;
+      const delta = popRestoreDelta();
       const here = router.asPath;
+      void decide().then((leave) => {
+        if (!aliveRef.current) return;
+        if (leave) {
+          router.replace(state.as);
+        } else if (delta !== null && delta !== 0) {
+          restoringRef.current = true;
+          window.history.go(delta);
+        } else {
+          // Index unknown: the old duplicate-entry fallback.
+          router.push(here, undefined, { scroll: false });
+        }
+      });
+      return true;
+    };
+    setPopInterceptor(onPop);
+
+    // Anything else (a programmatic push) can only be cancelled by throwing.
+    const handleRouteChangeStart = (url: string) => {
+      if (!needsAnswer() || bypassRef.current) return;
+      if (isSamePath(router.asPath, url)) return;
       router.events.emit("routeChangeError");
       void decide().then((leave) => {
-        if (leave) router.push(url);
-        else if (poppedByBrowser)
-          router.push(here, undefined, { scroll: false });
+        if (leave && aliveRef.current) router.push(url);
       });
-      // Throwing inside routeChangeStart is the Pages Router idiom to
-      // cancel a navigation; Next.js surfaces it as a routeChangeError.
       throw ABORT_MESSAGE;
     };
 
     router.events.on("routeChangeStart", handleRouteChangeStart);
     return () => {
+      aliveRef.current = false;
       router.events.off("routeChangeStart", handleRouteChangeStart);
       setLeaveInterceptor(null, interceptor);
+      setPopInterceptor(null, onPop);
     };
   }, [router]);
 

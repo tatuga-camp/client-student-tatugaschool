@@ -42,6 +42,9 @@ type Props = {
   onTurnedIn: (info: { itemCount: number }) => void;
 };
 
+/** How long the guard's "Mark as done" waits for an upload before giving up. */
+const UPLOAD_WAIT_MS = 60_000;
+
 const pillBase =
   "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold";
 
@@ -103,7 +106,10 @@ export default function YourWorkSheet({
       );
       return true;
     } catch (error) {
-      workError(error, lang);
+      workError(error, lang, {
+        title: assignmentPageLanguage.updateFailedTitle(lang),
+        text: assignmentPageLanguage.updateFailedText(lang),
+      });
       return false;
     }
   };
@@ -128,22 +134,49 @@ export default function YourWorkSheet({
       answerRef.current = resolve;
       setGuardOpen(true);
     });
+  const [guardBusy, setGuardBusy] = useState<"upload" | "submit" | null>(null);
   const choose = (choice: "submit" | "leave" | "stay") => {
-    setGuardOpen(false);
+    // Submitting keeps the sheet open (busy) until it is done or has failed.
+    if (choice === "submit")
+      setGuardBusy(uploadingRef.current ? "upload" : "submit");
+    else setGuardOpen(false);
     answerRef.current?.(choice);
     answerRef.current = null;
   };
   // Never leave a question hanging if the page goes away.
   useEffect(() => () => answerRef.current?.("stay"), []);
+  const guardEnabled =
+    (unconfirmed || uploading) && !justSubmitted && !updateWork.isPending;
+  // Nothing left to protect (e.g. the upload failed before any item landed)
+  // while the question is open: the student asked to leave, so let them.
+  useEffect(() => {
+    if (!guardEnabled && answerRef.current) choose("leave");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [guardEnabled]);
   useConfirmSubmissionGuard({
-    enabled:
-      (unconfirmed || uploading) && !justSubmitted && !updateWork.isPending,
+    enabled: guardEnabled,
     onConfirm: async () => {
-      // Submitting while a file is still going up would turn in without it.
-      while (uploadingRef.current) {
-        await new Promise((r) => setTimeout(r, 200));
+      try {
+        // Submitting while a file is still going up would turn in without it,
+        // so wait for it, but not forever.
+        const startedAt = Date.now();
+        while (uploadingRef.current) {
+          if (Date.now() - startedAt > UPLOAD_WAIT_MS) {
+            workError(
+              new Error(assignmentPageLanguage.uploadWaitTimeout(lang)),
+              lang,
+            );
+            return false;
+          }
+          setGuardBusy("upload");
+          await new Promise((r) => setTimeout(r, 200));
+        }
+        setGuardBusy("submit");
+        return await setStatus("SUBMITTED");
+      } finally {
+        setGuardBusy(null);
+        setGuardOpen(false);
       }
-      return setStatus("SUBMITTED");
     },
     ask,
   });
@@ -373,7 +406,7 @@ export default function YourWorkSheet({
         </div>
       </Sheet>
 
-      <LeaveGuardSheet open={guardOpen} onChoose={choose} />
+      <LeaveGuardSheet open={guardOpen} busy={guardBusy} onChoose={choose} />
       <NoteSheet
         open={noteOpen}
         lang={lang}

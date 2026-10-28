@@ -2,7 +2,7 @@ import Router, { useRouter } from "next/router";
 import { useEffect, useMemo } from "react";
 import { queryString } from "../../common/RouteParamsGate";
 import { leaveIfAllowed } from "../../../utils/leaveGuard";
-import { createHistoryIndex } from "../../../utils/historyIndex";
+import { createHistoryIndex, restoreDelta } from "../../../utils/historyIndex";
 import { backTarget, parseTab, TabKey } from "../../../utils/tabs";
 
 export type ShellRoute = {
@@ -29,6 +29,15 @@ function currentHistoryIdx(): number {
   return historyIndex.visit(
     (window.history.state as { key?: string } | null)?.key,
   );
+}
+
+/**
+ * Called while a browser pop is being handled (before the shell has moved):
+ * how far history.go() must go to get back to the entry we were on.
+ */
+export function popRestoreDelta(): number | null {
+  const key = (window.history.state as { key?: string } | null)?.key;
+  return restoreDelta(historyIndex.current(), historyIndex.peek(key));
 }
 
 // Set while our own back() pops history, so the detail stack can tell it

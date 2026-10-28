@@ -17,7 +17,12 @@ export function workToast(title: string): void {
 }
 
 /** Failure feedback for any work-item mutation (TH/EN fallback title). */
-export function workError(error: unknown, lang: Language): void {
+export function workError(
+  error: unknown,
+  lang: Language,
+  /** A TH/EN title and message to show instead of the server's (English) ones. */
+  generic?: { title: string; text: string },
+): void {
   console.error(error);
   const content = errorSwalContent(
     error,
@@ -25,9 +30,15 @@ export function workError(error: unknown, lang: Language): void {
   );
   // errorSwalContent's footer is English ("Code Error: 403"): say it again.
   const code = content.footer.match(/\d+/)?.[0];
+  const codeLine = code ? assignmentPageLanguage.errorCode(lang, code) : "";
+  // With a generic message, the server's own text is only a small detail.
+  const detail = generic
+    ? [codeLine, content.text].filter(Boolean).join(" · ")
+    : codeLine;
   void Swal.fire({
     ...content,
-    footer: code ? assignmentPageLanguage.errorCode(lang, code) : "",
+    ...(generic ?? {}),
+    footer: detail,
     confirmButtonText: assignmentPageLanguage.ok(lang),
     icon: "error",
   });

@@ -11,7 +11,7 @@ import AssignmentDetail from "../../assignment/AssignmentDetail";
 import { OverlayScope } from "../OverlayScope";
 import { canStartShellSwipe, edgeBackOutcome } from "../../../utils/tabs";
 import { DetailActiveContext } from "./DetailActive";
-import { leaveGuardActive } from "../../../utils/leaveGuard";
+import { interceptPop, leaveGuardActive } from "../../../utils/leaveGuard";
 import PaneErrorBoundary from "./PaneErrorBoundary";
 import { inertProps, TAP_SLOP } from "./TabPager";
 import { ShellRoute, takeInAppPop, useShellNav } from "./useShellRoute";
@@ -58,7 +58,9 @@ export default function DetailStack({ subjectId, detail, depthApi }: Props) {
   // Note browser back/forward so Safari's own swipe isn't animated twice;
   // the shell's own back button pops history too, and that one animates.
   useEffect(() => {
-    Router.beforePopState(() => {
+    Router.beforePopState((state) => {
+      // The unsent-work guard may take a browser back over (and cancel it).
+      if (interceptPop(state)) return false;
       popped.current = !takeInAppPop();
       return true;
     });
@@ -96,6 +98,36 @@ export default function DetailStack({ subjectId, detail, depthApi }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, depthApi]);
 
+  // An embedded iframe (YouTube) swallows the pointer events of a drag that
+  // crosses it, so the gesture would never see its end. While an edge-drag
+  // runs the panel's iframes ignore the pointer, and whatever way the press
+  // ends the panel is made to rest again.
+  const frozen = useRef<HTMLIFrameElement[]>([]);
+  const dragLive = useRef<(() => void) | null>(null);
+  const thaw = () => {
+    frozen.current.forEach((f) => (f.style.pointerEvents = ""));
+    frozen.current = [];
+  };
+  const startGuard = (panel: HTMLElement, settleNow: () => void) => {
+    frozen.current = Array.from(panel.querySelectorAll("iframe"));
+    frozen.current.forEach((f) => (f.style.pointerEvents = "none"));
+    dragLive.current = settleNow;
+    const rescue = () => {
+      thaw();
+      // If use-gesture did not deliver its own last event, settle here.
+      window.setTimeout(() => {
+        dragLive.current?.();
+        dragLive.current = null;
+      }, 0);
+    };
+    window.addEventListener("pointerup", rescue, { once: true });
+    window.addEventListener("pointercancel", rescue, { once: true });
+  };
+  const endGuard = () => {
+    thaw();
+    dragLive.current = null;
+  };
+
   const bind = useDrag(
     ({
       args: [ctrl, key],
@@ -119,7 +151,10 @@ export default function DetailStack({ subjectId, detail, depthApi }: Props) {
       // A tap, or the extra release use-gesture sends after cancel():
       // nothing to decide, just make sure the page rests in place.
       if (tap || canceled) {
-        if (last) settle();
+        if (last) {
+          endGuard();
+          settle();
+        }
         return memo;
       }
       const panel = currentTarget as HTMLElement;
@@ -132,6 +167,7 @@ export default function DetailStack({ subjectId, detail, depthApi }: Props) {
         ? ix - panel.getBoundingClientRect().left
         : memo;
       if (first && startX > EDGE) return cancel();
+      if (first) startGuard(panel, settle);
       const width = panel.clientWidth || 1;
       const x = Math.max(0, mx);
       if (!last) {
@@ -139,6 +175,7 @@ export default function DetailStack({ subjectId, detail, depthApi }: Props) {
         depthApi.start({ depth: 1 - x / width, immediate: true });
         return startX;
       }
+      endGuard();
       // The click that ends a mouse edge-drag must not hit what it was over.
       suppressClick.current = true;
       window.setTimeout(() => {

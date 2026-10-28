@@ -9,10 +9,20 @@
 export function createHistoryIndex(): {
   /** The index of the entry with this key, recording it if it is new. */
   visit(key: string | null | undefined): number;
+  /** The index of a known entry, or undefined; never moves the position. */
+  peek(key: string | null | undefined): number | undefined;
+  /** The index of the entry the shell is on. */
+  current(): number;
 } {
   const indexes = new Map<string, number>();
   let current = -1;
   return {
+    peek(key) {
+      return key ? indexes.get(key) : undefined;
+    },
+    current() {
+      return current;
+    },
     visit(key) {
       if (!key) return 0;
       let index = indexes.get(key);
@@ -25,4 +35,15 @@ export function createHistoryIndex(): {
       return index;
     },
   };
+}
+
+/**
+ * How far history.go() must move to return to the entry we were on, after
+ * the browser popped to another one (null when the popped entry is unknown).
+ */
+export function restoreDelta(
+  currentIdx: number,
+  poppedIdx: number | undefined,
+): number | null {
+  return poppedIdx === undefined ? null : currentIdx - poppedIdx;
 }

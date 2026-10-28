@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createHistoryIndex } from "./historyIndex";
+import { createHistoryIndex, restoreDelta } from "./historyIndex";
 
 test("the first entry seen is 0 and each new entry follows the current one", () => {
   const history = createHistoryIndex();
@@ -44,4 +44,22 @@ test("an entry without a key counts as 0 and does not move the position", () => 
   assert.equal(history.visit(null), 0);
   assert.equal(history.visit(undefined), 0);
   assert.equal(history.visit("c"), 2);
+});
+
+test("restoreDelta is how far history.go must move to get back", () => {
+  assert.equal(restoreDelta(2, 1), 1);
+  assert.equal(restoreDelta(2, 0), 2);
+  assert.equal(restoreDelta(1, 3), -2);
+  assert.equal(restoreDelta(2, 2), 0);
+  assert.equal(restoreDelta(2, undefined), null);
+});
+
+test("peek and current read the index without moving it", () => {
+  const h = createHistoryIndex();
+  h.visit("a");
+  h.visit("b");
+  assert.equal(h.current(), 1);
+  assert.equal(h.peek("a"), 0);
+  assert.equal(h.peek("zzz"), undefined);
+  assert.equal(h.current(), 1);
 });
