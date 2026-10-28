@@ -66,7 +66,7 @@ function desktopClouds(night: boolean): [Slot, Slot, Slot] {
 const DESKTOP_SUN: Record<DayPeriod, { x: number; y: number }> = {
   morning: { x: 400, y: 250 },
   noon: { x: 900, y: 120 },
-  afternoon: { x: 950, y: 260 },
+  afternoon: { x: 870, y: 200 },
   night: { x: 880, y: 130 },
 };
 
@@ -78,10 +78,25 @@ const CONFIG = {
     glowNight: 46,
     moon: { rect: 30, cx: 8, cy: -6, r: 15 },
     clouds: [
-      { rx: 24, ry: 9, bumps: [[-8, -6, 10], [7, -9, 12]] },
-      { rx: 18, ry: 7, bumps: [[-5, -5, 8], [6, -6, 9]] },
+      {
+        rx: 24,
+        ry: 9,
+        bumps: [
+          [-8, -6, 10],
+          [7, -9, 12],
+        ],
+      },
+      {
+        rx: 18,
+        ry: 7,
+        bumps: [
+          [-5, -5, 8],
+          [6, -6, 9],
+        ],
+      },
     ] as CloudShape[],
-    hillFar: "M0 222 C 40 196 80 196 120 214 C 160 230 200 196 280 206 V330 H0Z",
+    hillFar:
+      "M0 222 C 40 196 80 196 120 214 C 160 230 200 196 280 206 V330 H0Z",
     hillNear:
       "M0 252 C 60 228 110 236 150 248 C 200 262 240 236 280 242 V330 H0Z",
     ground: "M-10 292 C 70 266 210 266 290 292 V330 H-10Z",
@@ -106,9 +121,30 @@ const CONFIG = {
     glowNight: 110,
     moon: { rect: 60, cx: 18, cy: -14, r: 38 },
     clouds: [
-      { rx: 70, ry: 24, bumps: [[-24, -16, 28], [20, -26, 34]] },
-      { rx: 50, ry: 18, bumps: [[-14, -12, 20], [16, -16, 24]] },
-      { rx: 40, ry: 14, bumps: [[-10, -10, 16], [12, -12, 18]] },
+      {
+        rx: 70,
+        ry: 24,
+        bumps: [
+          [-24, -16, 28],
+          [20, -26, 34],
+        ],
+      },
+      {
+        rx: 50,
+        ry: 18,
+        bumps: [
+          [-14, -12, 20],
+          [16, -16, 24],
+        ],
+      },
+      {
+        rx: 40,
+        ry: 14,
+        bumps: [
+          [-10, -10, 16],
+          [12, -12, 18],
+        ],
+      },
     ] as CloudShape[],
     hillFar:
       "M0 420 C 160 340 300 350 460 400 C 620 450 780 340 1100 370 V620 H0Z",
@@ -153,9 +189,10 @@ function targetFor(period: DayPeriod, variant: Variant): SceneTarget {
     leaf: p.leaf,
     ground: p.ground,
     flag: p.flag,
-    pole: night ? "#5C6494" : "#8A8FA8",
-    door: night ? "#151C40" : p.roof,
-    cupola: night ? "#FFD970" : p.wall,
+    pole: p.pole,
+    door: p.door,
+    cupola: p.cupola,
+    firefly: p.firefly,
     sx: sun.x,
     sy: sun.y,
     cutR: night ? cfg.moon.r : 0,
@@ -239,9 +276,12 @@ function Scene({
       <rect width={w} height={h} fill={`url(#${sky})`} />
       <Stars
         s={s}
+        twinkle={period === "night"}
         stars={cfg.stars.map(([cx, cy, r, delay]) => ({ cx, cy, r, delay }))}
       />
-      <animated.g transform={to([s.sx, s.sy], (x, y) => `translate(${x} ${y})`)}>
+      <animated.g
+        transform={to([s.sx, s.sy], (x, y) => `translate(${x} ${y})`)}
+      >
         <animated.g opacity={s.glowOp}>
           <animated.circle
             className="tgs-glow"
@@ -252,7 +292,13 @@ function Scene({
         <animated.circle r={cfg.sunR} fill={s.sun} mask={`url(#${moon})`} />
       </animated.g>
       {cfg.clouds.map((shape, i) => (
-        <Cloud key={i} s={s} slot={i as 0 | 1 | 2} shape={shape} slow={i === 1} />
+        <Cloud
+          key={i}
+          s={s}
+          slot={i as 0 | 1 | 2}
+          shape={shape}
+          slow={i === 1}
+        />
       ))}
       <animated.path d={cfg.hillFar} fill={s.hillFar} />
       <School s={s} transform={cfg.school} />
@@ -260,7 +306,7 @@ function Scene({
       {cfg.trees.map((t) => (
         <Tree key={t} s={s} transform={t} />
       ))}
-      {variant === "phone" && <Fireflies s={s} />}
+      {variant === "phone" && <Fireflies s={s} twinkle={period === "night"} />}
       <animated.path d={cfg.ground} fill={s.ground} />
     </svg>
   );

@@ -62,7 +62,7 @@
 .tgs-loops .tgs-drift.tgs-slow { animation-duration: 20s; animation-direction: alternate-reverse; }
 .tgs-loops.tgs-desktop .tgs-drift { animation-name: tgs-drift-wide; animation-duration: 18s; }
 .tgs-loops.tgs-desktop .tgs-drift.tgs-slow { animation-duration: 26s; }
-.tgs-loops .tgs-star { animation: tgs-twinkle 2.4s ease-in-out infinite alternate; }
+.tgs-loops .tgs-twinkle { animation: tgs-twinkle 2.4s ease-in-out infinite alternate; }
 .tgs-loops .tgs-flag { animation: tgs-wave 1.6s ease-in-out infinite alternate; }
 .tgs-loops .tgs-sway { animation: tgs-sway 3.5s ease-in-out infinite alternate; }
 @keyframes tgs-pulse { from { transform: scale(1); } to { transform: scale(1.12); } }

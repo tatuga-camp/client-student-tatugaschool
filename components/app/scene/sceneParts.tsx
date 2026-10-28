@@ -18,6 +18,7 @@ export type SceneTarget = {
   pole: string;
   door: string;
   cupola: string;
+  firefly: string;
   sx: number;
   sy: number;
   cutR: number;
@@ -38,7 +39,11 @@ export type SceneTarget = {
 
 export type SceneSpring = SpringValues<SceneTarget>;
 
-export type CloudShape = { rx: number; ry: number; bumps: [number, number, number][] };
+export type CloudShape = {
+  rx: number;
+  ry: number;
+  bumps: [number, number, number][];
+};
 
 const WIN_XY: [number, number, boolean][] = [
   [10, 34, false],
@@ -83,8 +88,10 @@ export function Cloud({
 export function Stars({
   s,
   stars,
+  twinkle,
 }: {
   s: SceneSpring;
+  twinkle: boolean;
   stars: { cx: number; cy: number; r: number; delay: number }[];
 }) {
   return (
@@ -92,7 +99,7 @@ export function Stars({
       {stars.map((st) => (
         <circle
           key={`${st.cx}${st.cy}`}
-          className="tgs-star"
+          className={twinkle ? "tgs-star tgs-twinkle" : "tgs-star"}
           cx={st.cx}
           cy={st.cy}
           r={st.r}
@@ -104,28 +111,44 @@ export function Stars({
 }
 
 // Firefly dots by the tree, night only (phone mockup).
-export function Fireflies({ s }: { s: SceneSpring }) {
+export function Fireflies({
+  s,
+  twinkle,
+}: {
+  s: SceneSpring;
+  twinkle: boolean;
+}) {
   return (
     <animated.g opacity={s.starOp}>
-      <circle
-        className="tgs-star"
+      <animated.circle
+        className={twinkle ? "tgs-star tgs-twinkle" : "tgs-star"}
         cx={214}
         cy={232}
         r={1.6}
-        style={{ fill: "#FFE98A", animationDuration: "1.4s" }}
+        style={{ fill: s.firefly, animationDuration: "1.4s" }}
       />
-      <circle
-        className="tgs-star"
+      <animated.circle
+        className={twinkle ? "tgs-star tgs-twinkle" : "tgs-star"}
         cx={262}
         cy={250}
         r={1.4}
-        style={{ fill: "#FFE98A", animationDuration: "1.8s", animationDelay: ".5s" }}
+        style={{
+          fill: s.firefly,
+          animationDuration: "1.8s",
+          animationDelay: ".5s",
+        }}
       />
     </animated.g>
   );
 }
 
-export function School({ s, transform }: { s: SceneSpring; transform: string }) {
+export function School({
+  s,
+  transform,
+}: {
+  s: SceneSpring;
+  transform: string;
+}) {
   return (
     <g transform={transform}>
       <animated.line
@@ -154,7 +177,14 @@ export function School({ s, transform }: { s: SceneSpring; transform: string }) 
           opacity={dim ? s.winDim : 1}
         />
       ))}
-      <animated.rect x={40} y={56} width={12} height={30} rx={2} fill={s.door} />
+      <animated.rect
+        x={40}
+        y={56}
+        width={12}
+        height={30}
+        rx={2}
+        fill={s.door}
+      />
     </g>
   );
 }
@@ -163,11 +193,18 @@ export function Tree({ s, transform }: { s: SceneSpring; transform: string }) {
   return (
     <g transform={transform}>
       <g className="tgs-sway">
-        <animated.rect x={-4} y={16} width={8} height={42} rx={3} fill={s.trunk} />
+        <animated.rect
+          x={-4}
+          y={16}
+          width={8}
+          height={42}
+          rx={3}
+          fill={s.trunk}
+        />
         <animated.g fill={s.leaf}>
-          <circle cx={0} cy={8} r={22} />
-          <circle cx={-15} cy={22} r={14} />
-          <circle cx={15} cy={20} r={15} />
+          <animated.circle cx={0} cy={8} r={22} />
+          <animated.circle cx={-15} cy={22} r={14} />
+          <animated.circle cx={15} cy={20} r={15} />
         </animated.g>
       </g>
     </g>

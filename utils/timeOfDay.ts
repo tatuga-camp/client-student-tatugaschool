@@ -23,6 +23,10 @@ export type ScenePalette = {
   leaf: string;
   ground: string;
   flag: string;
+  pole: string;
+  door: string;
+  cupola: string;
+  firefly: string;
   statusText: "light" | "dark";
 };
 
@@ -42,6 +46,10 @@ export const SCENE_PALETTES: Record<DayPeriod, ScenePalette> = {
     leaf: "#6DBE7A",
     ground: "#A6DB86",
     flag: "#2C7CD1",
+    pole: "#8A8FA8",
+    door: "#E8774E",
+    cupola: "#FFF4E2",
+    firefly: "#FFE98A",
     statusText: "dark",
   },
   noon: {
@@ -59,6 +67,10 @@ export const SCENE_PALETTES: Record<DayPeriod, ScenePalette> = {
     leaf: "#4FB15E",
     ground: "#7FD36E",
     flag: "#FFCD1B",
+    pole: "#8A8FA8",
+    door: "#2C7CD1",
+    cupola: "#FFFFFF",
+    firefly: "#FFE98A",
     statusText: "light",
   },
   afternoon: {
@@ -76,6 +88,10 @@ export const SCENE_PALETTES: Record<DayPeriod, ScenePalette> = {
     leaf: "#7FA94F",
     ground: "#B8C873",
     flag: "#2C7CD1",
+    pole: "#8A8FA8",
+    door: "#D9663B",
+    cupola: "#FFEBD2",
+    firefly: "#FFE98A",
     statusText: "light",
   },
   night: {
@@ -93,6 +109,10 @@ export const SCENE_PALETTES: Record<DayPeriod, ScenePalette> = {
     leaf: "#20305E",
     ground: "#223069",
     flag: "#2C7CD1",
+    pole: "#5C6494",
+    door: "#151C40",
+    cupola: "#FFD970",
+    firefly: "#FFE98A",
     statusText: "light",
   },
 };
