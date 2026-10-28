@@ -45,3 +45,6 @@ next-env.d.ts
 /public/assets/libs/tinymce
 
 /public/pdf.worker.min.mjs
+
+# superpowers working files
+.superpowers/
