@@ -5,7 +5,7 @@ import {
 } from "../../data/languages";
 import { Language, Subject } from "../../interfaces";
 import { canStudentViewScore } from "../../utils";
-import { reviewedMood } from "../../utils/assignmentDetail";
+import { formatScore, reviewedMood } from "../../utils/assignmentDetail";
 import { mascotForStudent } from "../../utils/mascot";
 import MascotAvatar from "../student/MascotAvatar";
 import RubricBreakdown from "../subject/RubricBreakdown";
@@ -64,7 +64,9 @@ export default function ReviewedCard({
   return (
     <section>
       <div
-        className="relative flex items-center gap-3 overflow-hidden rounded-[20px] p-3 text-white"
+        className={`relative flex gap-3 overflow-hidden rounded-[20px] p-3 text-white ${
+          score === null ? "flex-col items-start" : "items-center"
+        }`}
         style={{ background: bg, boxShadow: `0 5px 0 ${shadow}` }}
       >
         {score !== null ? (
@@ -78,8 +80,7 @@ export default function ReviewedCard({
               className="grid h-[50px] w-[50px] place-items-center rounded-full text-sm font-bold"
               style={{ background: bg }}
             >
-              {Number.isInteger(score) ? score : score.toFixed(1)}/
-              {assignment.maxScore}
+              {formatScore(score)}/{formatScore(assignment.maxScore)}
             </span>
           </div>
         ) : canView ? (
@@ -89,7 +90,7 @@ export default function ReviewedCard({
         ) : (
           <ScoreHiddenBadge />
         )}
-        <div className="min-w-0 flex-1 pr-20">
+        <div className={`min-w-0 ${mood ? "flex-1 pr-20" : ""}`}>
           <div className="text-base font-bold leading-tight">{heading}</div>
           <div className="mt-0.5 text-[11px] font-semibold opacity-90">
             {reviewedAt && <div>{t.reviewedOn(lang, reviewedAt)}</div>}

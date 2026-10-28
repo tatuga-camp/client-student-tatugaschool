@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  formatScore,
   initialUploadProgress,
   fileSizeLabel,
   hasRichContent,
@@ -228,4 +229,12 @@ test("initialUploadProgress starts at the first of the picked files", () => {
     index: 1,
     count: 3,
   });
+});
+
+test("formatScore keeps up to two decimals and drops trailing zeros", () => {
+  assert.equal(formatScore(9), "9");
+  assert.equal(formatScore(8.5), "8.5");
+  assert.equal(formatScore(8.75), "8.75");
+  assert.equal(formatScore(8.456), "8.46");
+  assert.equal(formatScore(0), "0");
 });

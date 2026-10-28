@@ -442,6 +442,10 @@ export const assignmentPageLanguage = {
   addComment: t("Add a comment…", "เขียนความคิดเห็น…"),
   sendComment: t("Send", "ส่ง"),
   teacherRole: t("Teacher", "ครู"),
+  nothingAddedShort: t("Nothing added", "ไม่มีงาน"),
+  ok: t("OK", "ตกลง"),
+  errorCode: (l: Language, code: string) =>
+    l === "th" ? `รหัสข้อผิดพลาด: ${code}` : `Error code: ${code}`,
   deleteCommentTitle: t("Delete this comment?", "ลบความคิดเห็นนี้?"),
   link: t("Link", "ลิงก์"),
   fileKindPdf: t("PDF", "PDF"),

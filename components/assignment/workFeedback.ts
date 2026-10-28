@@ -19,8 +19,16 @@ export function workToast(title: string): void {
 /** Failure feedback for any work-item mutation (TH/EN fallback title). */
 export function workError(error: unknown, lang: Language): void {
   console.error(error);
+  const content = errorSwalContent(
+    error,
+    assignmentPageLanguage.somethingWentWrong(lang),
+  );
+  // errorSwalContent's footer is English ("Code Error: 403"): say it again.
+  const code = content.footer.match(/\d+/)?.[0];
   void Swal.fire({
-    ...errorSwalContent(error, assignmentPageLanguage.somethingWentWrong(lang)),
+    ...content,
+    footer: code ? assignmentPageLanguage.errorCode(lang, code) : "",
+    confirmButtonText: assignmentPageLanguage.ok(lang),
     icon: "error",
   });
 }

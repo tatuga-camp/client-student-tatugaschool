@@ -45,10 +45,42 @@ export default function TurnedInCelebration({
 }: Props) {
   const scoped = useContext(OverlayRootContext);
   const primaryRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (open) primaryRef.current?.focus({ preventScroll: true });
+    if (!open) return;
+    const opener = document.activeElement as HTMLElement | null;
+    primaryRef.current?.focus({ preventScroll: true });
+    return () => {
+      queueMicrotask(() => {
+        if (opener?.isConnected) opener.focus({ preventScroll: true });
+      });
+    };
   }, [open]);
   if (!open) return null;
+
+  // Esc = Back; Tab stays inside the dialog.
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Escape") {
+      e.stopPropagation();
+      onBack();
+      return;
+    }
+    if (e.key !== "Tab") return;
+    const buttons = Array.from(
+      dialogRef.current?.querySelectorAll<HTMLElement>("button") ?? [],
+    );
+    if (buttons.length === 0) return;
+    const first = buttons[0];
+    const last = buttons[buttons.length - 1];
+    const active = document.activeElement;
+    if (e.shiftKey && active === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && active === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  };
 
   const t = assignmentPageLanguage;
   const sent = summary.sentAt
@@ -73,7 +105,10 @@ export default function TurnedInCelebration({
     {
       key: "work",
       label: t.tileYourWork(lang),
-      value: t.itemsCount(lang, summary.itemCount),
+      value:
+        summary.itemCount > 0
+          ? t.itemsCount(lang, summary.itemCount)
+          : t.nothingAddedShort(lang),
       color: "#2C7CD1",
       text: "#2C7CD1",
       icon: false,
@@ -90,6 +125,8 @@ export default function TurnedInCelebration({
 
   return createPortal(
     <div
+      ref={dialogRef}
+      onKeyDown={onKeyDown}
       role="dialog"
       aria-modal="true"
       aria-label={t.turnedInTitle(lang)}

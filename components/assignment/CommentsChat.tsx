@@ -1,7 +1,8 @@
 import parse from "html-react-parser";
-import Image from "next/image";
 import React, { useEffect, useRef, useState } from "react";
 import { LuSend, LuTrash2 } from "react-icons/lu";
+import { useDetailActive } from "../app/shell/DetailActive";
+import { safeHtmlReplace } from "../../utils/safeHtml";
 import { assignmentPageLanguage } from "../../data/languages";
 import { CommentOnAssignment, Language } from "../../interfaces";
 import {
@@ -27,6 +28,31 @@ type Props = {
 const POLL_MS = 1000 * 10;
 const MAX_LINES = 4;
 
+/** The teacher's photo, or their initials when there is none (or it fails). */
+function Avatar({ comment }: { comment: CommentOnAssignment }) {
+  const [failed, setFailed] = useState(false);
+  const initials = [comment.firstName, comment.lastName]
+    .map((n) => n?.trim().charAt(0))
+    .filter(Boolean)
+    .join("")
+    .toUpperCase();
+  return (
+    <span className="relative grid h-7 w-7 shrink-0 place-items-center overflow-hidden rounded-full bg-[#D9E6F7] text-[10px] font-bold text-primary-color">
+      {comment.photo && !failed ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={comment.photo}
+          alt=""
+          onError={() => setFailed(true)}
+          className="h-full w-full object-cover"
+        />
+      ) : (
+        initials
+      )}
+    </span>
+  );
+}
+
 function Bubble({
   comment,
   lang,
@@ -51,25 +77,15 @@ function Bubble({
       <div
         className={`flex max-w-full items-end gap-1.5 ${mine ? "flex-row-reverse" : ""}`}
       >
-        {!mine && (
-          <span className="relative h-7 w-7 shrink-0 overflow-hidden rounded-full bg-[#EEF1F6]">
-            <Image
-              src={comment.photo || "/avatar.png"}
-              alt=""
-              fill
-              sizes="28px"
-              className="object-cover"
-            />
-          </span>
-        )}
+        {!mine && <Avatar comment={comment} />}
         <div
-          className={`min-w-0 max-w-[78%] break-words px-3 py-1.5 text-[13px] leading-snug ${
+          className={`min-w-0 max-w-[78%] break-words px-3 py-1.5 text-[13px] leading-snug [&_a]:underline ${
             mine
               ? "rounded-2xl rounded-br-[4px] bg-primary-color text-white"
               : "rounded-2xl rounded-bl-[4px] bg-[#EEF1F6] text-icon-color"
           }`}
         >
-          {parse(comment.content)}
+          {parse(comment.content, { replace: safeHtmlReplace })}
           <span
             className={`mt-0.5 block text-[10px] ${mine ? "text-white/70" : "text-[#9AA3B8]"}`}
           >
@@ -101,9 +117,11 @@ function Bubble({
  * grows to four lines. A failed send keeps the typed text.
  */
 export default function CommentsChat({ studentOnAssignmentId, lang }: Props) {
+  // Only the live (topmost) detail page polls; one on its way out stops.
+  const active = useDetailActive();
   const comments = useGetComments({
     studentOnAssignmentId,
-    refetchInterval: POLL_MS,
+    refetchInterval: active ? POLL_MS : false,
   });
   const create = useCreateComment();
   const deleteComment = useDeleteComment();
@@ -117,8 +135,11 @@ export default function CommentsChat({ studentOnAssignmentId, lang }: Props) {
     const area = areaRef.current;
     if (!area) return;
     area.style.height = "auto";
-    const line = parseFloat(getComputedStyle(area).lineHeight) || 20;
-    area.style.height = `${Math.min(area.scrollHeight, line * MAX_LINES)}px`;
+    const style = getComputedStyle(area);
+    const line = parseFloat(style.lineHeight) || 24;
+    const padding =
+      parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
+    area.style.height = `${Math.min(area.scrollHeight, line * MAX_LINES + padding)}px`;
   }, [draft]);
 
   const send = async (e: React.FormEvent) => {
@@ -183,7 +204,7 @@ export default function CommentsChat({ studentOnAssignmentId, lang }: Props) {
           onChange={(e) => setDraft(e.target.value)}
           placeholder={assignmentPageLanguage.addComment(lang)}
           aria-label={assignmentPageLanguage.addComment(lang)}
-          className="max-h-24 min-h-[38px] w-full resize-none rounded-[14px] bg-[#F2F4F8] px-3 py-2 text-[14px] leading-5 text-icon-color outline-none"
+          className="min-h-[40px] w-full resize-none overflow-y-auto rounded-[14px] bg-[#F2F4F8] px-3 py-2 text-[16px] leading-6 text-icon-color outline-none"
         />
         <button
           type="submit"

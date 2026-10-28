@@ -17,7 +17,7 @@ function levelTone(points: number, max: number) {
 }
 
 const pill =
-  "inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-[11px] font-bold";
+  "inline-block max-w-[60%] truncate rounded-full px-2 py-0.5 text-[11px] font-bold";
 
 /** The teacher's rubric for one assignment: a row per criterion. */
 function RubricBreakdown({ studentOnAssignmentId }: Props) {

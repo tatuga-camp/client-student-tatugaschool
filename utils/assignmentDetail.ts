@@ -129,3 +129,8 @@ export function nextAssignmentAfter<T extends { id: string; order: number }>(
   }
   return next;
 }
+
+/** A score as the student sees it: up to 2 decimals, none when whole. */
+export function formatScore(score: number): string {
+  return String(Number(score.toFixed(2)));
+}
