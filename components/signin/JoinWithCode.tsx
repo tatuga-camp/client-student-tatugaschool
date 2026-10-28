@@ -9,9 +9,7 @@ import { joinCodeForLookup } from "../../utils/joinCode";
 import { reactMascot } from "../../utils/mascot";
 import { safeSet } from "../../utils/safeStorage";
 import { CodeBoxes } from "./CodeBoxes";
-
-// Matches the id WelcomeMascots gives the centre mascot.
-const REACT_MASCOT_ID = "welcome-1";
+import { WELCOME_REACT_ID } from "./WelcomeMascots";
 
 export function JoinWithCode() {
   const router = useRouter();
@@ -21,10 +19,12 @@ export function JoinWithCode() {
   const [invalid, setInvalid] = useState(false);
   const [shakeKey, setShakeKey] = useState(0);
   const [busy, setBusy] = useState(false);
+  const [navFailed, setNavFailed] = useState(false);
 
   const join = async () => {
     if (code.length < 6 || busy) return;
     setBusy(true);
+    setNavFailed(false);
     const lookup = joinCodeForLookup(code);
     try {
       await queryClient.fetchQuery({
@@ -32,7 +32,7 @@ export function JoinWithCode() {
         retry: false,
       });
     } catch {
-      reactMascot(REACT_MASCOT_ID, "sad");
+      reactMascot(WELCOME_REACT_ID, "sad");
       setShakeKey((n) => n + 1);
       setInvalid(true);
       setBusy(false);
@@ -41,6 +41,8 @@ export function JoinWithCode() {
     safeSet("subject_code", lookup);
     try {
       await router.push("/?subject_code=" + lookup);
+    } catch {
+      setNavFailed(true);
     } finally {
       setBusy(false);
     }
@@ -72,7 +74,7 @@ export function JoinWithCode() {
         role="alert"
         className="mt-2 min-h-[20px] text-center text-sm font-semibold text-[#F04438]"
       >
-        {invalid ? t.notFound(lang) : ""}
+        {invalid ? t.notFound(lang) : navFailed ? t.joinFailed(lang) : ""}
       </p>
       <button
         type="submit"

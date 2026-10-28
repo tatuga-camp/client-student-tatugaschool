@@ -14,6 +14,10 @@ export const welcomeDataLanguage = {
     language === "th" ? "กำลังตรวจสอบ..." : "Checking...",
   notFound: (language: Language) =>
     language === "th" ? "ไม่พบห้องเรียนนี้" : "We couldn't find that class",
+  joinFailed: (language: Language) =>
+    language === "th"
+      ? "เปิดห้องเรียนไม่สำเร็จ ลองใหม่อีกครั้ง"
+      : "Couldn't open the class. Please try again.",
   hint: (language: Language) =>
     language === "th"
       ? "ได้รับลิงก์หรือ QR code จากคุณครูแล้วใช่ไหม? แค่เปิดได้เลย ไม่ต้องใส่รหัส"

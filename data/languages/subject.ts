@@ -261,6 +261,29 @@ export const subjectDataLanguage = {
         return "This account is protected. Enter the password your teacher gave you.";
     }
   },
+  searchHint: (language: Language) =>
+    language === "th"
+      ? "ค้นหาชื่อหรือเลขที่ของคุณ"
+      : "Search your name or number",
+  findYourself: (language: Language) =>
+    language === "th"
+      ? "พิมพ์ชื่อหรือเลขที่ของคุณเพื่อค้นหาตัวเอง"
+      : "Type your name or number to find yourself",
+  thatsMe: (language: Language) =>
+    language === "th" ? "นี่คือฉัน" : "That's me",
+  numberShort: (language: Language) => (language === "th" ? "เลขที่" : "No."),
+  disabled: (language: Language) =>
+    language === "th" ? "ปิดใช้งาน" : "Disabled",
+  teachersSheetTitle: (language: Language) =>
+    language === "th" ? "ครูในรายวิชา" : "Your teachers",
+  notFoundTitle: (language: Language) =>
+    language === "th" ? "ไม่พบห้องเรียนนี้" : "We couldn't find that class",
+  notFoundDescription: (language: Language) =>
+    language === "th"
+      ? "ตรวจสอบรหัสที่ได้รับจากครูอีกครั้ง"
+      : "Double-check the code your teacher gave you.",
+  tryAnotherCode: (language: Language) =>
+    language === "th" ? "ลองรหัสอื่น" : "Try another code",
 } as const;
 
 export const menuSubjectDataLanguage = {
