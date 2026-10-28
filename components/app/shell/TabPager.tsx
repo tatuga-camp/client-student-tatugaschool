@@ -6,9 +6,11 @@ import HomeTab from "../../home/HomeTab";
 import MeTab from "../../me/MeTab";
 import ProgressTab from "../../progress/ProgressTab";
 import SubjectsTab from "../../subjects/SubjectsTab";
+import { OVERLAY_ROOT_ID } from "../../../utils/frameRoutes";
 import { safeGet } from "../../../utils/safeStorage";
 import {
-  canStartSwipe,
+  canStartShellSwipe,
+  isEditableTarget,
   swipeOutcome,
   TabKey,
   tabIndex,
@@ -34,12 +36,6 @@ export const TAP_SLOP = 8;
 // React 18 doesn't know `inert`; an empty string sets it, undefined removes it.
 export const inertProps = (inert: boolean) =>
   (inert ? { inert: "" } : {}) as React.HTMLAttributes<HTMLDivElement>;
-
-function isEditable(el: Element | null): boolean {
-  if (!el) return false;
-  if (el instanceof HTMLElement && el.isContentEditable) return true;
-  return !!el.closest("input, textarea, select, iframe, [role='textbox']");
-}
 
 type Props = {
   subjectId: string;
@@ -95,10 +91,13 @@ export default function TabPager({
         api.start({ pos: index, config: SPRING });
         return;
       }
-      // Vertical drags belong to the pane's own scrolling.
+      // Vertical drags belong to the pane's own scrolling; drags in portals
+      // (toasts, sheets), no-swipe areas and fields aren't tab swipes.
       if (
         first &&
-        (!enabled || axis === "y" || !canStartSwipe(startTarget.current))
+        (!enabled ||
+          axis === "y" ||
+          !canStartShellSwipe(viewportRef.current, startTarget.current))
       ) {
         return cancel();
       }
@@ -153,8 +152,8 @@ export default function TabPager({
       )
         return;
       const { index: i, enabled: on, onTabChange: change } = keyState.current;
-      if (!on || isEditable(document.activeElement)) return;
-      if (document.querySelector("#app-overlay-root [aria-modal='true']"))
+      if (!on || isEditableTarget(document.activeElement)) return;
+      if (document.querySelector(`#${OVERLAY_ROOT_ID} [aria-modal='true']`))
         return;
       const next = i + (e.key === "ArrowRight" ? 1 : -1);
       if (next < 0 || next > LAST) return;

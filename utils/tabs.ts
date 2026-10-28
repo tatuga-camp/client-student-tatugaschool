@@ -45,12 +45,46 @@ export function edgeBackOutcome(input: {
   return "stay";
 }
 
+/** What the swipe rules read from a DOM element (a stand-in in node tests). */
+type ElementLike = { closest(selector: string): unknown; isContentEditable?: boolean };
+
+function isElementLike(target: unknown): target is ElementLike {
+  return (
+    typeof target === "object" &&
+    target !== null &&
+    typeof (target as ElementLike).closest === "function"
+  );
+}
+
 /** A swipe may start unless the touch began inside an element marked `data-no-swipe`. */
-export function canStartSwipe(target: EventTarget | null): boolean {
-  if (typeof Element !== "undefined" && target instanceof Element) {
-    return !target.closest("[data-no-swipe]");
-  }
-  return true;
+export function canStartSwipe(target: unknown): boolean {
+  return !isElementLike(target) || !target.closest("[data-no-swipe]");
+}
+
+/** Something you type in or select text in: fields, rich text, embedded frames. */
+export function isEditableTarget(target: unknown): boolean {
+  if (!isElementLike(target)) return false;
+  if (target.isContentEditable) return true;
+  return !!target.closest("input, textarea, select, iframe, [role='textbox']");
+}
+
+/**
+ * A shell swipe (tab pager, detail edge-back) may start only on the shell's
+ * own DOM: React bubbles pointer events out of portals (sheets, viewers,
+ * toasts), and those keep their own drags. Never from a `data-no-swipe` area,
+ * and never from a field, where a mouse drag selects text.
+ */
+export function canStartShellSwipe(
+  container: { contains(node: Node | null): boolean } | null,
+  target: unknown,
+): boolean {
+  if (!container || !isElementLike(target)) return false;
+  return (
+    // An element-like target is a DOM element in the app.
+    container.contains(target as unknown as Node) &&
+    canStartSwipe(target) &&
+    !isEditableTarget(target)
+  );
 }
 
 /**

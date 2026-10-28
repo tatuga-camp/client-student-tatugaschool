@@ -8,7 +8,7 @@ import { useDrag } from "@use-gesture/react";
 import Router from "next/router";
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import AssignmentDetail from "../../assignment/AssignmentDetail";
-import { edgeBackOutcome } from "../../../utils/tabs";
+import { canStartShellSwipe, edgeBackOutcome } from "../../../utils/tabs";
 import { inertProps, TAP_SLOP } from "./TabPager";
 import { ShellRoute, takeInAppPop, useShellNav } from "./useShellRoute";
 
@@ -43,6 +43,8 @@ export default function DetailStack({ subjectId, detail, depthApi }: Props) {
   const currentKey = useRef<string | null>(null);
   currentKey.current = detail?.assignmentId ?? null;
   const suppressClick = useRef(false);
+  // Where the press began (React also bubbles presses in portals to here).
+  const startTarget = useRef<EventTarget | null>(null);
   // Watches the navigation an edge-back started, until it settles.
   const stopWatching = useRef<(() => void) | null>(null);
   useEffect(() => () => stopWatching.current?.(), []);
@@ -115,6 +117,11 @@ export default function DetailStack({ subjectId, detail, depthApi }: Props) {
         return memo;
       }
       const panel = currentTarget as HTMLElement;
+      // React bubbles presses out of portals (sheets, viewers, video
+      // overlays opened from this page): only the page itself swipes back.
+      if (first && !canStartShellSwipe(panel, startTarget.current)) {
+        return cancel();
+      }
       const startX: number = first
         ? ix - panel.getBoundingClientRect().left
         : memo;
@@ -166,6 +173,9 @@ export default function DetailStack({ subjectId, detail, depthApi }: Props) {
     return (
       <animated.div
         {...(iosTab ? {} : bind(t.ctrl, item.assignmentId))}
+        onPointerDownCapture={(e) => {
+          startTarget.current = e.target;
+        }}
         // Replaces use-gesture's own click filter, which would also eat
         // clicks after presses that only jittered or were cancelled.
         onClickCapture={(e) => {

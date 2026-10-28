@@ -7,7 +7,25 @@ import {
   swipeOutcome,
   edgeBackOutcome,
   backTarget,
+  canStartShellSwipe,
+  isEditableTarget,
 } from "./tabs";
+
+// Node has no DOM: element stand-ins answer `closest` for the selectors the
+// rules ask about, and a container "contains" only the nodes it was given.
+function el(opts: { noSwipe?: boolean; field?: boolean; editable?: boolean } = {}) {
+  return {
+    isContentEditable: !!opts.editable,
+    closest: (selector: string) => {
+      if (selector.includes("data-no-swipe")) return opts.noSwipe ? {} : null;
+      if (selector.includes("input")) return opts.field ? {} : null;
+      return null;
+    },
+  };
+}
+const box = (...inside: unknown[]) => ({
+  contains: (node: unknown) => inside.includes(node),
+});
 
 test("sheetDragOutcome closes past 30% or on a fast flick down", () => {
   assert.equal(sheetDragOutcome({ dy: 200, vy: 0.1, height: 600 }), "close");
@@ -49,4 +67,27 @@ test("backTarget uses history when there is some, else the subject page", () => 
     url: "/subject/s1",
   });
   assert.deepEqual(backTarget({ historyIdx: 3, subjectId: "s1" }), { kind: "history" });
+});
+
+test("canStartShellSwipe: only from the shell's own DOM, never a no-swipe area or a field", () => {
+  const plain = el();
+  assert.equal(canStartShellSwipe(box(plain), plain), true);
+  // React bubbles a portal's pointerdown (sheet, viewer, toast) to the shell.
+  assert.equal(canStartShellSwipe(box(), plain), false);
+  const noSwipe = el({ noSwipe: true });
+  assert.equal(canStartShellSwipe(box(noSwipe), noSwipe), false);
+  // A mouse drag in a text box selects text; it must not swipe.
+  const field = el({ field: true });
+  assert.equal(canStartShellSwipe(box(field), field), false);
+  const rich = el({ editable: true });
+  assert.equal(canStartShellSwipe(box(rich), rich), false);
+  assert.equal(canStartShellSwipe(null, plain), false);
+  assert.equal(canStartShellSwipe(box(null), null), false);
+});
+
+test("isEditableTarget: fields and contenteditable, not plain elements", () => {
+  assert.equal(isEditableTarget(el({ field: true })), true);
+  assert.equal(isEditableTarget(el({ editable: true })), true);
+  assert.equal(isEditableTarget(el()), false);
+  assert.equal(isEditableTarget(null), false);
 });
