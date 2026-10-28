@@ -12,13 +12,16 @@ import { LuX } from "react-icons/lu";
 import { profileLanguage } from "../../data/languages";
 import { useGetLanguage } from "../../react-query";
 import { OVERLAY_ROOT_ID } from "../../utils/frameRoutes";
-import { sheetDragOutcome } from "../../utils/tabs";
+import { keyboardFit } from "../../utils/keyboardFit";
+import { isEditableTarget, sheetDragOutcome } from "../../utils/tabs";
 import { OverlayRootContext } from "./OverlayScope";
 
 /**
  * Where it renders: the nearest OverlayScope's container (each detail panel
  * provides one, so a sheet opened from a detail page slides and leaves with
  * that page), else the global #app-overlay-root (tab panes, other pages).
+ * While the on-screen keyboard is up, a modal sheet sits on top of it and
+ * shrinks to the visible area, so its fields stay in view.
  */
 type SheetProps = {
   open: boolean;
@@ -64,6 +67,8 @@ export function Sheet({
   if (idRef.current === 0) idRef.current = ++nextId;
   const language = useGetLanguage();
   const [{ y }, api] = useSpring(() => ({ y: 600 }));
+  // Set while the keyboard (visual viewport) hides part of the root.
+  const [fit, setFit] = useState<{ lift: number; room: number } | null>(null);
 
   const isPeek = peek !== undefined;
   const visible = isPeek ? true : open;
@@ -116,6 +121,54 @@ export function Sheet({
       });
     }
   }, [rendered, visible, isPeek, api]);
+
+  // Track the visual viewport: the keyboard shrinks it, not the layout.
+  // A collapsed peek stays put: the keyboard is then for the page's fields.
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!rendered || !root || !vv || !modal) return;
+    const update = () => {
+      const r = root.getBoundingClientRect();
+      const next = keyboardFit({
+        rootTop: r.top,
+        rootBottom: r.bottom,
+        viewTop: vv.offsetTop,
+        viewHeight: vv.height,
+      });
+      const hidden = next.lift > 0 || next.room < Math.round(r.height);
+      setFit((prev) =>
+        !hidden
+          ? null
+          : prev?.lift === next.lift && prev.room === next.room
+            ? prev
+            : next,
+      );
+    };
+    update();
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    return () => {
+      vv.removeEventListener("resize", update);
+      vv.removeEventListener("scroll", update);
+      setFit(null);
+    };
+  }, [rendered, root, modal]);
+
+  // After the sheet shrinks, scroll the focused field back into its body.
+  useEffect(() => {
+    if (!fit) return;
+    const id = requestAnimationFrame(() => {
+      const body = bodyRef.current;
+      const field = document.activeElement;
+      if (!body || !field || !body.contains(field) || !isEditableTarget(field))
+        return;
+      const b = body.getBoundingClientRect();
+      const f = field.getBoundingClientRect();
+      if (f.bottom > b.bottom) body.scrollTop += f.bottom - b.bottom + 12;
+      else if (f.top < b.top) body.scrollTop -= b.top - f.top + 12;
+    });
+    return () => cancelAnimationFrame(id);
+  }, [fit]);
 
   // Focus in on open, back to the opener on close.
   useEffect(() => {
@@ -215,10 +268,15 @@ export function Sheet({
         style={{
           y,
           pointerEvents: "auto",
-          height: full && modal ? "100%" : undefined,
+          bottom: fit ? fit.lift : undefined,
+          height: full && modal ? (fit ? fit.room : "100%") : undefined,
           // Full screen: keep the handle and ✕ clear of the status bar / notch.
           paddingTop: full && modal ? "var(--safe-top)" : undefined,
-          maxHeight: full ? "100%" : "90%",
+          maxHeight: fit
+            ? Math.round(fit.room * (full ? 1 : 0.9))
+            : full
+              ? "100%"
+              : "90%",
           borderRadius: full && modal ? 0 : "20px 20px 0 0",
           boxShadow: "0 -4px 0 #E3E8F0",
         }}
