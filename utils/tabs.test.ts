@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   sheetDragOutcome,
+  progressPanes,
   parseTab,
   tabIndex,
   swipeOutcome,
@@ -90,4 +91,11 @@ test("isEditableTarget: fields and contenteditable, not plain elements", () => {
   assert.equal(isEditableTarget(el({ editable: true })), true);
   assert.equal(isEditableTarget(el()), false);
   assert.equal(isEditableTarget(null), false);
+});
+
+test("progressPanes follows the teacher's visibility settings", () => {
+  assert.deepEqual(progressPanes({ allowStudentViewOverallScore: true, allowStudentViewAttendance: true }), ["grades", "attendance"]);
+  assert.deepEqual(progressPanes({ allowStudentViewOverallScore: true, allowStudentViewAttendance: false }), ["grades"]);
+  assert.deepEqual(progressPanes({ allowStudentViewOverallScore: false, allowStudentViewAttendance: true }), ["attendance"]);
+  assert.deepEqual(progressPanes({ allowStudentViewOverallScore: false, allowStudentViewAttendance: false }), []);
 });

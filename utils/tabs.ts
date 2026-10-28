@@ -99,3 +99,14 @@ export function backTarget(input: {
   if (input.historyIdx > 0) return { kind: "history" };
   return { kind: "replace", url: `/subject/${input.subjectId}` };
 }
+
+/** The Progress switch's panes, in order: only what the teacher lets students see. */
+export function progressPanes(s: {
+  allowStudentViewOverallScore: boolean;
+  allowStudentViewAttendance: boolean;
+}): ("grades" | "attendance")[] {
+  const panes: ("grades" | "attendance")[] = [];
+  if (s.allowStudentViewOverallScore) panes.push("grades");
+  if (s.allowStudentViewAttendance) panes.push("attendance");
+  return panes;
+}
