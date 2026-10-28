@@ -17,6 +17,10 @@ type Props = {
 // Darkens the lower half so white text on it stays readable (4.5:1).
 const SCRIM = "linear-gradient(rgba(10,25,60,.15), rgba(10,25,60,.5))";
 
+/** Escape only what would end a quoted CSS url(). */
+const cssUrl = (url: string) =>
+  url.replace(/["\\]/g, "\\$&").replace(/\r?\n/g, "\\A ");
+
 function TeacherAvatar({ teacher }: { teacher: TeacherOnSubject }) {
   return (
     <span className="relative -mr-1 h-5 w-5 overflow-hidden rounded-full ring-2 ring-white/80">
@@ -45,7 +49,7 @@ export function SubjectCover({ subject, lang, onTeachers }: Props) {
       style={{
         paddingTop: "var(--safe-top)",
         background: subject.backgroundImage
-          ? `${SCRIM}, url("${encodeURI(subject.backgroundImage)}") center/cover`
+          ? `${SCRIM}, url("${cssUrl(subject.backgroundImage)}") center/cover`
           : `${SCRIM}, linear-gradient(135deg, #569DF8, #2C7CD1)`,
       }}
     >

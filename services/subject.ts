@@ -27,8 +27,12 @@ export async function GetSubjectByCodeService(
 
     return response.data;
   } catch (error: any) {
-    console.error("Get Subject request failed:", error.response.data);
-    throw error?.response?.data;
+    // No response means a network failure; rethrow something readable.
+    console.error(
+      "Get Subject request failed:",
+      error?.response?.data ?? error?.message,
+    );
+    throw error?.response?.data ?? { message: "Network error" };
   }
 }
 

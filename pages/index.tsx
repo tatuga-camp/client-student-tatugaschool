@@ -20,7 +20,10 @@ type IndexProps = {
 };
 
 function Index({ subjectData, code, announcementId, error }: IndexProps) {
-  const subject = useGetSubjectByCode(code, { initialData: subjectData });
+  const subject = useGetSubjectByCode(code, {
+    initialData: subjectData,
+    enable: !!code,
+  });
   const router = useRouter();
   if (error?.statusCode === 404) return <SubjectNotFound />;
   if (error) {
@@ -93,7 +96,12 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
         error: {
           statusCode:
             typeof error?.statusCode === "number" ? error.statusCode : null,
-          message: typeof error?.message === "string" ? error.message : null,
+          // Only a real HTTP answer carries a message worth showing.
+          message:
+            typeof error?.statusCode === "number" &&
+            typeof error?.message === "string"
+              ? error.message
+              : null,
         },
       },
     };
