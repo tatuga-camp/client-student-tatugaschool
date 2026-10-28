@@ -34,6 +34,24 @@ export const homeLanguage = {
       "เบราว์เซอร์นี้แสดงการแจ้งเตือนไม่ได้",
     ),
   done: (l: Language) => t(l, "Done", "เสร็จแล้ว"),
+  thisWeek: (l: Language) => t(l, "This week", "สัปดาห์นี้"),
+  doneOf: (l: Language, done: number, total: number) =>
+    t(l, `${done} / ${total} done`, `เสร็จ ${done} / ${total}`),
+  nothingDue: (l: Language) =>
+    t(l, "Nothing due this week", "สัปดาห์นี้ไม่มีงานที่ต้องส่ง"),
+  assignmentsLeft: (l: Language, n: number) =>
+    t(
+      l,
+      `${n} ${n === 1 ? "assignment" : "assignments"} left`,
+      `เหลืองาน ${n} ชิ้น`,
+    ),
+  allDone: (l: Language) =>
+    t(l, "All done. Nice work!", "ทำครบแล้ว เก่งมาก!"),
+  openAssignment: (l: Language, title: string) =>
+    t(l, `Open ${title}`, `เปิด ${title}`),
+  dueOn: (l: Language, when: string) => t(l, `Due ${when}`, `ส่ง ${when}`),
+  overdue: (l: Language) => t(l, "Overdue", "เลยกำหนด"),
+  noDueDate: (l: Language) => t(l, "No due date", "ไม่มีกำหนดส่ง"),
   greeting: (l: Language, period: DayPeriod, firstName: string) => {
     const th = l === "th";
     switch (period) {

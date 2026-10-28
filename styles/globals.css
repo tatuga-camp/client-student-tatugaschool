@@ -159,3 +159,18 @@
 .app-scroll .w-screen {
   width: 100%;
 }
+
+/* Home mascot: a gentle idle bob once it has dropped in. */
+@media (prefers-reduced-motion: no-preference) {
+  .home-bob {
+    animation: home-bob 3s ease-in-out 1s infinite alternate;
+  }
+}
+@keyframes home-bob {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-4px);
+  }
+}
