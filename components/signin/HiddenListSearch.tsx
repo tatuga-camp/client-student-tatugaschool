@@ -86,9 +86,13 @@ export function HiddenListSearch({
             </span>
             <button
               type="button"
-              className="chunky-btn h-9 shrink-0 px-3 text-sm disabled:opacity-50"
-              disabled={!student.isActive || pendingId !== null}
-              onClick={() => onPick(student)}
+              className="chunky-btn h-9 shrink-0 px-3 text-sm disabled:opacity-50 aria-disabled:opacity-50"
+              disabled={!student.isActive}
+              // Pending: ignore presses but keep focus here (see StudentGrid).
+              aria-disabled={pendingId !== null || undefined}
+              onClick={() => {
+                if (pendingId === null) onPick(student);
+              }}
             >
               {t.thatsMe(lang)}
             </button>

@@ -18,12 +18,19 @@ export function StudentGrid({ students, lang, pendingId, onPick }: Props) {
       {students.map((student) => {
         const off = !student.isActive;
         const pending = pendingId === student.id;
+        // While a sign-in is pending the tiles ignore presses but stay
+        // focusable (not `disabled`), so the pressed tile keeps focus and the
+        // password sheet can hand it back when it closes.
+        const blocked = pendingId !== null;
         return (
           <li key={student.id}>
             <button
               type="button"
-              disabled={off || pendingId !== null}
-              onClick={() => onPick(student)}
+              disabled={off}
+              aria-disabled={blocked || undefined}
+              onClick={() => {
+                if (!blocked) onPick(student);
+              }}
               className={`chunky relative flex w-full flex-col items-center gap-1 px-1 pb-2 pt-2.5 transition active:translate-y-0.5 ${
                 off ? "opacity-45" : ""
               }`}
