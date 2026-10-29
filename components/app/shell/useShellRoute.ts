@@ -117,6 +117,14 @@ function trackHistory(): void {
   Router.events.on("routeChangeComplete", (url: string) =>
     currentHistoryIdx(url),
   );
+  // The pop back() causes reaches beforePopState before any route event.
+  // A back that never gets there (nothing behind it, or a pop Next settles
+  // without beforePopState) must not leave the flag to the browser's next.
+  const clearInAppPop = () => {
+    inAppPop = false;
+  };
+  Router.events.on("routeChangeComplete", clearInAppPop);
+  Router.events.on("routeChangeError", clearInAppPop);
 }
 
 /** The shell's state, read from the URL; null until the router is ready. */
