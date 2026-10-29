@@ -203,8 +203,36 @@ const MASCOTS: Record<string, MascotClips> = {
   },
 };
 
-// Contract: the Student.mascot migration reuses mascotKeyForStudent. Only append to MASCOTS; never reorder or remove keys.
+/** Every avatar photo that has a mascot; grows with MASCOTS. */
 export const MASCOT_KEYS: readonly string[] = Object.keys(MASCOTS);
+
+// Contract: the hash pick runs over this frozen list, the mascots that
+// existed when picks went live, in that order. Never edit it: any change
+// moves students to another mascot. MASCOTS may grow freely; a new mascot
+// is only picked by its own avatar photo. The Student.mascot migration
+// reuses mascotKeyForStudent.
+export const MASCOT_HASH_KEYS: readonly string[] = Object.freeze([
+  "https://storage.tatugaschool.com/AVATAR/16.png",
+  "https://storage.tatugaschool.com/AVATAR/1.png",
+  "https://storage.tatugaschool.com/AVATAR/2.png",
+  "https://storage.tatugaschool.com/AVATAR/3.png",
+  "https://storage.tatugaschool.com/AVATAR/4.png",
+  "https://storage.tatugaschool.com/AVATAR/5.png",
+  "https://storage.tatugaschool.com/AVATAR/6.png",
+  "https://storage.tatugaschool.com/AVATAR/7.png",
+  "https://storage.tatugaschool.com/AVATAR/8.png",
+  "https://storage.tatugaschool.com/AVATAR/9.png",
+  "https://storage.tatugaschool.com/AVATAR/10.png",
+  "https://storage.tatugaschool.com/AVATAR/11.png",
+  "https://storage.tatugaschool.com/AVATAR/12.png",
+  "https://storage.tatugaschool.com/AVATAR/13.png",
+  "https://storage.tatugaschool.com/AVATAR/14.png",
+  "https://storage.tatugaschool.com/AVATAR/15.png",
+  "https://storage.tatugaschool.com/AVATAR/17.png",
+  "https://storage.tatugaschool.com/AVATAR/18.png",
+  "https://storage.tatugaschool.com/AVATAR/19.png",
+  "https://storage.tatugaschool.com/AVATAR/20.png",
+]);
 
 // 32-bit FNV-1a over UTF-16 code units.
 export function mascotHash(id: string): number {
@@ -220,8 +248,11 @@ export function mascotKeyForStudent(student: {
   id: string;
   photo?: string | null;
 }): string {
-  if (student.photo && student.photo in MASCOTS) return student.photo;
-  return MASCOT_KEYS[mascotHash(student.id) % MASCOT_KEYS.length];
+  // Own keys only: "constructor" or "toString" is not a mascot.
+  if (student.photo && Object.hasOwn(MASCOTS, student.photo)) {
+    return student.photo;
+  }
+  return MASCOT_HASH_KEYS[mascotHash(student.id) % MASCOT_HASH_KEYS.length];
 }
 
 export function mascotForStudent(student: {
@@ -232,8 +263,8 @@ export function mascotForStudent(student: {
 }
 
 export function mascotForPhoto(photo: string | undefined): MascotClips | null {
-  if (!photo) return null;
-  return MASCOTS[photo] ?? null;
+  if (!photo || !Object.hasOwn(MASCOTS, photo)) return null;
+  return MASCOTS[photo];
 }
 
 /** Share of mascot cards allowed to idle-animate at the same time. */

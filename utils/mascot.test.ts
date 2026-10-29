@@ -4,6 +4,7 @@ import {
   createPlaySlots,
   MAX_IDLE_PLAYING,
   PLAY_WAIT_MS,
+  MASCOT_HASH_KEYS,
   MASCOT_KEYS,
   mascotForPhoto,
   mascotForStudent,
@@ -166,7 +167,71 @@ test("mascotKeyForStudent keeps a cartoon avatar's own mascot", () => {
 });
 test("mascotKeyForStudent picks a stable mascot for a real photo", () => {
   const s = { id: "6650f1c2a1b2c3d4e5f60718", photo: "https://storage.tatugaschool.com/photos/me.jpg" };
-  assert.equal(mascotKeyForStudent(s), MASCOT_KEYS[mascotHash(s.id) % MASCOT_KEYS.length]);
+  assert.equal(mascotKeyForStudent(s), MASCOT_HASH_KEYS[mascotHash(s.id) % MASCOT_HASH_KEYS.length]);
   assert.equal(mascotKeyForStudent(s), mascotKeyForStudent({ ...s }));
   assert.equal(mascotForStudent(s), mascotForPhoto(mascotKeyForStudent(s)));
+});
+
+const AVATAR = (n: number) => `https://storage.tatugaschool.com/AVATAR/${n}.png`;
+
+// Real ids from the dev subject fe5235 (StudentOnSubject and Student ids of
+// students without a cartoon photo), with the mascot each one has today.
+const PINNED_PICKS: [id: string, avatar: number][] = [
+  ["6909b2b28b5bfdd6c4a3396d", 20],
+  ["6909b27e8b5bfdd6c4a33945", 2],
+  ["6909b2b28b5bfdd6c4a3396f", 18],
+  ["6909b27f8b5bfdd6c4a33947", 13],
+  ["6909b2b28b5bfdd6c4a33970", 19],
+  ["6909b2b28b5bfdd6c4a33971", 18],
+  ["6909b2b28b5bfdd6c4a33973", 20],
+  ["6650f1c2a1b2c3d4e5f60718", 6],
+];
+
+test("every existing student keeps the mascot they have today", () => {
+  for (const [id, avatar] of PINNED_PICKS) {
+    const photo = "https://development-storage.tatugaschool.com/photo.jpg";
+    assert.equal(mascotKeyForStudent({ id, photo }), AVATAR(avatar), id);
+    assert.equal(mascotKeyForStudent({ id, photo: null }), AVATAR(avatar), id);
+  }
+});
+
+test("MASCOT_HASH_KEYS is today's mascots in today's order, frozen", () => {
+  const today = [16, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20];
+  assert.deepEqual(MASCOT_HASH_KEYS, today.map(AVATAR));
+  assert.ok(Object.isFrozen(MASCOT_HASH_KEYS));
+  for (const key of MASCOT_HASH_KEYS) assert.ok(mascotForPhoto(key), key);
+});
+
+test("mascotKeyForStudent hashes over MASCOT_HASH_KEYS", () => {
+  for (const id of [...ids(50), ...PINNED_PICKS.map(([id]) => id)]) {
+    assert.equal(
+      mascotKeyForStudent({ id, photo: null }),
+      MASCOT_HASH_KEYS[mascotHash(id) % MASCOT_HASH_KEYS.length],
+    );
+  }
+});
+
+test("a mascot added to MASCOTS changes no one's pick", () => {
+  // MASCOT_KEYS lists every mascot and grows with MASCOTS; picks must not.
+  const everyMascot = MASCOT_KEYS as string[];
+  const students = [...ids(50), ...PINNED_PICKS.map(([id]) => id)];
+  const before = students.map((id) => mascotKeyForStudent({ id, photo: null }));
+  everyMascot.push(AVATAR(21));
+  try {
+    assert.deepEqual(
+      students.map((id) => mascotKeyForStudent({ id, photo: null })),
+      before,
+    );
+  } finally {
+    everyMascot.pop();
+  }
+});
+
+test("a photo named like an Object member falls back to the hash pick", () => {
+  const id = "6909b2b28b5bfdd6c4a3396f";
+  for (const photo of ["constructor", "toString", "__proto__", "hasOwnProperty"]) {
+    assert.equal(mascotKeyForStudent({ id, photo }), AVATAR(18), photo);
+    assert.ok(mascotForStudent({ id, photo }).poster, photo);
+    assert.equal(mascotForPhoto(photo), null, photo);
+  }
 });
