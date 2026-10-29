@@ -435,8 +435,9 @@ export function Sheet({
           {...bindHandle()}
           {...dragClickProps}
           data-testid="sheet-handle"
+          // The ✕'s row keeps its height while a busy sheet hides the ✕.
           className={`relative flex shrink-0 cursor-grab justify-center pt-3 ${
-            dismissible && modal && closeButton ? "min-h-[44px]" : "pb-2"
+            modal && closeButton ? "min-h-[44px]" : "pb-2"
           }`}
           style={{ touchAction: "none" }}
         >
