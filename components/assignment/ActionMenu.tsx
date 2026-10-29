@@ -137,10 +137,15 @@ export default function ActionMenu({ items, ariaLabel, disabled }: Props) {
             ref={listRef}
             role="menu"
             // Focus moved on out of the menu (Tab): close it, and leave
-            // focus where it went.
+            // focus where it went. A press on ⋯ toggles it by itself.
             onBlur={(e) => {
               const next = e.relatedTarget as Node | null;
-              if (!next || listRef.current?.contains(next)) return;
+              if (
+                !next ||
+                listRef.current?.contains(next) ||
+                buttonRef.current?.contains(next)
+              )
+                return;
               chose.current = true;
               setOpen(false);
             }}
