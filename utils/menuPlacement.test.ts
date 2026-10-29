@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { Box, placeMenu } from "./menuPlacement";
+import { Box, placeMenu, visibleScreen } from "./menuPlacement";
 
 // The phone screen at 390 x 844 and the Delete / Rename menu (150 x 146).
 const SCREEN: Box = { left: 0, top: 0, right: 390, bottom: 844 };
@@ -98,4 +98,46 @@ test("a framed screen: coordinates are relative to the container", () => {
   assert.equal(overlaps(menu, dots), false);
   assert.ok(inside(menu, screen));
   assert.equal(menu.right, dots.right);
+});
+
+test("visibleScreen: the on-screen keyboard cuts the screen's bottom", () => {
+  // 390 x 844 phone, keyboard up: the visual viewport is 0-480.
+  assert.deepEqual(visibleScreen(SCREEN, { offsetTop: 0, height: 480 }), {
+    ...SCREEN,
+    bottom: 480,
+  });
+  // Scrolled visual viewport (iOS with the keyboard up): 120-600.
+  assert.deepEqual(visibleScreen(SCREEN, { offsetTop: 120, height: 480 }), {
+    ...SCREEN,
+    top: 120,
+    bottom: 600,
+  });
+  // No keyboard, or no visualViewport: the screen itself.
+  assert.deepEqual(visibleScreen(SCREEN, { offsetTop: 0, height: 844 }), SCREEN);
+  assert.deepEqual(visibleScreen(SCREEN, undefined), SCREEN);
+  // A framed screen inside a taller window: the window cuts nothing.
+  const framed: Box = { left: 445, top: 24, right: 835, bottom: 776 };
+  assert.deepEqual(visibleScreen(framed, { offsetTop: 0, height: 800 }), framed);
+});
+
+test("keyboard up: a ⋯ near the keyboard opens its menu above it", () => {
+  // Rename field focused in a tall sheet; keyboard covers 480-844.
+  const panel: Box = { left: 0, top: 200, right: 390, bottom: 844 };
+  const dots: Box = { left: 330, top: 380, right: 374, bottom: 424 };
+  const pos = placeMenu({
+    button: dots,
+    container: panel,
+    screen: visibleScreen(SCREEN, { offsetTop: 0, height: 480 }),
+    width: W,
+    height: H,
+  });
+  const menu = {
+    left: panel.left + pos.left,
+    top: panel.top + pos.top,
+    right: panel.left + pos.left + W,
+    bottom: panel.top + pos.top + H,
+  };
+  assert.equal(menu.bottom, dots.top - 4);
+  assert.ok(menu.bottom <= 480, "clear of the keyboard");
+  assert.equal(overlaps(menu, dots), false);
 });

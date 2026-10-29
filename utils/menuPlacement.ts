@@ -5,10 +5,26 @@ const MARGIN = 8;
 const GAP = 4;
 
 /**
+ * The part of the phone screen (`screen`, the overlay root) the student can
+ * see: the on-screen keyboard shrinks the visual viewport, not the layout.
+ */
+export function visibleScreen(
+  screen: Box,
+  view: { offsetTop: number; height: number } | null | undefined,
+): Box {
+  if (!view) return screen;
+  return {
+    ...screen,
+    top: Math.max(screen.top, view.offsetTop),
+    bottom: Math.min(screen.bottom, view.offsetTop + view.height),
+  };
+}
+
+/**
  * Where a ⋯ menu goes, in `container` coordinates: below the button when it
- * fits on the screen, else above, right-aligned with it and kept on the
- * screen. It may reach past its container (a short sheet) but never covers
- * the button: when neither side fits, it takes the roomier one.
+ * fits on the screen, else above, right-aligned with it and kept within the
+ * screen's width. It may reach past its container (a short sheet) but never
+ * covers the button: when neither side fits, it takes the roomier one.
  */
 export function placeMenu(input: {
   button: Box;

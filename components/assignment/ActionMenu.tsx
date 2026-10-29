@@ -8,7 +8,7 @@ import React, {
 import { createPortal } from "react-dom";
 import { LuMoreHorizontal } from "react-icons/lu";
 import { overlayTarget } from "../../utils/frameRoutes";
-import { placeMenu } from "../../utils/menuPlacement";
+import { placeMenu, visibleScreen } from "../../utils/menuPlacement";
 import { OverlayRootContext } from "../app/OverlayScope";
 
 export type ActionMenuItem = {
@@ -78,7 +78,11 @@ export default function ActionMenu({ items, ariaLabel, disabled }: Props) {
         button: button.getBoundingClientRect(),
         container: container.getBoundingClientRect(),
         // The phone screen: the sheet's panel is often shorter than the menu.
-        screen: overlayTarget().getBoundingClientRect(),
+        // Less what the on-screen keyboard covers.
+        screen: visibleScreen(
+          overlayTarget().getBoundingClientRect(),
+          window.visualViewport,
+        ),
         width: list.offsetWidth,
         height: list.offsetHeight,
       }),
