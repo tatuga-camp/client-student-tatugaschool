@@ -1,9 +1,9 @@
-import parse from "html-react-parser";
 import Image from "next/image";
 import { LuMegaphone, LuMessageCircle, LuPaperclip } from "react-icons/lu";
 import { announcementDataLanguage } from "../../data/languages";
 import { Announcement, Language } from "../../interfaces";
 import { useToggleAnnouncementReaction } from "../../react-query";
+import { parseSafeHtml } from "../../utils/safeHtml";
 
 export const REACTION_EMOJIS = ["👍", "❤️", "😂", "😮", "🎉"];
 
@@ -80,7 +80,7 @@ export default function AnnouncementCard({
         {announcement.title}
       </h3>
       <div className="mt-1 break-words text-sm text-gray-700 [&_a]:text-primary-color [&_a]:underline [&_img]:max-w-full">
-        {parse(announcement.content)}
+        {parseSafeHtml(announcement.content).content}
       </div>
 
       {announcement.files.length > 0 && (

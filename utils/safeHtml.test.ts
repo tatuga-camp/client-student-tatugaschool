@@ -1,5 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readdirSync, readFileSync } from "node:fs";
+import { join, relative, sep } from "node:path";
 import { createElement, Fragment } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { cleanStyle, cleanUrl, parseSafeHtml } from "./safeHtml";
@@ -200,4 +202,30 @@ test("deeply nested markup does not blow the stack", () => {
   const result = parseSafeHtml("<b>".repeat(1500) + "x");
   assert.equal(typeof result.visible, "boolean");
   assert.equal(parseSafeHtml("<p>x</p>".repeat(3000)).visible, true);
+});
+
+test("server and teacher HTML renders only through parseSafeHtml", () => {
+  // Every app source file outside this module: no raw html-react-parser
+  // and no dangerouslySetInnerHTML (an announcement or note is teacher HTML).
+  const root = join(__dirname, "..");
+  const files: string[] = [];
+  const walk = (dir: string) => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const path = join(dir, entry.name);
+      if (entry.isDirectory()) walk(path);
+      else if (/\.tsx?$/.test(entry.name) && !/\.test\.tsx?$/.test(entry.name))
+        files.push(path);
+    }
+  };
+  for (const dir of ["components", "pages", "hook", "react-query", "utils"])
+    walk(join(root, dir));
+  const raw = files
+    .filter((file) => file !== join(__dirname, "safeHtml.ts"))
+    .filter((file) =>
+      /from ["']html-react-parser["']|dangerouslySetInnerHTML/.test(
+        readFileSync(file, "utf8"),
+      ),
+    )
+    .map((file) => relative(root, file).split(sep).join("/"));
+  assert.deepEqual(raw, []);
 });

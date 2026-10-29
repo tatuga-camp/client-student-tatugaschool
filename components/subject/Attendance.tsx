@@ -1,4 +1,3 @@
-import parse from "html-react-parser";
 import React, { useEffect, useMemo } from "react";
 import { IoMdClose } from "react-icons/io";
 import { MdOutlineSpeakerNotes } from "react-icons/md";
@@ -11,6 +10,7 @@ import {
 } from "../../interfaces";
 import { useGetAttendanceTables, useGetLanguage } from "../../react-query";
 import { summarizeAttendance, tintColor } from "../../utils";
+import { parseSafeHtml } from "../../utils/safeHtml";
 import LoadingBar from "../common/LoadingBar";
 import PopupLayout from "../layouts/PopupLayout";
 import SubjectEmptyState from "./SubjectEmptyState";
@@ -107,7 +107,9 @@ function Attendance({ subjectId, studentId }: Props) {
                 <IoMdClose />
               </button>
             </div>
-            <div className="grow overflow-auto pt-3">{parse(selectNote)}</div>
+            <div className="grow overflow-auto pt-3">
+              {parseSafeHtml(selectNote).content}
+            </div>
           </div>
         </PopupLayout>
       )}

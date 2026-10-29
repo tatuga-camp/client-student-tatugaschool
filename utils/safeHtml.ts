@@ -5,10 +5,11 @@ import parse, {
 } from "html-react-parser";
 import { createElement, Fragment, isValidElement, type ReactNode } from "react";
 
-// Comment bodies are HTML written by other people (the teacher), so what is
-// rendered is an ALLOWLIST: known formatting tags, known attributes, safe
-// URLs and a few safe style properties. Everything else is unwrapped (unknown
-// tags) or dropped with its content (active, embedded and SVG/MathML tags).
+// Comments, announcements and attendance notes are HTML written by other
+// people (the teacher), so what is rendered is an ALLOWLIST: known
+// formatting tags, known attributes, safe URLs and a few safe style
+// properties. Everything else is unwrapped (unknown tags) or dropped with its
+// content (active, embedded and SVG/MathML tags).
 
 const ALLOWED_TAGS = new Set([
   "p",
@@ -277,7 +278,7 @@ function hasVisibleContent(root: ReactNode): boolean {
   return false;
 }
 
-/** A comment body as safe React nodes, and whether it shows anything. */
+/** Teacher HTML as safe React nodes, and whether it shows anything. */
 export function parseSafeHtml(html: string): {
   content: ReactNode;
   visible: boolean;

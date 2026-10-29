@@ -1,4 +1,3 @@
-import parse from "html-react-parser";
 import { useMemo, useState } from "react";
 import { LuStickyNote } from "react-icons/lu";
 import { subjectHomeLanguage } from "../../data/languages";
@@ -11,6 +10,7 @@ import type {
 import { useGetAttendanceTables, useGetLanguage } from "../../react-query";
 import { summarizeAttendance, tintColor } from "../../utils";
 import { statusByDay, textOn } from "../../utils/attendanceCalendar";
+import { parseSafeHtml } from "../../utils/safeHtml";
 import { InlineError } from "../app/InlineError";
 import { Sheet } from "../app/Sheet";
 import AttendanceCalendar from "./AttendanceCalendar";
@@ -259,7 +259,9 @@ export default function AttendancePane({ subjectId, studentId }: Props) {
           <h2 className="flex items-center gap-1.5 pb-2 text-base font-bold">
             <LuStickyNote aria-hidden /> {subjectHomeLanguage.note(lang)}
           </h2>
-          <div className="pb-2 text-sm">{note ? parse(note) : null}</div>
+          <div className="pb-2 text-sm">
+            {note ? parseSafeHtml(note).content : null}
+          </div>
         </div>
       </Sheet>
     </div>

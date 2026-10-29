@@ -1,5 +1,4 @@
 import Image from "next/image";
-import parse from "html-react-parser";
 import React from "react";
 import { FiPaperclip } from "react-icons/fi";
 import { IoChatbubbleOutline, IoMegaphoneOutline } from "react-icons/io5";
@@ -9,6 +8,7 @@ import {
   useGetLanguage,
   useToggleAnnouncementReaction,
 } from "../../react-query";
+import { parseSafeHtml } from "../../utils/safeHtml";
 import AnnouncementCommentSection from "./AnnouncementCommentSection";
 
 const REACTION_EMOJIS = ["👍", "❤️", "😂", "😮", "🎉"];
@@ -72,7 +72,7 @@ function AnnouncementCard({ announcement, subjectId, studentId }: Props) {
 
       <h3 className="mt-3 text-base font-semibold">{announcement.title}</h3>
       <div className="mt-1 text-sm text-gray-700">
-        {parse(announcement.content)}
+        {parseSafeHtml(announcement.content).content}
       </div>
 
       {announcement.files.length > 0 && (
