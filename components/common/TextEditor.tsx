@@ -21,6 +21,8 @@ type Props = {
   /** The content as the editor holds it once ready (TinyMCE normalises it,
    *  e.g. wraps plain text in <p>), before anyone types. */
   onReady?: (content: string) => void;
+  /** What screen readers call the editing area (TinyMCE's is English). */
+  ariaText?: string;
 };
 function TextEditor({
   value,
@@ -30,6 +32,7 @@ function TextEditor({
   autoHeight = false,
   statusbar,
   onReady,
+  ariaText,
   menubar = true,
   toolbar = "undo redo | formatselect | blocks | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | image | link",
 }: Props) {
@@ -39,6 +42,9 @@ function TextEditor({
       {!isLoaded && <span className="animate-pulse">Loading...</span>}
       <Editor
         onInit={(_event, editor) => {
+          // iframe_aria_text labels the body; outside Firefox TinyMCE titles
+          // the iframe "Rich Text Area" whatever the option says.
+          if (ariaText) editor.iframeElement?.setAttribute("title", ariaText);
           setIsLoaded(true);
           onReady?.(editor.getContent());
         }}
@@ -54,6 +60,7 @@ function TextEditor({
           height: autoHeight ? undefined : "100%",
           width: "100%",
           statusbar: statusbar ?? !autoHeight,
+          ...(ariaText && { iframe_aria_text: ariaText }),
           ...(autoHeight && {
             resize: false,
             min_height: 40,

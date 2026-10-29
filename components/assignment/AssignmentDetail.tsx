@@ -204,6 +204,7 @@ export default function AssignmentDetail({
                         onChange={() => {}}
                         menubar={false}
                         toolbar={false}
+                        ariaText={assignmentPageLanguage.instructions(lang)}
                       />
                     </div>
                   </section>
