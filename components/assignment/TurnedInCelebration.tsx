@@ -145,7 +145,7 @@ export default function TurnedInCelebration({
       style={{
         background:
           "radial-gradient(circle at 50% 38%, #E8F1FD 0, #F7F8FA 60%)",
-        paddingTop: "calc(var(--safe-top) + 56px)",
+        paddingTop: "calc(var(--safe-top) + 16px)",
         paddingBottom: "calc(var(--safe-bottom) + 16px)",
       }}
     >
@@ -163,8 +163,10 @@ export default function TurnedInCelebration({
         ))}
       </div>
 
+      {/* The block is centred (auto margins: when it doesn't fit, it starts
+          at the top instead of being cut there), Next right under the tiles. */}
       <div
-        className="tg-jump relative h-44 w-44 shrink-0"
+        className="tg-jump relative mt-auto h-44 w-44 shrink-0"
         style={{ filter: "drop-shadow(0 10px 12px rgba(0,0,0,.18))" }}
       >
         <MascotAvatar
@@ -210,7 +212,7 @@ export default function TurnedInCelebration({
         ))}
       </div>
 
-      <div className="mt-auto flex w-full flex-col gap-2 px-4 pt-6">
+      <div className="mb-auto mt-10 flex w-full flex-col gap-2 px-4">
         {next && (
           <button
             ref={primaryRef}
