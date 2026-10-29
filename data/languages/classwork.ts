@@ -179,6 +179,9 @@ export const tagsDataLanguage = {
 
 /** The assignment detail page (title card, instructions, teacher files). */
 export const assignmentPageLanguage = {
+  /** Browser tab title. */
+  pageTitle: (l: Language, title: string) =>
+    l === "th" ? `งาน: ${title}` : `Assignment: ${title}`,
   pointsCount: (l: Language, n: number) =>
     l === "th" ? `${n} คะแนน` : `${n} ${n === 1 ? "point" : "points"}`,
   instructions: t("Instructions", "คำชี้แจง"),

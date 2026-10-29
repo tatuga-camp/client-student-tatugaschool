@@ -11,6 +11,8 @@ export const homeLanguage = {
   tabMe: (l: Language) => t(l, "Me", "ฉัน"),
   tabBar: (l: Language) => t(l, "Subject tabs", "แท็บของวิชา"),
   studentNotFound: (l: Language) => t(l, "Student not found", "ไม่พบนักเรียน"),
+  /** Browser tab title until the subject's own title loads. */
+  subjectTitleFallback: (l: Language) => t(l, "Subject", "รายวิชา"),
   back: (l: Language) => t(l, "Back", "ย้อนกลับ"),
   paneError: (l: Language) =>
     t(l, "Something went wrong on this page", "หน้านี้เกิดข้อผิดพลาด"),

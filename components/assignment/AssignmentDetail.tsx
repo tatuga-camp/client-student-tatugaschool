@@ -141,7 +141,9 @@ export default function AssignmentDetail({
     <div ref={pageRef} className="flex h-full w-full flex-col font-Anuphan">
       {assignment && (
         <Head>
-          <title>Assignment: {assignment.title}</title>
+          <title>
+            {assignmentPageLanguage.pageTitle(lang, assignment.title)}
+          </title>
         </Head>
       )}
       <DetailHeader

@@ -62,7 +62,7 @@ function ShellBody({ route }: { route: ShellRoute }) {
         <title>
           {subject.data?.title
             ? `${subject.data.title} | Tatuga School`
-            : "Subject"}
+            : homeLanguage.subjectTitleFallback(lang)}
         </title>
         <meta name="description" content={subject.data?.title} />
       </Head>
