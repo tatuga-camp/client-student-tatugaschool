@@ -3,9 +3,10 @@ type Searchable = { firstName: string; lastName: string; number: string };
 /**
  * True once a hidden-list query is enough to search: 3+ characters, a name or
  * a number alike (numbers run 1..N, so short ones would walk the roster).
+ * Spaces don't count: names also match with them removed, so "m i" is "mi".
  */
 export function hiddenQueryReady(query: string): boolean {
-  return query.trim().length > 2;
+  return query.replace(/\s+/g, "").length > 2;
 }
 
 export function searchStudents<T extends Searchable>(

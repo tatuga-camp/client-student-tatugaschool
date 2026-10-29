@@ -97,3 +97,23 @@ test("hiddenQueryReady: 3+ characters, whether name or number", () => {
   assert.equal(hiddenQueryReady("123"), true);
   assert.equal(hiddenQueryReady("a1"), false);
 });
+
+test("a hidden list counts letters, not spaces: 2 letters list nobody", () => {
+  const roster = [
+    { firstName: "Michael", lastName: "Williams", number: "3" },
+    { firstName: "Michelle", lastName: "Ramirez", number: "13" },
+  ];
+  assert.equal(hiddenQueryReady("m i"), false);
+  assert.deepEqual(searchStudents(roster, "m i", true), []);
+  assert.deepEqual(searchStudents(kids, "ส ม", true), []);
+  // 3+ letters with spaces, and Thai names, still match.
+  assert.equal(hiddenQueryReady("m i c"), true);
+  assert.deepEqual(
+    searchStudents(roster, "Michael W", true).map((k) => k.number),
+    ["3"],
+  );
+  assert.deepEqual(
+    searchStudents(kids, "สม ช", true).map((k) => k.number),
+    ["12", "21"],
+  );
+});
