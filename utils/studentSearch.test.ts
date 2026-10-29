@@ -54,26 +54,22 @@ test("highlightMatch splits around the first match", () => {
   assert.equal(highlightMatch("กานต์", "xyz"), null);
 });
 
-test("searchStudents in a hidden list matches a numeric query exactly at any length", () => {
+test("searchStudents in a hidden list lists nobody for 1-2 characters, numbers too", () => {
   const roster = [
     { firstName: "A", lastName: "A", number: "1" },
     { firstName: "B", lastName: "B", number: "3" },
-    { firstName: "C", lastName: "C", number: "10" },
-    { firstName: "D", lastName: "D", number: "13" },
+    { firstName: "C", lastName: "C", number: "12" },
+    { firstName: "D", lastName: "D", number: "123" },
   ];
+  assert.deepEqual(searchStudents(roster, "3", true), []);
+  assert.deepEqual(searchStudents(roster, " 1 ", true), []);
+  assert.deepEqual(searchStudents(roster, "12", true), []);
+  assert.deepEqual(searchStudents(kids, "สม", true), []);
+  // 3+ characters find a number too.
   assert.deepEqual(
-    searchStudents(roster, "3", true).map((k) => k.number),
-    ["3"],
+    searchStudents(roster, "123", true).map((k) => k.number),
+    ["123"],
   );
-  assert.deepEqual(
-    searchStudents(roster, " 1 ", true).map((k) => k.number),
-    ["1"],
-  );
-  assert.deepEqual(
-    searchStudents(roster, "13", true).map((k) => k.number),
-    ["13"],
-  );
-  assert.deepEqual(searchStudents(roster, "99", true), []);
 });
 
 test("searchStudents in a hidden list still needs 3+ characters for text", () => {
@@ -81,11 +77,23 @@ test("searchStudents in a hidden list still needs 3+ characters for text", () =>
   assert.deepEqual(searchStudents(roster, "Al", true), []);
 });
 
-test("hiddenQueryReady: text needs 3+ characters, a number needs one digit", () => {
+test("searchStudents in a visible list still matches a short number", () => {
+  const roster = [
+    { firstName: "A", lastName: "A", number: "3" },
+    { firstName: "B", lastName: "B", number: "13" },
+  ];
+  assert.deepEqual(
+    searchStudents(roster, "3", false).map((k) => k.number),
+    ["3", "13"],
+  );
+});
+
+test("hiddenQueryReady: 3+ characters, whether name or number", () => {
   assert.equal(hiddenQueryReady(""), false);
   assert.equal(hiddenQueryReady("ab"), false);
   assert.equal(hiddenQueryReady(" abc "), true);
-  assert.equal(hiddenQueryReady("3"), true);
-  assert.equal(hiddenQueryReady(" 12 "), true);
+  assert.equal(hiddenQueryReady("3"), false);
+  assert.equal(hiddenQueryReady(" 12 "), false);
+  assert.equal(hiddenQueryReady("123"), true);
   assert.equal(hiddenQueryReady("a1"), false);
 });
