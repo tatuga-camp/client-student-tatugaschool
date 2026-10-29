@@ -1,10 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {
-  createHistoryIndex,
-  restoreDelta,
-  unseenIsBehind,
-} from "./historyIndex";
+import { createHistoryIndex, restoreDelta } from "./historyIndex";
 import { decidePop, layerPop, popOutcome } from "./popGuard";
 
 const base = {
@@ -223,7 +219,7 @@ test("popOutcome for the other answers", () => {
 // A back press while a modal layer (sheet or viewer) is open: on a detail
 // page and on a tab pane alike, it closes the topmost layer and puts the URL
 // back with history.go(), never with a push.
-const layer = { restoringKey: null as string | null, unseenIsBehind: true };
+const layer = { restoringKey: null as string | null };
 
 test("tab pane [SignIn(unindexed), H]: back with the switcher open closes it, one go(1), landing swallowed", () => {
   const back = layerPop({
@@ -238,7 +234,6 @@ test("tab pane [SignIn(unindexed), H]: back with the switcher open closes it, on
   const landed = layerPop({
     top: "none",
     restoringKey: back.restoringKey,
-    unseenIsBehind: true,
     poppedKey: "H",
     currentKey: "H",
     delta: 0,
@@ -299,7 +294,6 @@ test("a layer that stays (a dirty note asking) does not block its own landing", 
   const r = layerPop({
     top: "closes",
     restoringKey: "D",
-    unseenIsBehind: true,
     poppedKey: "D",
     currentKey: "D",
     delta: 0,
@@ -327,7 +321,6 @@ test("a pop that is not the awaited landing clears a stale restore and passes", 
   const r = layerPop({
     top: "none",
     restoringKey: "D",
-    unseenIsBehind: true,
     poppedKey: "X",
     currentKey: "D",
     delta: 2,
@@ -348,10 +341,6 @@ const popFrom = (
   poppedKey,
   currentKey: h.currentKey(),
   delta: restoreDelta(h.current(), h.peek(poppedKey)),
-  unseenIsBehind: unseenIsBehind({
-    placed: h.current() !== null,
-    load: "navigate",
-  }),
 });
 
 test("[W, P, H]: back to P and forward again, then a sheet back restores with go(1)", () => {
@@ -374,38 +363,12 @@ test("a known entry popped forward restores backwards (go(-1))", () => {
   assert.deepEqual(r, { take: true, close: true, go: -1, restoringKey: "H" });
 });
 
-test("an unseen entry, from a place the shell can't place either: the sheet closes, the pop passes", () => {
-  // Off an entry the shell only reached by a pop, a pop to another unseen
-  // one could be either way: no restore is guessed.
+test("off an entry the shell only reached by a pop, an unseen one still counts as behind (go(1))", () => {
   const h = createHistoryIndex();
   h.visit("H", "/subject/s1");
   h.visit("P", "/?subject_code=fe5235", true);
   const r = layerPop({ ...layer, top: "closes", ...popFrom(h, "W") });
-  assert.deepEqual(r, {
-    take: false,
-    close: true,
-    go: null,
-    restoringKey: null,
-  });
-});
-
-test("forward onto an unseen entry after a reload: the sheet closes, the pop passes (no go(1) guess)", () => {
-  // Real history [W, P, L, D]: the student opened D, went back to L and
-  // reloaded. The shell starts again on L; D, ahead, is unseen.
-  const h = createHistoryIndex();
-  h.visit("L", "/subject/s1?tab=classwork");
-  const r = layerPop({
-    ...layer,
-    top: "closes",
-    ...popFrom(h, "D"),
-    unseenIsBehind: unseenIsBehind({ placed: true, load: "reload" }),
-  });
-  assert.deepEqual(r, {
-    take: false,
-    close: true,
-    go: null,
-    restoringKey: null,
-  });
+  assert.deepEqual(r, { take: true, close: true, go: 1, restoringKey: "P" });
 });
 
 test("with the browser's own entry indexes, the same forward restores exactly (go(-1))", () => {
@@ -418,7 +381,34 @@ test("with the browser's own entry indexes, the same forward restores exactly (g
     poppedKey: "D",
     currentKey: "L",
     delta: restoreDelta(2, 3),
-    unseenIsBehind: false,
   });
   assert.deepEqual(r, { take: true, close: true, go: -1, restoringKey: "L" });
+});
+
+// Ruling P4-20: with no known distance, an unseen entry counts as behind
+// (P3-21), for a layer as for the leave guard. A back after a reload is the
+// common case: [W, P, H, L, D], reload on D, a sheet open, back to L.
+test("P3-21/P3-25: detail back after a reload with a sheet open restores with go(1)", () => {
+  const h = createHistoryIndex();
+  h.visit("D", "/subject/s1/assignment/a");
+  const info = {
+    poppedKey: "L",
+    currentKey: h.currentKey(),
+    delta: restoreDelta(h.current(), h.peek("L")), // null: no browser index
+  };
+  const r = layerPop({
+    ...layer,
+    top: "closes",
+    ...info,
+  });
+  assert.deepEqual(r, { take: true, close: true, go: 1, restoringKey: "D" });
+  // The leave guard decides the same pop the same way.
+  const guard = decidePop({
+    restoringKey: null,
+    ...info,
+    pending: true,
+    needsAnswer: true,
+    awayBy: 0,
+  });
+  assert.deepEqual(guard.action, { kind: "stay", go: 1 });
 });

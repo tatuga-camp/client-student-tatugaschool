@@ -2,11 +2,7 @@ import Router, { useRouter } from "next/router";
 import { useEffect, useMemo } from "react";
 import { queryString } from "../../common/RouteParamsGate";
 import { leaveIfAllowed } from "../../../utils/leaveGuard";
-import {
-  createHistoryIndex,
-  restoreDelta,
-  unseenIsBehind,
-} from "../../../utils/historyIndex";
+import { createHistoryIndex, restoreDelta } from "../../../utils/historyIndex";
 import { backTarget, parseTab, TabKey } from "../../../utils/tabs";
 
 export type ShellRoute = {
@@ -53,14 +49,6 @@ function currentHistoryIdx(path?: string): number {
   return historyIndex.visit(key, path, key === lastPoppedKey);
 }
 
-/** How this page was loaded: "navigate", "reload", "back_forward"... */
-function pageLoad(): string {
-  const [entry] = performance.getEntriesByType("navigation") as
-    | PerformanceNavigationTiming[]
-    | [];
-  return entry?.type ?? "navigate";
-}
-
 /** The path of the entry behind the current one, if the shell saw it. */
 export function previousEntryPath(): string | undefined {
   return historyIndex.previousPath();
@@ -69,14 +57,13 @@ export function previousEntryPath(): string | undefined {
 /**
  * Read while a browser pop is being handled (before the shell has moved):
  * the popped and current entries' keys, how far history.go() must go to get
- * back to the entry we were on (null when the popped entry is unknown), and
- * whether such an unknown entry must be behind.
+ * back to the entry we were on (null when the popped entry is unknown: it
+ * then counts as behind, P3-21).
  */
 export function popInfo(): {
   poppedKey: string | undefined;
   currentKey: string | null;
   delta: number | null;
-  unseenIsBehind: boolean;
 } {
   const poppedKey = stateKey();
   return {
@@ -85,10 +72,6 @@ export function popInfo(): {
     delta:
       restoreDelta(shellBrowserIndex, browserIndex()) ??
       restoreDelta(historyIndex.current(), historyIndex.peek(poppedKey)),
-    unseenIsBehind: unseenIsBehind({
-      placed: historyIndex.current() !== null,
-      load: pageLoad(),
-    }),
   };
 }
 
