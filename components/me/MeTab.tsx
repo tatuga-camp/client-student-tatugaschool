@@ -2,7 +2,9 @@ import React from "react";
 import { Toast } from "primereact/toast";
 import { LuBriefcase, LuChevronRight } from "react-icons/lu";
 import {
+  assignmentPageLanguage,
   careerLanguage,
+  classworkDataLanguage,
   navbarLanguageData,
   profileLanguage,
   studentDataLanguage,
@@ -36,6 +38,7 @@ import {
   sectorForCareer,
   summarizeSkills,
 } from "../../utils/careerReport";
+import { uploadFailure } from "../../utils/assignmentDetail";
 import { errorSwalContent } from "../../utils/errorSwal";
 import { getPushStatus, PushStatus } from "../../utils/notifications";
 import { NotificationPromptSheet } from "../app/NotificationPromptSheet";
@@ -153,8 +156,13 @@ export default function MeTab({ subjectId, active }: TabPaneProps) {
       showSavedToast();
     } catch (error) {
       console.error(error);
+      // Storage refusing the photo replies in English: show the TH/EN line.
       const failure = errorSwalContent(
-        error,
+        uploadFailure(error, {
+          network: classworkDataLanguage.uploadNetworkError(lang),
+          unreadable: classworkDataLanguage.uploadFileUnreadable(lang),
+          rejected: assignmentPageLanguage.uploadRejected(lang),
+        }),
         studentDataLanguage.somethingWentWrong(lang),
       );
       toast.current?.show({
