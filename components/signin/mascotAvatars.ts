@@ -15,5 +15,7 @@ const TINTS = [
   "#E8F1FD",
 ];
 
-/** A stable pastel per student, so a mascot keeps its colour. */
-export const tintFor = (id: string) => TINTS[mascotHash(id) % TINTS.length];
+/** A stable pastel per student (the Student id, the same in every class),
+ *  so a mascot keeps its colour. */
+export const tintFor = (studentId: string) =>
+  TINTS[mascotHash(studentId) % TINTS.length];

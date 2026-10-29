@@ -38,7 +38,7 @@ export function StudentGrid({ students, lang, pendingId, onPick }: Props) {
             >
               <span
                 className="relative h-[54px] w-[54px] rounded-full"
-                style={{ background: tintFor(student.id) }}
+                style={{ background: tintFor(student.studentId) }}
               >
                 <MascotAvatar
                   clips={mascotForStudentOnSubject(student)}

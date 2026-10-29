@@ -12,10 +12,10 @@ export type ShellRoute = {
   announcementId: string | null;
 };
 
-/** Props of every tab pane file (Part 2 rewrites the panes). */
+/** Props of every tab pane (components/{home,classwork,…}/…Tab.tsx). */
 export type TabPaneProps = { subjectId: string; active: boolean };
 
-/** Props of components/assignment/AssignmentDetail.tsx (Part 3 rewrites it). */
+/** Props of components/assignment/AssignmentDetail.tsx. */
 export type DetailPaneProps = { subjectId: string; assignmentId: string };
 
 const ASSIGNMENT_PATHNAME = "/subject/[subjectId]/assignment/[assignmentId]";

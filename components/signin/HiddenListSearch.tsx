@@ -62,7 +62,7 @@ export function HiddenListSearch({
           >
             <span
               className="relative h-11 w-11 shrink-0 rounded-full"
-              style={{ background: tintFor(student.id) }}
+              style={{ background: tintFor(student.studentId) }}
             >
               <MascotAvatar
                 clips={mascotForStudentOnSubject(student)}

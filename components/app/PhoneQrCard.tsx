@@ -7,10 +7,9 @@ import { frameLanguage } from "../../data/languages";
 import { useGetLanguage, useGetSubjectById } from "../../react-query";
 import { phoneHandoffUrl } from "../../utils/phoneHandoff";
 import { safeGet, safeRemove, safeSet } from "../../utils/safeStorage";
-import { mascotForPhoto } from "../../utils/mascot";
+import { guideClips } from "../signin/mascotAvatars";
 
 const HIDDEN_KEY = "frame_qr_hidden";
-const MASCOT = mascotForPhoto("https://storage.tatugaschool.com/AVATAR/1.png");
 
 /** "Scan to open on your phone" card on the desktop stage. */
 export function PhoneQrCard() {
@@ -69,10 +68,10 @@ export function PhoneQrCard() {
 
   return (
     <div className="absolute bottom-[62px] left-[14px] z-[3] w-[196px] font-Anuphan min-[920px]:bottom-auto min-[920px]:left-[34px] min-[920px]:top-1/2 min-[920px]:-translate-y-[40%] rounded-[22px] border-2 border-b-[5px] border-[#E3E8F0] bg-white px-[14px] pb-3 pt-[14px] text-center shadow-[0_12px_30px_rgba(0,0,0,.12)]">
-      {MASCOT && (
+      {guideClips && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={MASCOT.poster}
+          src={guideClips.poster}
           alt=""
           className="pointer-events-none absolute -top-[46px] right-[10px] h-16 w-16 drop-shadow-md"
         />
