@@ -101,6 +101,7 @@ export default function ClassworkTab({ subjectId, active }: TabPaneProps) {
             subjectId={subjectId}
             lang={lang}
             deepLink={link}
+            onHandled={() => setLink(null)}
           />
         )}
       </div>

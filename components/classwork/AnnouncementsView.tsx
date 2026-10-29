@@ -14,12 +14,15 @@ type Props = {
   lang: Language;
   /** A new object per notification tap; null when there is none. */
   deepLink: { id: string } | null;
+  /** The link was scrolled to; the parent drops it so it fires once. */
+  onHandled: () => void;
 };
 
 export default function AnnouncementsView({
   subjectId,
   lang,
   deepLink,
+  onHandled,
 }: Props) {
   const announcements = useGetAnnouncements({ subjectId });
   const student = useGetStudent();
@@ -41,6 +44,9 @@ export default function AnnouncementsView({
     if (!ready || !deepLink || doneLink.current === deepLink || !target) return;
     const raf = requestAnimationFrame(() => {
       doneLink.current = deepLink;
+      clearTimeout(flashTimer.current);
+      setFlashId(null);
+      onHandled();
       const timing = flashTiming(
         window.matchMedia("(prefers-reduced-motion: reduce)").matches,
       );
@@ -62,6 +68,7 @@ export default function AnnouncementsView({
       }, timing.startDelay);
     });
     return () => cancelAnimationFrame(raf);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, deepLink, target]);
 
   // The flash timers outlive a refetch of the list, but not this view.
