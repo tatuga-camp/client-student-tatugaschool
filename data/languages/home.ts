@@ -51,6 +51,12 @@ export const homeLanguage = {
       "Couldn't load your work. Try again soon.",
       "โหลดงานไม่สำเร็จ ลองใหม่อีกครั้ง",
     ),
+  loadFailed: (l: Language) =>
+    t(
+      l,
+      "Couldn't load this. Check your connection and try again.",
+      "โหลดไม่สำเร็จ ตรวจสอบอินเทอร์เน็ตแล้วลองอีกครั้ง",
+    ),
   allDone: (l: Language) => t(l, "All done. Nice work!", "ทำครบแล้ว เก่งมาก!"),
   openAssignment: (l: Language, title: string) =>
     t(l, `Open ${title}`, `เปิด ${title}`),

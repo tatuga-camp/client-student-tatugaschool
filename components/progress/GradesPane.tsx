@@ -17,6 +17,7 @@ import {
   defaultGradeRule,
   summarizeAssignmentScores,
 } from "../../utils";
+import { InlineError } from "../app/InlineError";
 import { mascotForStudent } from "../../utils/mascot";
 import MascotAvatar from "../student/MascotAvatar";
 
@@ -38,6 +39,20 @@ export default function GradesPane({ subjectId, active }: Props) {
     subjectId,
     studentId: student.data?.id ?? "",
   });
+
+  if (
+    (overview.isError && !overview.data) ||
+    (subject.isError && !subject.data)
+  ) {
+    return (
+      <InlineError
+        onRetry={() => {
+          if (overview.isError) overview.refetch();
+          if (subject.isError) subject.refetch();
+        }}
+      />
+    );
+  }
 
   if (!overview.data || !subject.data) {
     return (

@@ -31,8 +31,12 @@ export function useGetOverviewScore(
   input: RequestGetOverviewAssignmentService,
 ) {
   return useQuery({
-    queryKey: ["overview-score", { subjectId: input.subjectId }],
+    queryKey: [
+      "overview-score",
+      { subjectId: input.subjectId, studentId: input.studentId },
+    ],
     queryFn: () => GetOverviewAssignmentService(input),
+    enabled: !!input.subjectId && !!input.studentId,
   });
 }
 
