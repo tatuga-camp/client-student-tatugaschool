@@ -31,7 +31,7 @@ export function StatusChips({ lang, filter, onFilter, counts }: StatusProps) {
   return (
     <ul
       data-no-swipe
-      className="hideScrollBar -mb-1 -mt-0.5 flex gap-1.5 overflow-x-auto px-3 pb-2.5 pt-1"
+      className="hideScrollBar -mb-2 flex gap-1.5 overflow-x-auto px-3 pb-3.5 pt-0.5"
     >
       {STATUS_KEYS.map((key) => {
         const on = filter === key;
@@ -41,7 +41,7 @@ export function StatusChips({ lang, filter, onFilter, counts }: StatusProps) {
               type="button"
               aria-pressed={on}
               onClick={() => onFilter(key)}
-              className={`${chipBase} min-h-9 px-3 text-sm after:-inset-y-1 ${on ? chipOn : chipOff}`}
+              className={`${chipBase} min-h-9 px-3 text-sm after:top-0 after:-bottom-2 ${on ? chipOn : chipOff}`}
               style={on ? { boxShadow: "0 3px 0 #275d96" } : undefined}
             >
               {label(key)}
@@ -83,14 +83,14 @@ export function TagChips({
   return (
     <ul
       data-no-swipe
-      className="hideScrollBar -my-1.5 flex gap-1.5 overflow-x-auto px-3 py-1.5"
+      className="hideScrollBar -mb-3 flex gap-1.5 overflow-x-auto px-3 pb-[18px]"
     >
       <li className="shrink-0">
         <button
           type="button"
           aria-pressed={allOn}
           onClick={() => onChange(new Set())}
-          className={`${chipBase} min-h-8 px-2.5 text-xs after:-inset-y-1.5 ${allOn ? chipOn : chipOff}`}
+          className={`${chipBase} min-h-8 px-2.5 text-xs after:top-0 after:-bottom-3 ${allOn ? chipOn : chipOff}`}
         >
           <LuHash aria-hidden />
           {tagsDataLanguage.showAll(lang)} · {total}
@@ -105,7 +105,7 @@ export function TagChips({
               type="button"
               aria-pressed={on}
               onClick={() => toggle(key)}
-              className={`${chipBase} min-h-8 px-2.5 text-xs after:-inset-y-1.5 ${on ? chipOn : chipOff}`}
+              className={`${chipBase} min-h-8 px-2.5 text-xs after:top-0 after:-bottom-3 ${on ? chipOn : chipOff}`}
             >
               <LuHash aria-hidden />
               <span className="max-w-[10rem] truncate">{tag}</span> ·{" "}

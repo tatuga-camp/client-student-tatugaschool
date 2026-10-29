@@ -149,7 +149,7 @@ export default function SubjectsTab({ subjectId }: TabPaneProps) {
 
         <div
           data-no-swipe
-          className="-mx-3 -mb-2 flex gap-1.5 overflow-x-auto px-3 pb-3 pt-2"
+          className="-mx-3 -mb-4 mt-2 flex gap-1.5 overflow-x-auto px-3 pb-5"
         >
           {STATUSES.map((s) => {
             const on = statusFilter === s;
@@ -159,7 +159,7 @@ export default function SubjectsTab({ subjectId }: TabPaneProps) {
                 type="button"
                 aria-pressed={on}
                 onClick={() => setStatusFilter(s)}
-                className={`relative inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border-2 px-2.5 py-1 text-[12px] font-bold after:absolute after:-inset-y-2 after:inset-x-0 after:content-[''] ${
+                className={`relative inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border-2 px-2.5 py-1 text-[12px] font-bold after:absolute after:inset-x-0 after:top-0 after:-bottom-4 after:content-[''] ${
                   on
                     ? "border-primary-color bg-primary-color text-white shadow-[0_3px_0_#275d96]"
                     : "border-[#E3E8F0] bg-white text-[#5B6280]"

@@ -109,7 +109,7 @@ function NotificationList({
             type="button"
             disabled={markAllAsRead.isPending}
             onClick={() => markAllAsRead.mutate()}
-            className="relative flex shrink-0 items-center gap-1 py-1 text-sm font-bold text-primary-color after:absolute after:-inset-y-2 after:inset-x-0 after:content-[''] disabled:opacity-50"
+            className="relative flex shrink-0 items-center gap-1 py-1 text-sm font-bold text-primary-color after:absolute after:inset-x-0 after:-bottom-4 after:top-0 after:content-[''] disabled:opacity-50"
           >
             <LuCheckCheck aria-hidden size={16} />
             {announcementDataLanguage.markAllRead(lang)}
@@ -234,7 +234,7 @@ function PushBanner({ lang }: { lang: Language }) {
         type="button"
         disabled={allowing}
         onClick={allow}
-        className="relative w-max rounded-full bg-primary-color px-4 py-1 text-xs font-bold text-white after:absolute after:-inset-y-2.5 after:inset-x-0 after:content-[''] disabled:opacity-50"
+        className="relative w-max rounded-full bg-primary-color px-4 py-1 text-xs font-bold text-white after:absolute after:inset-x-0 after:-bottom-5 after:top-0 after:content-[''] disabled:opacity-50"
       >
         {attempted || blocked
           ? askNotificationDataLanguage.tryAgain(lang)
