@@ -92,6 +92,8 @@ export function layerPop(input: {
   poppedKey: string | undefined;
   currentKey: string | null;
   delta: number | null;
+  /** The shell knows its own place in history (utils/historyIndex.ts). */
+  currentKnown: boolean;
 }): {
   take: boolean;
   close: boolean;
@@ -101,6 +103,12 @@ export function layerPop(input: {
   const active = input.top === "closes";
   const pass = { take: false, close: false, go: null, restoringKey: null };
   if (!active && input.restoringKey === null) return pass;
+  // Off a known entry an unseen one is behind (go(1) below). Off an entry
+  // the shell only reached by a pop, it could be either way: let the pop
+  // through rather than restore the wrong way.
+  if (active && !input.currentKnown && input.poppedKey !== input.currentKey) {
+    return pass;
+  }
   const { action, restoringKey } = decidePop({
     restoringKey: input.restoringKey,
     poppedKey: input.poppedKey,

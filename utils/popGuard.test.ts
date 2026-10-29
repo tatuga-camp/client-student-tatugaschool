@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { createHistoryIndex, restoreDelta } from "./historyIndex";
 import { decidePop, layerPop, popOutcome } from "./popGuard";
 
 const base = {
@@ -218,7 +219,7 @@ test("popOutcome for the other answers", () => {
 // A back press while a modal layer (sheet or viewer) is open: on a detail
 // page and on a tab pane alike, it closes the topmost layer and puts the URL
 // back with history.go(), never with a push.
-const layer = { restoringKey: null as string | null };
+const layer = { restoringKey: null as string | null, currentKnown: true };
 
 test("tab pane [SignIn(unindexed), H]: back with the switcher open closes it, one go(1), landing swallowed", () => {
   const back = layerPop({
@@ -233,6 +234,7 @@ test("tab pane [SignIn(unindexed), H]: back with the switcher open closes it, on
   const landed = layerPop({
     top: "none",
     restoringKey: back.restoringKey,
+    currentKnown: true,
     poppedKey: "H",
     currentKey: "H",
     delta: 0,
@@ -293,6 +295,7 @@ test("a layer that stays (a dirty note asking) does not block its own landing", 
   const r = layerPop({
     top: "closes",
     restoringKey: "D",
+    currentKnown: true,
     poppedKey: "D",
     currentKey: "D",
     delta: 0,
@@ -320,10 +323,59 @@ test("a pop that is not the awaited landing clears a stale restore and passes", 
   const r = layerPop({
     top: "none",
     restoringKey: "D",
+    currentKnown: true,
     poppedKey: "X",
     currentKey: "D",
     delta: 2,
   });
+  assert.deepEqual(r, {
+    take: false,
+    close: false,
+    go: null,
+    restoringKey: null,
+  });
+});
+
+// The shell's history index feeding layerPop, as useShellRoute's popInfo does.
+const popFrom = (
+  h: ReturnType<typeof createHistoryIndex>,
+  poppedKey: string,
+) => ({
+  poppedKey,
+  currentKey: h.currentKey(),
+  delta: restoreDelta(h.current(), h.peek(poppedKey)),
+  currentKnown: h.current() !== null,
+});
+
+test("[W, P, H]: back to P and forward again, then a sheet back restores with go(1)", () => {
+  const h = createHistoryIndex();
+  h.visit("H", "/subject/s1");
+  h.visit("P", "/?subject_code=fe5235", true); // back, nothing open: passes
+  h.visit("H", "/subject/s1", true); // forward
+  // The switcher is open; back moves the browser to P.
+  const r = layerPop({ ...layer, top: "closes", ...popFrom(h, "P") });
+  assert.deepEqual(r, { take: true, close: true, go: 1, restoringKey: "H" });
+});
+
+test("a known entry popped forward restores backwards (go(-1))", () => {
+  const h = createHistoryIndex();
+  h.visit("H", "/subject/s1");
+  h.visit("D", "/subject/s1/assignment/a");
+  h.visit("H", "/subject/s1", true); // back to H
+  // A sheet on H; forward moves the browser to D.
+  const r = layerPop({ ...layer, top: "closes", ...popFrom(h, "D") });
+  assert.deepEqual(r, { take: true, close: true, go: -1, restoringKey: "H" });
+});
+
+test("an unknown entry, from a place the shell can't place either: passes instead of guessing", () => {
+  // Unseen entries are the pages before the shell's first entry, so off a
+  // known entry they are behind (go(1) above). Off an entry the shell only
+  // reached by a pop, a pop to another unseen one could be either way
+  // (a forward included): no restore is guessed.
+  const h = createHistoryIndex();
+  h.visit("H", "/subject/s1");
+  h.visit("P", "/?subject_code=fe5235", true);
+  const r = layerPop({ ...layer, top: "closes", ...popFrom(h, "W") });
   assert.deepEqual(r, {
     take: false,
     close: false,

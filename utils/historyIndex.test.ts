@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createHistoryIndex, restoreDelta } from "./historyIndex";
+import { classworkBack } from "./tabs";
 
 test("the first entry seen is 0 and each new entry follows the current one", () => {
   const history = createHistoryIndex();
@@ -85,4 +86,52 @@ test("previousPath: nothing behind the first entry; a push after going back foll
   // Back on d, then a new push: the entry behind it is still d.
   h.visit("f", "/subject/s1/assignment/z");
   assert.equal(h.previousPath(), "/subject/s1/assignment/x");
+});
+
+// Entries first reached by a back/forward (popped = true) are not given a
+// place: the shell can't tell from a pop where they are.
+test("an entry first reached by a pop gets no index, and the shell's place is unknown there", () => {
+  const h = createHistoryIndex();
+  h.visit("H", "/subject/s1");
+  // Back to the pick-name page, which the shell never saw being pushed.
+  assert.equal(h.visit("P", "/?subject_code=fe5235", true), 0);
+  assert.equal(h.peek("P"), undefined);
+  assert.equal(h.current(), null);
+  assert.equal(h.currentKey(), "P");
+  assert.equal(h.previousPath(), undefined);
+  // Forward again: H is known.
+  assert.equal(h.visit("H", "/subject/s1", true), 0);
+  assert.equal(h.current(), 0);
+  assert.equal(restoreDelta(h.current(), h.peek("P")), null);
+});
+
+test("reload on D2, then back twice: the entry behind D1 is unknown, so Back to classwork replaces", () => {
+  // Real history [H, D1, L, D2]; the shell first sees D2.
+  const h = createHistoryIndex();
+  h.visit("D2", "/subject/s1/assignment/b");
+  h.visit("L", "/subject/s1?tab=classwork", true);
+  h.visit("D1", "/subject/s1/assignment/a", true);
+  assert.equal(h.previousPath(), undefined);
+  assert.equal(
+    classworkBack({ previousPath: h.previousPath(), subjectId: "s1" }),
+    "replace",
+  );
+});
+
+test("a push from an entry reached by a pop starts the numbering again", () => {
+  // [W, P, H]: back to P (pop), then sign in again: P pushes H2, which drops
+  // H and everything after it. Nothing in-app is behind H2.
+  const h = createHistoryIndex();
+  h.visit("H", "/subject/s1");
+  h.visit("D", "/subject/s1/assignment/a");
+  h.visit("H", "/subject/s1", true);
+  h.visit("P", "/?subject_code=fe5235", true);
+  assert.equal(h.visit("H2", "/subject/s1"), 0);
+  assert.equal(h.previousPath(), undefined);
+  assert.equal(h.visit("D2", "/subject/s1/assignment/b"), 1);
+  assert.equal(h.previousPath(), "/subject/s1");
+});
+
+test("restoreDelta is unknown while the shell's own place is unknown", () => {
+  assert.equal(restoreDelta(null, 1), null);
 });

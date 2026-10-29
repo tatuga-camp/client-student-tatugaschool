@@ -24,13 +24,17 @@ const ASSIGNMENT_PATHNAME = "/subject/[subjectId]/assignment/[assignmentId]";
 // per-entry `key` (see utils/historyIndex.ts) to give backTarget one.
 const historyIndex = createHistoryIndex();
 let tracking = false;
+// The key of the entry the browser last moved to by a back/forward: landing
+// on it is a pop, not a push, and a new key reached that way stays unindexed.
+let lastPoppedKey: string | undefined;
+
+const stateKey = () =>
+  (window.history.state as { key?: string } | null)?.key ?? undefined;
 
 /** The current entry's index; `path` (after a navigation) is recorded too. */
 function currentHistoryIdx(path?: string): number {
-  return historyIndex.visit(
-    (window.history.state as { key?: string } | null)?.key,
-    path,
-  );
+  const key = stateKey();
+  return historyIndex.visit(key, path, key === lastPoppedKey);
 }
 
 /** The path of the entry behind the current one, if the shell saw it. */
@@ -47,13 +51,14 @@ export function popInfo(): {
   poppedKey: string | undefined;
   currentKey: string | null;
   delta: number | null;
+  currentKnown: boolean;
 } {
-  const poppedKey =
-    (window.history.state as { key?: string } | null)?.key ?? undefined;
+  const poppedKey = stateKey();
   return {
     poppedKey,
     currentKey: historyIndex.currentKey(),
     delta: restoreDelta(historyIndex.current(), historyIndex.peek(poppedKey)),
+    currentKnown: historyIndex.current() !== null,
   };
 }
 
@@ -72,6 +77,14 @@ export function takeInAppPop(): boolean {
 function trackHistory(): void {
   if (tracking) return;
   tracking = true;
+  // Capture: runs before Next's own popstate listener starts the navigation.
+  window.addEventListener(
+    "popstate",
+    () => {
+      lastPoppedKey = stateKey();
+    },
+    true,
+  );
   currentHistoryIdx(Router.asPath);
   Router.events.on("routeChangeComplete", (url: string) =>
     currentHistoryIdx(url),
