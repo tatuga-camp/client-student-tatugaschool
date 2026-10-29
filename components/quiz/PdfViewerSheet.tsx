@@ -133,6 +133,9 @@ export default function PdfViewerSheet({ url, name, language, onClose }: Props) 
       aria-modal="true"
       aria-label={name}
       className="fixed inset-0 z-[1000] outline-none flex flex-col bg-icon-color/95 font-Anuphan"
+      // The reader has no pinch of its own: a pinch must not zoom the whole
+      // app (its buttons would leave their hit points). + / − zoom the page.
+      style={{ touchAction: "pan-x pan-y" }}
     >
       <header className="flex items-center gap-3 bg-white px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
         <h2 className="min-w-0 flex-1 truncate font-semibold text-icon-color">{name}</h2>
