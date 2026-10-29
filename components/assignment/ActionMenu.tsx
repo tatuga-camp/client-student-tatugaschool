@@ -98,7 +98,18 @@ export default function ActionMenu({ items, ariaLabel, disabled }: Props) {
     };
     // Capture + stop: Esc closes this menu, not the sheet around it.
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Tab") pressingButton.current = false;
+      if (e.key === "Tab") {
+        pressingButton.current = false;
+        // Shift+Tab out of the menu goes back to its own ⋯, whatever sits
+        // before the list in the DOM (it renders at the end of the dialog).
+        const first = listRef.current?.querySelector('[role="menuitem"]');
+        if (e.shiftKey && first && document.activeElement === first) {
+          e.preventDefault();
+          e.stopPropagation();
+          close();
+        }
+        return;
+      }
       if (e.key !== "Escape") return;
       e.stopPropagation();
       close();
@@ -146,7 +157,7 @@ export default function ActionMenu({ items, ariaLabel, disabled }: Props) {
           <ul
             ref={listRef}
             role="menu"
-            // Focus moved on out of the menu (Tab, Shift+Tab onto ⋯): close
+            // Focus moved on out of the menu (Tab past the last item): close
             // it, and leave focus where it went. A press on ⋯ toggles it.
             onBlur={(e) => {
               const next = e.relatedTarget as Node | null;
