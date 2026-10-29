@@ -1,6 +1,7 @@
 import { useCallback, useSyncExternalStore } from "react";
 
-const FRAMED_QUERY = "(min-width: 600px) and (min-height: 600px)";
+/** Tablets and desktops: the app runs inside the phone frame. */
+export const FRAMED_QUERY = "(min-width: 600px) and (min-height: 600px)";
 /** Wide enough that the stage items fit beside the phone column. */
 export const WIDE_STAGE_QUERY = "(min-width: 920px)";
 

@@ -8,14 +8,19 @@ import {
 } from "../../utils/clickSlop";
 import { OVERLAY_ROOT_ID, isFrameExcluded } from "../../utils/frameRoutes";
 import { DesktopStage, PhoneChrome } from "./DesktopStage";
-import { useIsFramed } from "./useIsFramed";
+import { FRAMED_QUERY, useIsFramed } from "./useIsFramed";
 
 export { OVERLAY_ROOT_ID, isFrameExcluded };
 
 const BEZEL_SHADOW = "0 30px 60px rgba(0,0,0,.35), inset 0 0 0 2px #2a2a2a";
 
-// The page never scrolls; only the phone's content does.
-const LOCK_PAGE_SCROLL = "html, body { height: 100%; overflow: hidden; }";
+const FRAME_READY = "data-frame-ready";
+
+// The page never scrolls; only the phone's content does. And where the frame
+// goes, nothing shows until the client has put it up: the server can't know
+// the width, and its markup is the unframed layout (a short blank, not a jump).
+const PAGE_CSS = `html, body { height: 100%; overflow: hidden; }
+@media ${FRAMED_QUERY} { html:not([${FRAME_READY}]) #__next { visibility: hidden; } }`;
 
 /**
  * The click that ends a mouse drag is dropped, wherever on the phone screen
@@ -62,6 +67,13 @@ export function PhoneFrame({
   const framed = useIsFramed();
   const scrollRef = useRef<HTMLDivElement>(null);
   const dragClick = useDragClickFilter();
+  // The first render takes the server's guess (unframed); once `framed` is
+  // the screen's own answer, the page may show. The framed re-render happens
+  // in the same task as this effect, so it is painted framed or not at all.
+  useEffect(() => {
+    if (framed === window.matchMedia(FRAMED_QUERY).matches)
+      document.documentElement.setAttribute(FRAME_READY, "");
+  }, [framed]);
   // The scroller persists across pages, so Next's scroll reset no longer
   // reaches it: reset it when the pathname changes.
   useEffect(() => {
@@ -100,7 +112,7 @@ export function PhoneFrame({
   // resizing across the breakpoint keeps page state and the overlay root.
   return (
     <>
-      <style>{LOCK_PAGE_SCROLL}</style>
+      <style>{PAGE_CSS}</style>
       <div
         className={
           framed
