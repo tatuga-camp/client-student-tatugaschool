@@ -12,15 +12,39 @@ import { FRAMED_QUERY, useIsFramed } from "./useIsFramed";
 
 export { OVERLAY_ROOT_ID, isFrameExcluded };
 
-const BEZEL_SHADOW = "0 30px 60px rgba(0,0,0,.35), inset 0 0 0 2px #2a2a2a";
-
-const FRAME_READY = "data-frame-ready";
-
-// The page never scrolls; only the phone's content does. And where the frame
-// goes, nothing shows until the client has put it up: the server can't know
-// the width, and its markup is the unframed layout (a short blank, not a jump).
-const PAGE_CSS = `html, body { height: 100%; overflow: hidden; }
-@media ${FRAMED_QUERY} { html:not([${FRAME_READY}]) #__next { visibility: hidden; } }`;
+// The page never scrolls; only the phone's content does. The frame itself is
+// laid out by this CSS, not by JS: the server can't know the screen's width,
+// so its markup must already be framed on a wide screen and full-screen on a
+// phone. `--screen-h` is the screen's height; pages sized with `dvh` get
+// `--app-dvh` instead of the window (styles/globals.css). No quotes or
+// ampersands in it: React escapes them in a <style>'s server-rendered text.
+const PAGE_CSS = `
+html, body { height: 100%; overflow: hidden; }
+.app-frame { position: relative; overflow: hidden; height: 100dvh; }
+.app-frame-center, .app-frame-bezel { height: 100%; }
+.phone-screen {
+  position: relative; height: 100%;
+  --screen-h: 100dvh; --app-dvh: var(--screen-h);
+  --safe-top: env(safe-area-inset-top); --safe-bottom: env(safe-area-inset-bottom);
+}
+@media ${FRAMED_QUERY} {
+  .app-frame { position: fixed; inset: 0; height: auto; background: #F7F8FA; }
+  .app-frame-center {
+    position: absolute; inset: 0; z-index: 2; height: auto;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .app-frame-bezel {
+    height: auto; padding: 12px; border-radius: 54px; background: #111;
+    box-shadow: 0 30px 60px rgba(0,0,0,.35), inset 0 0 0 2px #2a2a2a;
+  }
+  .phone-screen {
+    width: 390px; overflow: hidden; border-radius: 44px; background: #F7F8FA;
+    /* dvh: the iPad Safari toolbars eat into 100vh. */
+    --screen-h: min(844px, 100dvh - 48px); height: var(--screen-h);
+    contain: layout paint;
+    --safe-top: 47px; --safe-bottom: 34px;
+  }
+}`;
 
 /**
  * The click that ends a mouse drag is dropped, wherever on the phone screen
@@ -67,13 +91,6 @@ export function PhoneFrame({
   const framed = useIsFramed();
   const scrollRef = useRef<HTMLDivElement>(null);
   const dragClick = useDragClickFilter();
-  // The first render takes the server's guess (unframed); once `framed` is
-  // the screen's own answer, the page may show. The framed re-render happens
-  // in the same task as this effect, so it is painted framed or not at all.
-  useEffect(() => {
-    if (framed === window.matchMedia(FRAMED_QUERY).matches)
-      document.documentElement.setAttribute(FRAME_READY, "");
-  }, [framed]);
   // The scroller persists across pages, so Next's scroll reset no longer
   // reaches it: reset it when the pathname changes.
   useEffect(() => {
@@ -108,59 +125,17 @@ export function PhoneFrame({
     children
   );
 
-  // One tree for both modes (only classes and the stage siblings change), so
-  // resizing across the breakpoint keeps page state and the overlay root.
+  // One tree for both modes: PAGE_CSS lays it out, so resizing across the
+  // breakpoint keeps page state and the overlay root. Only the stage and the
+  // phone's chrome, which are decoration, wait for the client's `framed`.
   return (
     <>
       <style>{PAGE_CSS}</style>
-      <div
-        className={
-          framed
-            ? "fixed inset-0 overflow-hidden"
-            : "relative overflow-hidden"
-        }
-        style={framed ? undefined : { height: "100dvh" }}
-      >
+      <div className="app-frame">
         {framed && <DesktopStage />}
-        <div
-          className={
-            framed
-              ? "absolute inset-0 z-[2] flex items-center justify-center"
-              : "h-full"
-          }
-        >
-          <div
-            className={framed ? "rounded-[54px] bg-[#111] p-3" : "h-full"}
-            style={framed ? { boxShadow: BEZEL_SHADOW } : undefined}
-          >
-            <div
-              {...dragClick}
-              className={
-                framed
-                  ? "phone-screen relative w-[390px] overflow-hidden rounded-[44px] bg-background-color"
-                  : "phone-screen relative h-full"
-              }
-              // --screen-h is the screen's height; pages sized with `dvh`
-              // get --app-dvh instead of the window (styles/globals.css).
-              style={
-                framed
-                  ? {
-                      // dvh: iPad Safari's toolbars eat into 100vh.
-                      "--screen-h": "min(844px, 100dvh - 48px)",
-                      "--app-dvh": "var(--screen-h)",
-                      height: "var(--screen-h)",
-                      contain: "layout paint",
-                      "--safe-top": "47px",
-                      "--safe-bottom": "34px",
-                    } as React.CSSProperties
-                  : {
-                      "--screen-h": "100dvh",
-                      "--app-dvh": "var(--screen-h)",
-                      "--safe-top": "env(safe-area-inset-top)",
-                      "--safe-bottom": "env(safe-area-inset-bottom)",
-                    } as React.CSSProperties
-              }
-            >
+        <div className="app-frame-center">
+          <div className="app-frame-bezel">
+            <div {...dragClick} className="phone-screen">
               {content}
               {framed && <PhoneChrome legacy={scroll} />}
               <div id={OVERLAY_ROOT_ID} />
