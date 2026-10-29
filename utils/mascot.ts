@@ -203,9 +203,6 @@ const MASCOTS: Record<string, MascotClips> = {
   },
 };
 
-/** Every avatar photo that has a mascot; grows with MASCOTS. */
-export const MASCOT_KEYS: readonly string[] = Object.keys(MASCOTS);
-
 // Contract: the hash pick runs over this frozen list, the mascots that
 // existed when picks went live, in that order. Never edit it: any change
 // moves students to another mascot. MASCOTS may grow freely; a new mascot

@@ -5,7 +5,6 @@ import {
   MAX_IDLE_PLAYING,
   PLAY_WAIT_MS,
   MASCOT_HASH_KEYS,
-  MASCOT_KEYS,
   mascotForPhoto,
   mascotForStudent,
   mascotForStudentOnSubject,
@@ -203,28 +202,14 @@ test("MASCOT_HASH_KEYS is today's mascots in today's order, frozen", () => {
   for (const key of MASCOT_HASH_KEYS) assert.ok(mascotForPhoto(key), key);
 });
 
+// With the list pinned above, this is what keeps a mascot added to MASCOTS
+// from moving anyone: the pick reads only the frozen list.
 test("mascotKeyForStudent hashes over MASCOT_HASH_KEYS", () => {
   for (const id of [...ids(50), ...PINNED_PICKS.map(([id]) => id)]) {
     assert.equal(
       mascotKeyForStudent({ id, photo: null }),
       MASCOT_HASH_KEYS[mascotHash(id) % MASCOT_HASH_KEYS.length],
     );
-  }
-});
-
-test("a mascot added to MASCOTS changes no one's pick", () => {
-  // MASCOT_KEYS lists every mascot and grows with MASCOTS; picks must not.
-  const everyMascot = MASCOT_KEYS as string[];
-  const students = [...ids(50), ...PINNED_PICKS.map(([id]) => id)];
-  const before = students.map((id) => mascotKeyForStudent({ id, photo: null }));
-  everyMascot.push(AVATAR(21));
-  try {
-    assert.deepEqual(
-      students.map((id) => mascotKeyForStudent({ id, photo: null })),
-      before,
-    );
-  } finally {
-    everyMascot.pop();
   }
 });
 
