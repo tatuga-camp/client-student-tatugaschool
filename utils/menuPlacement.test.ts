@@ -147,3 +147,43 @@ test("keyboard up: a ⋯ near the keyboard opens its menu above it", () => {
   assert.ok(menu.bottom <= 480, "clear of the keyboard");
   assert.equal(overlaps(menu, dots), false);
 });
+
+test("visibleScreen keeps every side of a DOMRect (its fields are getters)", () => {
+  // Like a DOMRect: the fields live on the prototype, so a spread drops them.
+  class Rect {
+    #box: Box;
+    constructor(box: Box) {
+      this.#box = box;
+    }
+    get left() {
+      return this.#box.left;
+    }
+    get top() {
+      return this.#box.top;
+    }
+    get right() {
+      return this.#box.right;
+    }
+    get bottom() {
+      return this.#box.bottom;
+    }
+  }
+  const framed = new Rect({ left: 445, top: 24, right: 835, bottom: 776 });
+  assert.deepEqual({ ...framed }, {});
+  assert.deepEqual(visibleScreen(framed, { offsetTop: 0, height: 500 }), {
+    left: 445,
+    top: 24,
+    right: 835,
+    bottom: 500,
+  });
+  // And the menu it places stays beside its ⋯, not at the screen's left edge.
+  const dots: Box = { left: 760, top: 300, right: 804, bottom: 344 };
+  const pos = placeMenu({
+    button: dots,
+    container: framed,
+    screen: visibleScreen(framed, { offsetTop: 0, height: 800 }),
+    width: W,
+    height: H,
+  });
+  assert.equal(framed.left + pos.left + W, dots.right);
+});

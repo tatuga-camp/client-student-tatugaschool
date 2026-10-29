@@ -12,11 +12,14 @@ export function visibleScreen(
   screen: Box,
   view: { offsetTop: number; height: number } | null | undefined,
 ): Box {
-  if (!view) return screen;
+  // Named fields, not a spread: a DOMRect's fields are prototype getters.
+  const { left, top, right, bottom } = screen;
+  if (!view) return { left, top, right, bottom };
   return {
-    ...screen,
-    top: Math.max(screen.top, view.offsetTop),
-    bottom: Math.min(screen.bottom, view.offsetTop + view.height),
+    left,
+    top: Math.max(top, view.offsetTop),
+    right,
+    bottom: Math.min(bottom, view.offsetTop + view.height),
   };
 }
 
