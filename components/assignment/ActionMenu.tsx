@@ -28,8 +28,9 @@ const MARGIN = 8;
 
 /**
  * A small ⋯ popover menu; closes on outside press, scroll, Esc or choosing an
- * item. The list renders in the overlay container (so no scroller clips it),
- * below the button when it fits, else above, always clamped inside the screen.
+ * item. The list renders in the sheet's panel when the button is in a sheet,
+ * else in the overlay container (so no scroller clips it), below the button
+ * when it fits, else above, always clamped inside that container.
  */
 export default function ActionMenu({ items, ariaLabel, disabled }: Props) {
   const scoped = useContext(OverlayRootContext);
@@ -37,11 +38,14 @@ export default function ActionMenu({ items, ariaLabel, disabled }: Props) {
   const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
-  // Inside the sheet's own (aria-modal) subtree when there is one, so screen
+  // Inside the sheet's own (aria-modal) dialog when there is one, so screen
   // readers can reach it; else the page's overlay container.
   const [host, setHost] = useState<HTMLElement | null>(null);
   const container = open ? (host ?? scoped ?? overlayTarget()) : null;
   const wasOpen = useRef(false);
+  // A choice puts focus back on ⋯ before the item runs, so a dialog or field
+  // the item opens keeps the focus it takes.
+  const chose = useRef(false);
 
   // Focus moves into the menu on open and back to the button on close.
   useEffect(() => {
@@ -50,8 +54,9 @@ export default function ActionMenu({ items, ariaLabel, disabled }: Props) {
         ?.querySelector<HTMLElement>('[role="menuitem"]')
         ?.focus({ preventScroll: true });
     }
-    if (!open && wasOpen.current)
+    if (!open && wasOpen.current && !chose.current)
       buttonRef.current?.focus({ preventScroll: true });
+    if (!open) chose.current = false;
     wasOpen.current = open;
   }, [open, pos]);
 
@@ -117,8 +122,7 @@ export default function ActionMenu({ items, ariaLabel, disabled }: Props) {
         aria-expanded={open}
         onClick={() => {
           setHost(
-            buttonRef.current?.closest<HTMLElement>("[data-sheet-root]") ??
-              null,
+            buttonRef.current?.closest<HTMLElement>('[role="dialog"]') ?? null,
           );
           setOpen((v) => !v);
         }}
@@ -144,6 +148,8 @@ export default function ActionMenu({ items, ariaLabel, disabled }: Props) {
                   type="button"
                   role="menuitem"
                   onClick={() => {
+                    chose.current = true;
+                    buttonRef.current?.focus({ preventScroll: true });
                     setOpen(false);
                     item.onSelect();
                   }}
