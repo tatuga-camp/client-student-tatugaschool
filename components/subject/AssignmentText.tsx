@@ -44,9 +44,10 @@ function AssignmentText({
   const [title, setTitle] = React.useState<string | null>(
     text ? text.name : "",
   );
-  const initialTitle = text ? text.name : "";
-  // What the note opened with, as the editor holds it: TinyMCE normalises
-  // the body on init (and reports that as a change), which isn't typing.
+  // What the note opened with, captured once like the fields themselves. The
+  // body is then taken as the editor holds it: TinyMCE normalises it on init
+  // (and reports that as a change), which isn't typing.
+  const [initialTitle] = React.useState(title);
   const [initialValue, setInitialValue] = React.useState(value);
   const dirty =
     !readOnly &&
