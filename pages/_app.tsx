@@ -3,7 +3,6 @@ import "@/styles/tinyEditor.css";
 import type { AppProps } from "next/app";
 import { Prompt } from "next/font/google";
 import { PrimeReactProvider } from "primereact/api";
-import { PagesProgressBar } from "next-nprogress-bar";
 import { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
@@ -244,12 +243,6 @@ function MyApp({ Component, pageProps }: AppProps) {
           },
         }}
       >
-        <PagesProgressBar
-          height="4px"
-          color="#D2122E"
-          options={{ showSpinner: false }}
-          shallowRouting
-        />
         <Head>
           <meta
             name="viewport"
