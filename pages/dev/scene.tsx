@@ -1,5 +1,6 @@
 import { GetStaticProps } from "next";
 import { useRef, useState } from "react";
+import { CodeBoxes } from "../../components/signin/CodeBoxes";
 import { Sheet } from "../../components/app/Sheet";
 import { SchoolyardScene } from "../../components/app/scene/SchoolyardScene";
 import Password from "../../components/common/Password";
@@ -22,6 +23,8 @@ export default function ScenePreview() {
   const [nested, setNested] = useState(false);
   const toast = useRef<Toast>(null);
   const [pw, setPw] = useState("");
+  const [code, setCode] = useState("");
+  const [shake, setShake] = useState(0);
   const [sheet, setSheet] = useState<"auto" | "full" | null>(null);
   return (
     <div style={{ padding: 16, background: "#fff" }}>
@@ -45,6 +48,12 @@ export default function ScenePreview() {
         </button>
         <Toast ref={toast} />
         <Password toggleMask feedback value={pw} onChange={(e) => setPw(e.target.value)} placeholder="password" />
+      </div>
+      <div style={{ maxWidth: 360, marginBottom: 12 }}>
+        <CodeBoxes length={6} value={code} onChange={setCode} mode="alnum" invalid={shake > 0 && code.length < 6} shakeKey={shake} ariaLabel="Join code" />
+        <button id="demo-shake" onClick={() => setShake((n) => n + 1)} style={{ border: "1px solid #ccc", padding: "2px 8px", marginTop: 8 }}>
+          Shake
+        </button>
       </div>
       <Sheet open={sheet !== null} onClose={() => setSheet(null)} size={sheet ?? "auto"} ariaLabel="Demo sheet">
         <h3 className="text-lg font-bold">Demo sheet</h3>

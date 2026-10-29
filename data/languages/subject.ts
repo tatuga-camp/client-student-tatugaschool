@@ -261,6 +261,45 @@ export const subjectDataLanguage = {
         return "This account is protected. Enter the password your teacher gave you.";
     }
   },
+  heyName: (language: Language, name: string) =>
+    language === "th" ? `สวัสดี ${name}!` : `Hey ${name}!`,
+  passwordPrompt: (language: Language) =>
+    language === "th"
+      ? "ใส่รหัสผ่านเพื่อดำเนินการต่อ"
+      : "Enter your password to continue",
+  signInButton: (language: Language) =>
+    language === "th" ? "เข้าสู่ระบบ" : "Sign in",
+  forgotPassword: (language: Language) =>
+    language === "th"
+      ? "ลืมรหัสผ่าน? ขอให้คุณครูรีเซ็ตรหัสผ่านให้"
+      : "Forgot your password? Ask your teacher to reset it.",
+  showPassword: (language: Language) =>
+    language === "th" ? "แสดงรหัสผ่าน" : "Show password",
+  hidePassword: (language: Language) =>
+    language === "th" ? "ซ่อนรหัสผ่าน" : "Hide password",
+  searchHint: (language: Language) =>
+    language === "th"
+      ? "ค้นหาชื่อหรือเลขที่ของคุณ"
+      : "Search your name or number",
+  findYourself: (language: Language) =>
+    language === "th"
+      ? "พิมพ์ชื่อหรือเลขที่ เพื่อหาชื่อของคุณ"
+      : "Type your name or number to find yourself",
+  thatsMe: (language: Language) =>
+    language === "th" ? "ใช่ ฉันเอง" : "That's me",
+  numberShort: (language: Language) => (language === "th" ? "เลขที่" : "No."),
+  disabled: (language: Language) =>
+    language === "th" ? "ปิดใช้งาน" : "Disabled",
+  teachersSheetTitle: (language: Language) =>
+    language === "th" ? "ครูผู้สอน" : "Your teachers",
+  notFoundTitle: (language: Language) =>
+    language === "th" ? "ไม่พบห้องเรียนนี้" : "We couldn't find that class",
+  notFoundDescription: (language: Language) =>
+    language === "th"
+      ? "ตรวจสอบรหัสที่ได้รับจากครูอีกครั้ง"
+      : "Double-check the code your teacher gave you.",
+  tryAnotherCode: (language: Language) =>
+    language === "th" ? "ลองรหัสอื่น" : "Try another code",
 } as const;
 
 export const menuSubjectDataLanguage = {

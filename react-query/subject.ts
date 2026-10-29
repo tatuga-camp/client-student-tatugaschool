@@ -8,6 +8,11 @@ import {
   ResponseGetSubjectByCodeService,
 } from "../services";
 
+export const subjectByCodeQuery = (code: string) => ({
+  queryKey: ["subject", code] as const,
+  queryFn: () => GetSubjectByCodeService({ code }),
+});
+
 export function useGetSubjectByCode(
   code: string,
   option?: {
@@ -16,8 +21,7 @@ export function useGetSubjectByCode(
   },
 ) {
   return useQuery({
-    queryKey: ["subject", code],
-    queryFn: () => GetSubjectByCodeService({ code }),
+    ...subjectByCodeQuery(code),
     initialData: option?.initialData,
     enabled: option?.enable,
   });
