@@ -1,3 +1,4 @@
+import { InlineError } from "./InlineError";
 import React from "react";
 import {
   LuBookOpen,
@@ -61,11 +62,16 @@ function SwitcherList({
 
   return (
     <div className="font-Anuphan text-icon-color">
-      <h2 className="pb-3 text-lg font-bold">{homeLanguage.switchSubject(lang)}</h2>
+      <h2 className="pb-3 text-lg font-bold">
+        {homeLanguage.switchSubject(lang)}
+      </h2>
       {subjects.isLoading && (
         <div className="flex justify-center py-6">
           <LoadingSpinner width="32px" />
         </div>
+      )}
+      {subjects.isError && !subjects.data && (
+        <InlineError onRetry={() => subjects.refetch()} />
       )}
       <ul className="flex flex-col gap-2">
         {list.map((s) => {

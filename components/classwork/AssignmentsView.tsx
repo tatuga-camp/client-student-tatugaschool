@@ -1,3 +1,4 @@
+import { InlineError } from "../app/InlineError";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { subjectHomeLanguage } from "../../data/languages";
@@ -43,7 +44,11 @@ export default function AssignmentsView({
   const router = useRouter();
   const { openAssignment } = useShellNav();
   const subject = useGetSubjectById({ id: subjectId });
-  const assignments = useGetAssignments({ subjectId });
+  const assignments = useGetAssignments(
+    { subjectId },
+    // ClassworkTab already polls this shared query.
+    { refetchInterval: false },
+  );
   const [filter, setFilter] = useState<ClassworkFilter>("all");
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
 
@@ -150,7 +155,9 @@ export default function AssignmentsView({
       )}
 
       <div className="px-3 pb-10">
-        {!assignments.isLoading && visible.length === 0 ? (
+        {assignments.isError && !assignments.data ? (
+          <InlineError onRetry={() => assignments.refetch()} />
+        ) : !assignments.isLoading && visible.length === 0 ? (
           <div className="pt-2">
             <SubjectEmptyState
               text={

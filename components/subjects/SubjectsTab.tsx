@@ -1,3 +1,4 @@
+import { InlineError } from "../app/InlineError";
 import React from "react";
 import {
   LuArrowUpDown,
@@ -109,7 +110,7 @@ export default function SubjectsTab({ subjectId }: TabPaneProps) {
               onClick={() => setYearOpen(true)}
               aria-haspopup="dialog"
               aria-label={subjectsPageLanguage.pickTermYear(lang)}
-              className="flex h-[30px] items-center gap-1 rounded-[12px] border-2 border-b-4 border-[#E3E8F0] bg-white px-2 font-Anuphan text-[12px] font-bold text-icon-color [-webkit-tap-highlight-color:transparent] active:translate-y-px active:border-b-2"
+              className="relative flex h-[30px] items-center gap-1 rounded-[12px] border-2 border-b-4 border-[#E3E8F0] bg-white px-2 font-Anuphan text-[12px] font-bold text-icon-color [-webkit-tap-highlight-color:transparent] after:absolute after:-inset-x-2 after:-top-3.5 after:bottom-0 after:content-[''] active:translate-y-px active:border-b-2"
             >
               <LuCalendar
                 aria-hidden
@@ -148,7 +149,7 @@ export default function SubjectsTab({ subjectId }: TabPaneProps) {
 
         <div
           data-no-swipe
-          className="-mx-3 mt-2 flex gap-1.5 overflow-x-auto px-3 pb-1"
+          className="-mx-3 -mb-2 flex gap-1.5 overflow-x-auto px-3 pb-3 pt-2"
         >
           {STATUSES.map((s) => {
             const on = statusFilter === s;
@@ -158,7 +159,7 @@ export default function SubjectsTab({ subjectId }: TabPaneProps) {
                 type="button"
                 aria-pressed={on}
                 onClick={() => setStatusFilter(s)}
-                className={`inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border-2 px-2.5 py-1 text-[12px] font-bold ${
+                className={`relative inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border-2 px-2.5 py-1 text-[12px] font-bold after:absolute after:-inset-y-2 after:inset-x-0 after:content-[''] ${
                   on
                     ? "border-primary-color bg-primary-color text-white shadow-[0_3px_0_#275d96]"
                     : "border-[#E3E8F0] bg-white text-[#5B6280]"
@@ -176,6 +177,8 @@ export default function SubjectsTab({ subjectId }: TabPaneProps) {
           <div className="flex justify-center py-16">
             <div className="h-9 w-9 animate-spin rounded-full border-4 border-primary-color border-t-transparent motion-reduce:animate-none" />
           </div>
+        ) : subjects.isError && !subjects.data ? (
+          <InlineError onRetry={() => subjects.refetch()} />
         ) : filteredSubjects.length === 0 ? (
           <div className="flex flex-col items-center gap-1 rounded-2xl border-2 border-dashed border-[#E3E8F0] bg-white px-6 py-12 text-center">
             <p className="text-[15px] font-bold text-[#383767]">

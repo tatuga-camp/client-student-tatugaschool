@@ -1,3 +1,4 @@
+import { InlineError } from "./InlineError";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import {
@@ -69,7 +70,13 @@ const OTHER_TILE = {
   className: "bg-[#EEF1F6] text-icon-color",
 };
 
-function NotificationList({ onDone, lang }: { onDone: () => void; lang: Language }) {
+function NotificationList({
+  onDone,
+  lang,
+}: {
+  onDone: () => void;
+  lang: Language;
+}) {
   const router = useRouter();
   const notifications = useGetStudentNotifications();
   const markAsRead = useMarkAsReadStudentNotification();
@@ -102,7 +109,7 @@ function NotificationList({ onDone, lang }: { onDone: () => void; lang: Language
             type="button"
             disabled={markAllAsRead.isPending}
             onClick={() => markAllAsRead.mutate()}
-            className="flex shrink-0 items-center gap-1 py-1 text-sm font-bold text-primary-color disabled:opacity-50"
+            className="relative flex shrink-0 items-center gap-1 py-1 text-sm font-bold text-primary-color after:absolute after:-inset-y-2 after:inset-x-0 after:content-[''] disabled:opacity-50"
           >
             <LuCheckCheck aria-hidden size={16} />
             {announcementDataLanguage.markAllRead(lang)}
@@ -115,12 +122,17 @@ function NotificationList({ onDone, lang }: { onDone: () => void; lang: Language
           <LoadingSpinner width="32px" />
         </div>
       )}
-      {!notifications.isLoading && list.length === 0 && (
-        <div className="flex flex-col items-center gap-2 py-12 text-sm text-[#9AA3B8]">
-          <LuBellOff aria-hidden size={28} />
-          {announcementDataLanguage.empty(lang)}
-        </div>
+      {notifications.isError && !notifications.data && (
+        <InlineError onRetry={() => notifications.refetch()} />
       )}
+      {!notifications.isLoading &&
+        !notifications.isError &&
+        list.length === 0 && (
+          <div className="flex flex-col items-center gap-2 py-12 text-sm text-[#9AA3B8]">
+            <LuBellOff aria-hidden size={28} />
+            {announcementDataLanguage.empty(lang)}
+          </div>
+        )}
       <ul className="flex flex-col gap-2">
         {list.map((n) => {
           const tile = TYPE_TILE[n.type] ?? OTHER_TILE;
@@ -222,7 +234,7 @@ function PushBanner({ lang }: { lang: Language }) {
         type="button"
         disabled={allowing}
         onClick={allow}
-        className="w-max rounded-full bg-primary-color px-4 py-1 text-xs font-bold text-white disabled:opacity-50"
+        className="relative w-max rounded-full bg-primary-color px-4 py-1 text-xs font-bold text-white after:absolute after:-inset-y-2.5 after:inset-x-0 after:content-[''] disabled:opacity-50"
       >
         {attempted || blocked
           ? askNotificationDataLanguage.tryAgain(lang)

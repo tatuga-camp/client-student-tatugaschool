@@ -8,6 +8,7 @@ import {
 } from "../../react-query";
 import { mascotForStudent } from "../../utils/mascot";
 import { progressPanes } from "../../utils/tabs";
+import { InlineError } from "../app/InlineError";
 import { SubjectChip } from "../app/SubjectChip";
 import { TAB_BODY_CLASS, TabHeader } from "../app/TabHeader";
 import type { TabPaneProps } from "../app/shell/useShellRoute";
@@ -51,6 +52,9 @@ export default function ProgressTab({ subjectId, active }: TabPaneProps) {
         right={<SubjectChip subjectId={subjectId} />}
       />
       <div ref={scroller} className={`${TAB_BODY_CLASS} px-3 pb-10 pt-3`}>
+        {subject.isError && !subject.data && (
+          <InlineError onRetry={() => subject.refetch()} />
+        )}
         {subject.data && panes.length === 0 && (
           <div className="flex flex-col items-center gap-3 py-12 text-center">
             {student.data && (
