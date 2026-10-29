@@ -4,7 +4,7 @@ import { subjectDataLanguage as t } from "../../data/languages";
 import { useGetLanguage } from "../../react-query";
 import { mascotForStudent } from "../../utils/mascot";
 import { Sheet } from "../app/Sheet";
-import { SignInSheetHeader } from "./SignInSheetHeader";
+import { SignInSheetHeader, SignInSheetMascot } from "./SignInSheetHeader";
 
 type Props = {
   open: boolean;
@@ -60,7 +60,19 @@ export function PasswordSheet({
 
   const title = student ? t.heyName(lang, student.firstName) : "";
   return (
-    <Sheet open={open} onClose={onClose} ariaLabel={title || t.password(lang)}>
+    <Sheet
+      open={open}
+      onClose={onClose}
+      ariaLabel={title || t.password(lang)}
+      overlay={
+        student && (
+          <SignInSheetMascot
+            clips={mascotForStudent(student)}
+            mascotId={`password-${student.id}`}
+          />
+        )
+      }
+    >
       {student && (
         <form
           onSubmit={(e) => {
@@ -68,12 +80,7 @@ export function PasswordSheet({
             if (password && !pending) onSubmit(password);
           }}
         >
-          <SignInSheetHeader
-            clips={mascotForStudent(student)}
-            mascotId={`password-${student.id}`}
-            title={title}
-            subtitle={t.passwordPrompt(lang)}
-          />
+          <SignInSheetHeader title={title} subtitle={t.passwordPrompt(lang)} />
           <label
             className="chunky mt-4 flex items-center gap-2 px-3 focus-within:border-[#2C7CD1]"
             style={error ? { borderColor: "#F04438" } : undefined}

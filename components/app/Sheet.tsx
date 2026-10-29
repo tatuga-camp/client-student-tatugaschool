@@ -52,6 +52,10 @@ type SheetProps = {
   /** Render the ✕ in the handle row (default). Off when the content brings
    *  its own visible close, so assistive tech doesn't find two. */
   closeButton?: boolean;
+  /** Drawn on the panel's top edge (a mascot), outside the body scroller so
+   *  it isn't clipped, and never taking a press. Its bottom sits on the edge;
+   *  a negative bottom margin lets it overlap the panel. */
+  overlay?: React.ReactNode;
   ariaLabel: string;
 };
 
@@ -89,6 +93,7 @@ export function Sheet({
   guardClose = false,
   ownsBack = false,
   closeButton = true,
+  overlay,
   ariaLabel,
 }: SheetProps) {
   const scopedRoot = useContext(OverlayRootContext);
@@ -98,6 +103,7 @@ export function Sheet({
   const panelRef = useRef<HTMLDivElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
   const sheetRootRef = useRef<HTMLDivElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
   const openerRef = useRef<HTMLElement | null>(null);
   const openerAtOpenRef = useRef<HTMLElement | null>(null);
   const heightRef = useRef(600);
@@ -149,14 +155,16 @@ export function Sheet({
   useLayoutEffect(() => {
     if (!rendered || !panelRef.current) return;
     heightRef.current = panelRef.current.offsetHeight || heightRef.current;
+    // Off-screen means the overlay too, which stands above the panel.
+    const away = heightRef.current + (overlayRef.current?.offsetHeight ?? 0);
     if (visible) {
       if (!isPeek && !enteredRef.current) {
-        api.start({ from: { y: heightRef.current }, y: 0 });
+        api.start({ from: { y: away }, y: 0 });
       } else api.start({ y: 0 });
       enteredRef.current = true;
     } else {
       api.start({
-        y: heightRef.current,
+        y: away,
         onRest: (result) => {
           if (result.finished && !visibleRef.current) {
             enteredRef.current = false;
@@ -431,8 +439,7 @@ export function Sheet({
           <div className="h-1.5 w-10 rounded-full bg-[#E3E8F0]" />
         </div>
         {dismissible && modal && closeButton && (
-          // Outside the handle: use-gesture's tap filter on the handle eats
-          // real clicks (detail > 0) that did not start a gesture.
+          // Outside the handle, so pressing it never starts a drag.
           <button
             type="button"
             aria-label={profileLanguage.close(language.data ?? "en")}
@@ -455,6 +462,14 @@ export function Sheet({
         >
           {isPeek && !expanded ? peek : children}
         </div>
+        {overlay && (
+          <div
+            ref={overlayRef}
+            className="pointer-events-none absolute inset-x-0 bottom-full"
+          >
+            {overlay}
+          </div>
+        )}
       </animated.div>
     </div>,
     root,
