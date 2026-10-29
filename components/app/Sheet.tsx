@@ -11,6 +11,7 @@ import { createPortal } from "react-dom";
 import { LuX } from "react-icons/lu";
 import { profileLanguage } from "../../data/languages";
 import { useGetLanguage } from "../../react-query";
+import { keepTabInside } from "../../utils/focusTrap";
 import { OVERLAY_ROOT_ID } from "../../utils/frameRoutes";
 import { keyboardFit } from "../../utils/keyboardFit";
 import { isEditableTarget, sheetDragOutcome } from "../../utils/tabs";
@@ -274,7 +275,10 @@ export function Sheet({
     });
     notifyStack();
     const onKey = (e: KeyboardEvent) => {
-      if (e.key !== "Escape" || openStack[openStack.length - 1] !== id) return;
+      if (openStack[openStack.length - 1] !== id) return;
+      // Tab stays in the topmost sheet: nothing behind it is reachable.
+      if (e.key === "Tab") return keepTabInside(e, panelRef.current);
+      if (e.key !== "Escape") return;
       // A non-dismissible sheet on top keeps Esc from closing the one below.
       if (escRef.current.dismissible) escRef.current.dismiss();
     };
