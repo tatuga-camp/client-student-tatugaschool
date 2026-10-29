@@ -47,6 +47,10 @@ export default function ActionMenu({ items, ariaLabel, disabled }: Props) {
   // before the item runs, so a dialog or field it opens keeps the focus it
   // takes) or by Tab moving focus on. Only other closes refocus ⋯.
   const chose = useRef(false);
+  // A press on ⋯ is under way: it toggles the menu itself when it clicks.
+  // Until the click (after pointerup, for a finger), the menu's blur from that
+  // press must not close it too, whatever the browser focuses meanwhile.
+  const pressingButton = useRef(false);
 
   // Focus moves into the menu on open and back to the button on close.
   useEffect(() => {
@@ -96,6 +100,7 @@ export default function ActionMenu({ items, ariaLabel, disabled }: Props) {
     };
     // Capture + stop: Esc closes this menu, not the sheet around it.
     const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Tab") pressingButton.current = false;
       if (e.key !== "Escape") return;
       e.stopPropagation();
       close();
@@ -121,7 +126,14 @@ export default function ActionMenu({ items, ariaLabel, disabled }: Props) {
         aria-label={ariaLabel}
         aria-haspopup="menu"
         aria-expanded={open}
+        onPointerDown={() => {
+          pressingButton.current = true;
+        }}
+        onPointerCancel={() => {
+          pressingButton.current = false;
+        }}
         onClick={() => {
+          pressingButton.current = false;
           setHost(
             buttonRef.current?.closest<HTMLElement>('[role="dialog"]') ?? null,
           );
@@ -136,14 +148,14 @@ export default function ActionMenu({ items, ariaLabel, disabled }: Props) {
           <ul
             ref={listRef}
             role="menu"
-            // Focus moved on out of the menu (Tab): close it, and leave
-            // focus where it went. A press on ⋯ toggles it by itself.
+            // Focus moved on out of the menu (Tab, Shift+Tab onto ⋯): close
+            // it, and leave focus where it went. A press on ⋯ toggles it.
             onBlur={(e) => {
               const next = e.relatedTarget as Node | null;
               if (
+                pressingButton.current ||
                 !next ||
-                listRef.current?.contains(next) ||
-                buttonRef.current?.contains(next)
+                listRef.current?.contains(next)
               )
                 return;
               chose.current = true;
