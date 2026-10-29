@@ -44,14 +44,13 @@ function AssignmentText({
   const [title, setTitle] = React.useState<string | null>(
     text ? text.name : "",
   );
-  const initial = React.useRef({
-    value: text ? text.body : (assignment.description ?? ""),
-    title: text ? text.name : "",
-  });
+  const initialTitle = text ? text.name : "";
+  // What the note opened with, as the editor holds it: TinyMCE normalises
+  // the body on init (and reports that as a change), which isn't typing.
+  const [initialValue, setInitialValue] = React.useState(value);
   const dirty =
     !readOnly &&
-    (value !== initial.current.value ||
-      (title ?? "") !== (initial.current.title ?? ""));
+    (value !== initialValue || (title ?? "") !== (initialTitle ?? ""));
   React.useEffect(() => {
     onDirtyChange?.(dirty);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -101,6 +100,7 @@ function AssignmentText({
         <TextEditor
           value={value}
           onChange={(content) => setValue(content)}
+          onReady={setInitialValue}
           schoolId={schoolId}
           disabled={readOnly}
           menubar={false}

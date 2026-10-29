@@ -18,6 +18,9 @@ type Props = {
   autoHeight?: boolean;
   /** Show the status bar (default: only when not autoHeight). */
   statusbar?: boolean;
+  /** The content as the editor holds it once ready (TinyMCE normalises it,
+   *  e.g. wraps plain text in <p>), before anyone types. */
+  onReady?: (content: string) => void;
 };
 function TextEditor({
   value,
@@ -26,6 +29,7 @@ function TextEditor({
   disabled = false,
   autoHeight = false,
   statusbar,
+  onReady,
   menubar = true,
   toolbar = "undo redo | formatselect | blocks | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | image | link",
 }: Props) {
@@ -34,8 +38,9 @@ function TextEditor({
     <>
       {!isLoaded && <span className="animate-pulse">Loading...</span>}
       <Editor
-        onInit={() => {
+        onInit={(_event, editor) => {
           setIsLoaded(true);
+          onReady?.(editor.getContent());
         }}
         tinymceScriptSrc={"/assets/libs/tinymce/tinymce.min.js"}
         value={value}
