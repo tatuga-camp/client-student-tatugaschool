@@ -11,7 +11,7 @@ import { createPortal } from "react-dom";
 import { LuX } from "react-icons/lu";
 import { profileLanguage } from "../../data/languages";
 import { useGetLanguage } from "../../react-query";
-import { keepTabInside } from "../../utils/focusTrap";
+import { keepTabInside, reclaimFocus } from "../../utils/focusTrap";
 import { OVERLAY_ROOT_ID } from "../../utils/frameRoutes";
 import { keyboardFit } from "../../utils/keyboardFit";
 import { isEditableTarget, sheetDragOutcome } from "../../utils/tabs";
@@ -282,9 +282,16 @@ export function Sheet({
       // A non-dismissible sheet on top keeps Esc from closing the one below.
       if (escRef.current.dismissible) escRef.current.dismiss();
     };
+    // Focus that still lands behind it (out of an editor's iframe) comes back.
+    const onFocusIn = (e: FocusEvent) => {
+      if (openStack[openStack.length - 1] === id)
+        reclaimFocus(e.target, panelRef.current);
+    };
     document.addEventListener("keydown", onKey);
+    document.addEventListener("focusin", onFocusIn);
     return () => {
       document.removeEventListener("keydown", onKey);
+      document.removeEventListener("focusin", onFocusIn);
       const i = openStack.lastIndexOf(id);
       if (i >= 0) openStack.splice(i, 1);
       unregisterLayerCloser(id);
