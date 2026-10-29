@@ -195,7 +195,8 @@ function Index({ id }: { id: string }) {
         <title>{wordCloudLanguage.title(lang)}</title>
       </Head>
       <main className="gradient-bg flex min-h-screen w-screen flex-col items-center justify-center gap-6 p-6 font-Anuphan text-white">
-        <div className="absolute right-4 top-4">
+        {/* Clear of the status bar (and the frame's island). */}
+        <div className="absolute right-4 top-[calc(var(--safe-top)+1rem)]">
           {student.data && data ? (
             <ButtonProfile student={student.data} subjectId={data.subjectId} />
           ) : (
