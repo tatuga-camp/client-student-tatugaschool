@@ -26,7 +26,10 @@ export default function HomeTab({ subjectId, active }: TabPaneProps) {
   const lang = useGetLanguage().data ?? "en";
   const student = useGetStudent();
   const subject = useGetSubjectById({ id: subjectId });
-  const assignments = useGetAssignments({ subjectId });
+  const assignments = useGetAssignments(
+    { subjectId },
+    { refetchInterval: active ? undefined : false },
+  );
   const { openAssignment } = useShellNav();
   // A deep-linked detail page keeps Home "active" behind it.
   const detailOpen = !!useShellRoute()?.detail;
@@ -52,46 +55,49 @@ export default function HomeTab({ subjectId, active }: TabPaneProps) {
           student={student.data}
           active={active}
         />
-        <div className="relative z-[3] px-3 pt-[300px]">
-          {assignments.isSuccess ? (
-            <>
-              <WeekProgressCard
-                lang={lang}
-                done={progress.done}
-                total={progress.total}
-              />
-              {left.length === 0 ? (
-                <p className="mx-0.5 mt-4 text-center text-[13px] font-bold text-icon-color">
-                  {homeLanguage.allDone(lang)}
-                </p>
-              ) : (
-                <>
-                  <h2 className="mx-0.5 mb-1.5 mt-2.5 flex items-center gap-1.5 text-[13px] font-bold text-icon-color">
-                    <LuListChecks aria-hidden size={14} />
-                    {homeLanguage.assignmentsLeft(lang, todo)}
-                  </h2>
-                  <UpNextList
-                    items={next}
-                    lang={lang}
-                    now={now}
-                    onOpen={openAssignment}
-                  />
-                </>
-              )}
-            </>
-          ) : assignments.isError ? (
-            <p
-              role="alert"
-              className="mx-0.5 mt-4 text-center text-[13px] font-bold text-icon-color"
-            >
-              {homeLanguage.loadError(lang)}
-            </p>
-          ) : (
-            <div aria-hidden className="animate-pulse">
-              <div className="h-[58px] rounded-[18px] bg-[#E3E8F0]" />
-              <div className="mt-4 h-[52px] rounded-[16px] bg-[#E3E8F0]" />
-            </div>
-          )}
+        <div className="pointer-events-none relative z-[3] px-3 pt-[300px]">
+          {/* The padding covers the scene; only the content takes taps. */}
+          <div className="pointer-events-auto">
+            {assignments.isSuccess ? (
+              <>
+                <WeekProgressCard
+                  lang={lang}
+                  done={progress.done}
+                  total={progress.total}
+                />
+                {left.length === 0 ? (
+                  <p className="mx-0.5 mt-4 text-center text-[13px] font-bold text-icon-color">
+                    {homeLanguage.allDone(lang)}
+                  </p>
+                ) : (
+                  <>
+                    <h2 className="mx-0.5 mb-1.5 mt-2.5 flex items-center gap-1.5 text-[13px] font-bold text-icon-color">
+                      <LuListChecks aria-hidden size={14} />
+                      {homeLanguage.assignmentsLeft(lang, todo)}
+                    </h2>
+                    <UpNextList
+                      items={next}
+                      lang={lang}
+                      now={now}
+                      onOpen={openAssignment}
+                    />
+                  </>
+                )}
+              </>
+            ) : assignments.isError ? (
+              <p
+                role="alert"
+                className="mx-0.5 mt-4 text-center text-[13px] font-bold text-icon-color"
+              >
+                {homeLanguage.loadError(lang)}
+              </p>
+            ) : (
+              <div aria-hidden className="animate-pulse">
+                <div className="h-[58px] rounded-[18px] bg-[#E3E8F0]" />
+                <div className="mt-4 h-[52px] rounded-[16px] bg-[#E3E8F0]" />
+              </div>
+            )}
+          </div>
         </div>
       </div>
       {/* Asks on its own only while Home is on screen, uncovered. */}
