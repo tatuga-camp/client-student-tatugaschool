@@ -2,7 +2,11 @@ import Router, { useRouter } from "next/router";
 import { useEffect, useMemo } from "react";
 import { queryString } from "../../common/RouteParamsGate";
 import { leaveIfAllowed } from "../../../utils/leaveGuard";
-import { createHistoryIndex, restoreDelta } from "../../../utils/historyIndex";
+import {
+  createHistoryIndex,
+  restoreDelta,
+  unseenIsBehind,
+} from "../../../utils/historyIndex";
 import { backTarget, parseTab, TabKey } from "../../../utils/tabs";
 
 export type ShellRoute = {
@@ -31,10 +35,30 @@ let lastPoppedKey: string | undefined;
 const stateKey = () =>
   (window.history.state as { key?: string } | null)?.key ?? undefined;
 
+// Where the browser has the Navigation API, it numbers every entry of the
+// tab, from before a reload too: the exact distance back after a pop.
+type NavigationLike = { currentEntry: { index: number } | null };
+function browserIndex(): number | undefined {
+  const nav = (window as { navigation?: NavigationLike }).navigation;
+  const index = nav?.currentEntry?.index;
+  return typeof index === "number" && index >= 0 ? index : undefined;
+}
+// The browser's index of the entry the shell is on.
+let shellBrowserIndex: number | null = null;
+
 /** The current entry's index; `path` (after a navigation) is recorded too. */
 function currentHistoryIdx(path?: string): number {
   const key = stateKey();
+  shellBrowserIndex = browserIndex() ?? null;
   return historyIndex.visit(key, path, key === lastPoppedKey);
+}
+
+/** How this page was loaded: "navigate", "reload", "back_forward"... */
+function pageLoad(): string {
+  const [entry] = performance.getEntriesByType("navigation") as
+    | PerformanceNavigationTiming[]
+    | [];
+  return entry?.type ?? "navigate";
 }
 
 /** The path of the entry behind the current one, if the shell saw it. */
@@ -44,21 +68,27 @@ export function previousEntryPath(): string | undefined {
 
 /**
  * Read while a browser pop is being handled (before the shell has moved):
- * the popped and current entries' keys, and how far history.go() must go to
- * get back to the entry we were on (null when the popped entry is unknown).
+ * the popped and current entries' keys, how far history.go() must go to get
+ * back to the entry we were on (null when the popped entry is unknown), and
+ * whether such an unknown entry must be behind.
  */
 export function popInfo(): {
   poppedKey: string | undefined;
   currentKey: string | null;
   delta: number | null;
-  currentKnown: boolean;
+  unseenIsBehind: boolean;
 } {
   const poppedKey = stateKey();
   return {
     poppedKey,
     currentKey: historyIndex.currentKey(),
-    delta: restoreDelta(historyIndex.current(), historyIndex.peek(poppedKey)),
-    currentKnown: historyIndex.current() !== null,
+    delta:
+      restoreDelta(shellBrowserIndex, browserIndex()) ??
+      restoreDelta(historyIndex.current(), historyIndex.peek(poppedKey)),
+    unseenIsBehind: unseenIsBehind({
+      placed: historyIndex.current() !== null,
+      load: pageLoad(),
+    }),
   };
 }
 

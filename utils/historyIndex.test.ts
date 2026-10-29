@@ -1,6 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createHistoryIndex, restoreDelta } from "./historyIndex";
+import {
+  createHistoryIndex,
+  restoreDelta,
+  unseenIsBehind,
+} from "./historyIndex";
 import { classworkBack } from "./tabs";
 
 test("the first entry seen is 0 and each new entry follows the current one", () => {
@@ -134,4 +138,14 @@ test("a push from an entry reached by a pop starts the numbering again", () => {
 
 test("restoreDelta is unknown while the shell's own place is unknown", () => {
   assert.equal(restoreDelta(null, 1), null);
+});
+
+test("unseen entries are behind only in a page that loaded normally", () => {
+  // A normal load: the only unseen entries are the pages before the shell's
+  // first entry. A reload, or a load by back/forward, can leave unseen
+  // entries ahead too; and off an unindexed entry nothing is known.
+  assert.equal(unseenIsBehind({ placed: true, load: "navigate" }), true);
+  assert.equal(unseenIsBehind({ placed: true, load: "reload" }), false);
+  assert.equal(unseenIsBehind({ placed: true, load: "back_forward" }), false);
+  assert.equal(unseenIsBehind({ placed: false, load: "navigate" }), false);
 });

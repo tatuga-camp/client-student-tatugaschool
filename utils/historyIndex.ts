@@ -8,9 +8,7 @@
  *
  * Only pushes are numbered. An entry first reached by a back/forward could be
  * anywhere, so it stays unindexed (and the shell's place is unknown while it
- * is on one). Those are the pages before the shell's first entry (sign-in):
- * entries pushed later are all seen, and a reload starts a new document, whose
- * older entries load afresh instead of popping.
+ * is on one). See unseenIsBehind for where unseen entries can be.
  */
 export function createHistoryIndex(): {
   /** The index of the entry with this key, recording it if it is new, and
@@ -80,4 +78,19 @@ export function restoreDelta(
   return poppedIdx === undefined || currentIdx === null
     ? null
     : currentIdx - poppedIdx;
+}
+
+/**
+ * Whether an entry the shell hasn't seen must be behind it (so a restore
+ * from a pop onto it goes forward). In a page that loaded normally, the only
+ * unseen entries are the ones before the shell's first entry (sign-in): all
+ * later ones were pushed in front of it. A reload, or a load by back/forward,
+ * keeps the tab's entries on both sides, which the shell starts afresh among.
+ * `placed`: the shell knows its own index; `load`: the page's navigation type.
+ */
+export function unseenIsBehind(input: {
+  placed: boolean;
+  load: string;
+}): boolean {
+  return input.placed && input.load === "navigate";
 }

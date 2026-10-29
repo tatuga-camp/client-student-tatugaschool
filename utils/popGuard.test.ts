@@ -1,6 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createHistoryIndex, restoreDelta } from "./historyIndex";
+import {
+  createHistoryIndex,
+  restoreDelta,
+  unseenIsBehind,
+} from "./historyIndex";
 import { decidePop, layerPop, popOutcome } from "./popGuard";
 
 const base = {
@@ -219,7 +223,7 @@ test("popOutcome for the other answers", () => {
 // A back press while a modal layer (sheet or viewer) is open: on a detail
 // page and on a tab pane alike, it closes the topmost layer and puts the URL
 // back with history.go(), never with a push.
-const layer = { restoringKey: null as string | null, currentKnown: true };
+const layer = { restoringKey: null as string | null, unseenIsBehind: true };
 
 test("tab pane [SignIn(unindexed), H]: back with the switcher open closes it, one go(1), landing swallowed", () => {
   const back = layerPop({
@@ -234,7 +238,7 @@ test("tab pane [SignIn(unindexed), H]: back with the switcher open closes it, on
   const landed = layerPop({
     top: "none",
     restoringKey: back.restoringKey,
-    currentKnown: true,
+    unseenIsBehind: true,
     poppedKey: "H",
     currentKey: "H",
     delta: 0,
@@ -295,7 +299,7 @@ test("a layer that stays (a dirty note asking) does not block its own landing", 
   const r = layerPop({
     top: "closes",
     restoringKey: "D",
-    currentKnown: true,
+    unseenIsBehind: true,
     poppedKey: "D",
     currentKey: "D",
     delta: 0,
@@ -323,7 +327,7 @@ test("a pop that is not the awaited landing clears a stale restore and passes", 
   const r = layerPop({
     top: "none",
     restoringKey: "D",
-    currentKnown: true,
+    unseenIsBehind: true,
     poppedKey: "X",
     currentKey: "D",
     delta: 2,
@@ -344,7 +348,10 @@ const popFrom = (
   poppedKey,
   currentKey: h.currentKey(),
   delta: restoreDelta(h.current(), h.peek(poppedKey)),
-  currentKnown: h.current() !== null,
+  unseenIsBehind: unseenIsBehind({
+    placed: h.current() !== null,
+    load: "navigate",
+  }),
 });
 
 test("[W, P, H]: back to P and forward again, then a sheet back restores with go(1)", () => {
@@ -367,19 +374,51 @@ test("a known entry popped forward restores backwards (go(-1))", () => {
   assert.deepEqual(r, { take: true, close: true, go: -1, restoringKey: "H" });
 });
 
-test("an unknown entry, from a place the shell can't place either: passes instead of guessing", () => {
-  // Unseen entries are the pages before the shell's first entry, so off a
-  // known entry they are behind (go(1) above). Off an entry the shell only
-  // reached by a pop, a pop to another unseen one could be either way
-  // (a forward included): no restore is guessed.
+test("an unseen entry, from a place the shell can't place either: the sheet closes, the pop passes", () => {
+  // Off an entry the shell only reached by a pop, a pop to another unseen
+  // one could be either way: no restore is guessed.
   const h = createHistoryIndex();
   h.visit("H", "/subject/s1");
   h.visit("P", "/?subject_code=fe5235", true);
   const r = layerPop({ ...layer, top: "closes", ...popFrom(h, "W") });
   assert.deepEqual(r, {
     take: false,
-    close: false,
+    close: true,
     go: null,
     restoringKey: null,
   });
+});
+
+test("forward onto an unseen entry after a reload: the sheet closes, the pop passes (no go(1) guess)", () => {
+  // Real history [W, P, L, D]: the student opened D, went back to L and
+  // reloaded. The shell starts again on L; D, ahead, is unseen.
+  const h = createHistoryIndex();
+  h.visit("L", "/subject/s1?tab=classwork");
+  const r = layerPop({
+    ...layer,
+    top: "closes",
+    ...popFrom(h, "D"),
+    unseenIsBehind: unseenIsBehind({ placed: true, load: "reload" }),
+  });
+  assert.deepEqual(r, {
+    take: false,
+    close: true,
+    go: null,
+    restoringKey: null,
+  });
+});
+
+test("with the browser's own entry indexes, the same forward restores exactly (go(-1))", () => {
+  // navigation.currentEntry.index: L is 2, D is 3.
+  const h = createHistoryIndex();
+  h.visit("L", "/subject/s1?tab=classwork");
+  const r = layerPop({
+    ...layer,
+    top: "closes",
+    poppedKey: "D",
+    currentKey: "L",
+    delta: restoreDelta(2, 3),
+    unseenIsBehind: false,
+  });
+  assert.deepEqual(r, { take: true, close: true, go: -1, restoringKey: "L" });
 });
