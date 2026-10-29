@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { defaultBlurHash } from "../../data";
 import { TeacherOnSubject } from "../../interfaces";
 import { decodeBlurhashToCanvas } from "../../utils";
@@ -11,6 +11,12 @@ export function TeacherPhoto({ teacher, size }: Props) {
   // Remember which photo failed, so a new src gets a fresh try.
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
   const failed = failedSrc === teacher.photo;
+  // The blur is drawn on a canvas, which the server doesn't have: made after
+  // mount, so the server's markup and the first client render agree.
+  const [blur, setBlur] = useState<string | null>(null);
+  useEffect(() => {
+    setBlur(decodeBlurhashToCanvas(teacher.blurHash ?? defaultBlurHash));
+  }, [teacher.blurHash]);
   if (failed || !teacher.photo) {
     const small = size < 32;
     const initials = small
@@ -31,8 +37,8 @@ export function TeacherPhoto({ teacher, size }: Props) {
       alt=""
       fill
       sizes={`${size}px`}
-      placeholder="blur"
-      blurDataURL={decodeBlurhashToCanvas(teacher.blurHash ?? defaultBlurHash)}
+      placeholder={blur ? "blur" : "empty"}
+      blurDataURL={blur ?? undefined}
       className="object-cover"
       onError={() => setFailedSrc(teacher.photo)}
     />
