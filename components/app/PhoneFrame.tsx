@@ -92,7 +92,8 @@ export function PhoneFrame({
               style={
                 framed
                   ? {
-                      height: "min(844px, 100vh - 48px)",
+                      // dvh: iPad Safari's toolbars eat into 100vh.
+                      height: "min(844px, 100dvh - 48px)",
                       contain: "layout paint",
                       "--safe-top": "47px",
                       "--safe-bottom": "34px",
