@@ -78,3 +78,44 @@ export function popOutcome(input: {
   if (input.leave) return input.cancelledByPop ? "none" : "replace";
   return input.restored ? "none" : "restore";
 }
+
+/**
+ * A browser back/forward while a modal layer (a sheet, the image or PDF
+ * viewer) is open, on a detail page or a tab pane: cancel the pop, put the
+ * URL back with history.go() (never a push) and close the topmost layer,
+ * which may ask first. `take` = cancel the pop. The leave-guard sheet
+ * handles back itself, so its pops pass on to the guard.
+ */
+export function layerPop(input: {
+  top: "none" | "closes" | "ownsBack";
+  restoringKey: string | null;
+  poppedKey: string | undefined;
+  currentKey: string | null;
+  delta: number | null;
+}): {
+  take: boolean;
+  close: boolean;
+  go: number | null;
+  restoringKey: string | null;
+} {
+  const active = input.top === "closes";
+  const pass = { take: false, close: false, go: null, restoringKey: null };
+  if (!active && input.restoringKey === null) return pass;
+  const { action, restoringKey } = decidePop({
+    restoringKey: input.restoringKey,
+    poppedKey: input.poppedKey,
+    currentKey: input.currentKey,
+    pending: active,
+    needsAnswer: active,
+    delta: input.delta,
+    awayBy: 0,
+  });
+  if (action.kind === "swallow") {
+    return { take: true, close: false, go: null, restoringKey };
+  }
+  if (action.kind === "stay") {
+    const go = action.go !== null && action.go !== 0 ? action.go : null;
+    return { take: true, close: true, go, restoringKey };
+  }
+  return { ...pass, restoringKey };
+}

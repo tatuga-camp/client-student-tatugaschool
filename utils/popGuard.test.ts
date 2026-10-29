@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { decidePop, popOutcome } from "./popGuard";
+import { decidePop, layerPop, popOutcome } from "./popGuard";
 
 const base = {
   awayBy: 0,
@@ -213,4 +213,121 @@ test("popOutcome for the other answers", () => {
     }),
     "none",
   );
+});
+
+// A back press while a modal layer (sheet or viewer) is open: on a detail
+// page and on a tab pane alike, it closes the topmost layer and puts the URL
+// back with history.go(), never with a push.
+const layer = { restoringKey: null as string | null };
+
+test("tab pane [SignIn(unindexed), H]: back with the switcher open closes it, one go(1), landing swallowed", () => {
+  const back = layerPop({
+    ...layer,
+    top: "closes",
+    poppedKey: "S",
+    currentKey: "H",
+    delta: null,
+  });
+  assert.deepEqual(back, { take: true, close: true, go: 1, restoringKey: "H" });
+  // The sheet is closed; the go(1) lands back on H.
+  const landed = layerPop({
+    top: "none",
+    restoringKey: back.restoringKey,
+    poppedKey: "H",
+    currentKey: "H",
+    delta: 0,
+  });
+  assert.deepEqual(landed, {
+    take: true,
+    close: false,
+    go: null,
+    restoringKey: null,
+  });
+  // Nothing open now: the next back leaves as before.
+  const next = layerPop({
+    ...layer,
+    top: "none",
+    poppedKey: "S",
+    currentKey: "H",
+    delta: null,
+  });
+  assert.equal(next.take, false);
+});
+
+test("no layer open and no restore in flight: the pop passes, as before", () => {
+  assert.deepEqual(
+    layerPop({
+      ...layer,
+      top: "none",
+      poppedKey: "L",
+      currentKey: "D",
+      delta: 1,
+    }),
+    { take: false, close: false, go: null, restoringKey: null },
+  );
+});
+
+test("tab pane [H, D(forward)]: forward with a sheet open closes it and goes back one", () => {
+  const r = layerPop({
+    ...layer,
+    top: "closes",
+    poppedKey: "D",
+    currentKey: "H",
+    delta: -1,
+  });
+  assert.deepEqual(r, { take: true, close: true, go: -1, restoringKey: "H" });
+});
+
+test("detail [SignIn, L, D] with a viewer open: back closes it with go(1) (P3-25 unchanged)", () => {
+  const r = layerPop({
+    ...layer,
+    top: "closes",
+    poppedKey: "L",
+    currentKey: "D",
+    delta: 1,
+  });
+  assert.deepEqual(r, { take: true, close: true, go: 1, restoringKey: "D" });
+});
+
+test("a layer that stays (a dirty note asking) does not block its own landing", () => {
+  const r = layerPop({
+    top: "closes",
+    restoringKey: "D",
+    poppedKey: "D",
+    currentKey: "D",
+    delta: 0,
+  });
+  assert.deepEqual(r, {
+    take: true,
+    close: false,
+    go: null,
+    restoringKey: null,
+  });
+});
+
+test("the leave guard on top handles back itself", () => {
+  const r = layerPop({
+    ...layer,
+    top: "ownsBack",
+    poppedKey: "L",
+    currentKey: "D",
+    delta: 1,
+  });
+  assert.equal(r.take, false);
+});
+
+test("a pop that is not the awaited landing clears a stale restore and passes", () => {
+  const r = layerPop({
+    top: "none",
+    restoringKey: "D",
+    poppedKey: "X",
+    currentKey: "D",
+    delta: 2,
+  });
+  assert.deepEqual(r, {
+    take: false,
+    close: false,
+    go: null,
+    restoringKey: null,
+  });
 });

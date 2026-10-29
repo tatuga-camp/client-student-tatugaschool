@@ -60,8 +60,9 @@ export default function DetailStack({ subjectId, detail, depthApi }: Props) {
   // the shell's own back button pops history too, and that one animates.
   useEffect(() => {
     Router.beforePopState((state) => {
-      // A modal layer open on the page closes first (back = close the sheet).
-      if (currentKey.current !== null && interceptLayerPop()) return false;
+      // A modal layer open on a detail page or a tab pane closes first
+      // (back = close the sheet).
+      if (interceptLayerPop()) return false;
       // The unsent-work guard may take a browser back over (and cancel it).
       if (interceptPop(state)) return false;
       popped.current = !takeInAppPop();
