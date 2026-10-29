@@ -55,7 +55,8 @@ type SheetProps = {
   closeButton?: boolean;
   /** Drawn on the panel's top edge (a mascot), outside the body scroller so
    *  it isn't clipped, and never taking a press. Its bottom sits on the edge;
-   *  a negative bottom margin lets it overlap the panel. */
+   *  a negative bottom margin lets it overlap the panel. Mount it together
+   *  with `open`: its height is read when the sheet starts to move. */
   overlay?: React.ReactNode;
   ariaLabel: string;
 };
