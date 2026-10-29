@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { LuMousePointer2 } from "react-icons/lu";
 import { frameLanguage } from "../../data/languages";
 import { useGetLanguage } from "../../react-query";
@@ -18,8 +18,39 @@ export function markFrameHintsSeen(): void {
   }
 }
 
+/**
+ * The stage is decoration: a render error in it shows nothing there and
+ * never takes the phone down with it.
+ */
+class StageBoundary extends React.Component<
+  { children: React.ReactNode },
+  { failed: boolean }
+> {
+  state = { failed: false };
+
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+
+  componentDidCatch(error: Error) {
+    console.error("[DesktopStage] Render error:", error);
+  }
+
+  render() {
+    return this.state.failed ? null : this.props.children;
+  }
+}
+
 /** Desktop and tablet backdrop: the schoolyard, badge, QR card and hints. */
 export function DesktopStage() {
+  return (
+    <StageBoundary>
+      <Stage />
+    </StageBoundary>
+  );
+}
+
+function Stage() {
   const language = useGetLanguage();
   const l = language.data ?? "en";
   // Only mounted client-side (framed), so reading storage here cannot mismatch.
