@@ -1,11 +1,9 @@
 import React, { useState } from "react";
-import Swal from "../../utils/appSwal";
 import { Sheet } from "../app/Sheet";
 import Password from "../common/Password";
 import { profileLanguage, studentDataLanguage } from "../../data/languages";
 import { Language } from "../../interfaces";
 import { useUpdateStudent } from "../../react-query";
-import { errorSwalContent } from "../../utils/errorSwal";
 import { passwordChangeError } from "../../utils/profileEdit";
 
 type Props = {
@@ -41,13 +39,7 @@ function ChangePasswordSheet({ studentId, language, onClose, onSaved }: Props) {
       onSaved();
     } catch (err) {
       console.error(err);
-      Swal.fire({
-        ...errorSwalContent(
-          err,
-          studentDataLanguage.somethingWentWrong(language),
-        ),
-        icon: "error",
-      });
+      setError(studentDataLanguage.somethingWentWrong(language));
     }
   };
 

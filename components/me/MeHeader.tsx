@@ -5,6 +5,8 @@ import { homeLanguage, profileLanguage } from "../../data/languages";
 import type { Language, Student } from "../../interfaces";
 import { decodeBlurhashToCanvas } from "../../utils";
 import { mascotForPhoto, mascotForStudent } from "../../utils/mascot";
+import { useTimeOfDay } from "../../hook/useTimeOfDay";
+import { SCENE_PALETTES } from "../../utils/timeOfDay";
 import { TabHeader } from "../app/TabHeader";
 import MascotAvatar from "../student/MascotAvatar";
 
@@ -24,6 +26,8 @@ export default function MeHeader({
   onEditPhoto,
   onOpenSettings,
 }: Props) {
+  // The gear sits on the sky: dark on the light morning one, like the title.
+  const palette = useTimeOfDay()?.palette ?? SCENE_PALETTES.noon;
   const initials =
     (Array.from(student.firstName ?? "")[0] ?? "") +
     (Array.from(student.lastName ?? "")[0] ?? "");
@@ -39,8 +43,11 @@ export default function MeHeader({
         type="button"
         onClick={onOpenSettings}
         aria-label={profileLanguage.settings(lang)}
-        className="absolute right-1.5 z-[4] flex h-11 w-11 items-center justify-center text-white"
-        style={{ top: "max(32px, calc(var(--safe-top) + 4px))" }}
+        className="absolute right-1.5 z-[4] flex h-11 w-11 items-center justify-center"
+        style={{
+          color: palette.statusText === "dark" ? "#383767" : "#FFFFFF",
+          top: "max(32px, calc(var(--safe-top) + 4px))",
+        }}
       >
         <LuSettings size={22} />
       </button>

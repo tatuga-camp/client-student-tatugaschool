@@ -1,10 +1,8 @@
 import React, { useState } from "react";
-import Swal from "../../utils/appSwal";
 import { Sheet } from "../app/Sheet";
 import { profileLanguage, studentDataLanguage } from "../../data/languages";
 import { Language, Student } from "../../interfaces";
 import { useUpdateStudent } from "../../react-query";
-import { errorSwalContent } from "../../utils/errorSwal";
 import { nameEditError } from "../../utils/profileEdit";
 
 type Props = {
@@ -42,13 +40,7 @@ function EditNameSheet({ student, language, onClose, onSaved }: Props) {
       onSaved();
     } catch (err) {
       console.error(err);
-      Swal.fire({
-        ...errorSwalContent(
-          err,
-          studentDataLanguage.somethingWentWrong(language),
-        ),
-        icon: "error",
-      });
+      setError(studentDataLanguage.somethingWentWrong(language));
     }
   };
 

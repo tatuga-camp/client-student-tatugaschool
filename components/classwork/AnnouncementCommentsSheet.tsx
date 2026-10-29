@@ -1,7 +1,10 @@
 import Image from "next/image";
 import { FormEvent, useEffect, useState } from "react";
 import { LuMoreHorizontal, LuSend, LuTrash2 } from "react-icons/lu";
-import { announcementDataLanguage } from "../../data/languages";
+import {
+  announcementDataLanguage,
+  subjectHomeLanguage,
+} from "../../data/languages";
 import { Language } from "../../interfaces";
 import {
   useCreateAnnouncementComment,
@@ -60,6 +63,7 @@ function Thread({
   const deleteComment = useDeleteAnnouncementComment();
   const [content, setContent] = useState("");
   const [menuId, setMenuId] = useState<string | null>(null);
+  const [failure, setFailure] = useState<string | null>(null);
 
   // Tapping anywhere else closes the open menu.
   useEffect(() => {
@@ -77,13 +81,26 @@ function Thread({
     e.preventDefault();
     const text = content.trim();
     if (!text || createComment.isPending) return;
-    await createComment.mutateAsync({ announcementId, content: text });
-    setContent("");
+    setFailure(null);
+    try {
+      await createComment.mutateAsync({ announcementId, content: text });
+      setContent("");
+    } catch (err) {
+      // The draft stays, so a retry is one tap.
+      console.error(err);
+      setFailure(subjectHomeLanguage.commentSendFailed(lang));
+    }
   };
 
   const remove = async (commentOnAnnouncementId: string) => {
     setMenuId(null);
-    await deleteComment.mutateAsync({ commentOnAnnouncementId });
+    setFailure(null);
+    try {
+      await deleteComment.mutateAsync({ commentOnAnnouncementId });
+    } catch (err) {
+      console.error(err);
+      setFailure(subjectHomeLanguage.commentDeleteFailed(lang));
+    }
   };
 
   return (
@@ -135,7 +152,7 @@ function Thread({
                     onClick={() =>
                       setMenuId(menuId === comment.id ? null : comment.id)
                     }
-                    className="flex h-9 w-9 items-center justify-center rounded-full text-lg text-[#7A80A0]"
+                    className="relative flex h-9 w-9 items-center justify-center rounded-full text-lg text-[#7A80A0] after:absolute after:-inset-1 after:content-['']"
                   >
                     <LuMoreHorizontal aria-hidden />
                   </button>
@@ -156,6 +173,14 @@ function Thread({
           </li>
         ))}
       </ul>
+      {failure && (
+        <p
+          role="alert"
+          className="mt-3 text-center text-sm font-bold text-error-color"
+        >
+          {failure}
+        </p>
+      )}
       <form
         onSubmit={submit}
         className="sticky bottom-0 mt-3 flex items-center gap-2 bg-white pt-2"

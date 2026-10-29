@@ -31,7 +31,6 @@ import {
   generateBlurHash,
   summarizeAttendance,
 } from "../../utils";
-import Swal from "../../utils/appSwal";
 import {
   localizeSkillTitle,
   sectorForCareer,
@@ -154,12 +153,15 @@ export default function MeTab({ subjectId, active }: TabPaneProps) {
       showSavedToast();
     } catch (error) {
       console.error(error);
-      Swal.fire({
-        ...errorSwalContent(
-          error,
-          studentDataLanguage.somethingWentWrong(lang),
-        ),
-        icon: "error",
+      const failure = errorSwalContent(
+        error,
+        studentDataLanguage.somethingWentWrong(lang),
+      );
+      toast.current?.show({
+        severity: "error",
+        summary: failure.title,
+        detail: failure.text,
+        life: 5000,
       });
     } finally {
       setUploading(false);
