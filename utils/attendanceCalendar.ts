@@ -28,17 +28,33 @@ export function statusByDay(
   attendances: { startDate: Date | string; status: string }[],
   statusLists: { title: string; value: number; color: string }[],
 ): Map<string, { title: string; color: string }> {
-  const worst = new Map<string, { title: string; color: string; value: number }>();
+  const worst = new Map<
+    string,
+    { title: string; color: string; value: number }
+  >();
   for (const a of attendances) {
     const status = statusLists.find((s) => s.title === a.status);
     if (!status) continue;
     const key = dayKey(a.startDate);
     const current = worst.get(key);
     if (!current || status.value < current.value) {
-      worst.set(key, { title: status.title, color: status.color, value: status.value });
+      worst.set(key, {
+        title: status.title,
+        color: status.color,
+        value: status.value,
+      });
     }
   }
   return new Map(
     [...worst].map(([key, { title, color }]) => [key, { title, color }]),
   );
+}
+
+/** Dark text on light colours (yellow), white on the rest. */
+export function textOn(hex: string): string {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
+  if (!m) return "#fff";
+  const n = parseInt(m[1], 16);
+  const lum = 0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255);
+  return lum > 170 ? "#383767" : "#fff";
 }

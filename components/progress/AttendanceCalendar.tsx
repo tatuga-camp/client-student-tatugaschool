@@ -2,7 +2,7 @@ import { useState } from "react";
 import { LuChevronLeft, LuChevronRight } from "react-icons/lu";
 import { progressLanguage } from "../../data/languages";
 import type { Language } from "../../interfaces";
-import { dayKey, monthGrid } from "../../utils/attendanceCalendar";
+import { dayKey, monthGrid, textOn } from "../../utils/attendanceCalendar";
 
 type Props = {
   lang: Language;
@@ -12,17 +12,8 @@ type Props = {
   initial: Date;
 };
 
-/** Dark text on light colours (yellow), white on the rest. */
-function textOn(hex: string): string {
-  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
-  if (!m) return "#fff";
-  const n = parseInt(m[1], 16);
-  const lum = 0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255);
-  return lum > 170 ? "#383767" : "#fff";
-}
-
 const NAV =
-  "flex h-9 w-9 items-center justify-center rounded-full text-lg text-[#383767] active:bg-[#EEF1F6]";
+  "relative flex h-9 w-9 items-center justify-center rounded-full text-lg text-[#383767] active:bg-[#EEF1F6] after:absolute after:-inset-1 after:content-['']";
 
 /** Month calendar of the student's attendance, one coloured day per class day. */
 export default function AttendanceCalendar({ lang, days, initial }: Props) {
@@ -63,7 +54,10 @@ export default function AttendanceCalendar({ lang, days, initial }: Props) {
           <LuChevronLeft aria-hidden />
         </button>
         <h3 className="text-sm font-bold text-[#383767]" aria-live="polite">
-          {cursor.toLocaleDateString(locale, { month: "long", year: "numeric" })}
+          {cursor.toLocaleDateString(locale, {
+            month: "long",
+            year: "numeric",
+          })}
         </h3>
         <button
           type="button"
@@ -90,7 +84,10 @@ export default function AttendanceCalendar({ lang, days, initial }: Props) {
               className="mx-auto flex h-8 w-8 items-center justify-center rounded-full"
               style={
                 status
-                  ? { backgroundColor: status.color, color: textOn(status.color) }
+                  ? {
+                      backgroundColor: status.color,
+                      color: textOn(status.color),
+                    }
                   : { color: "#9AA3B8" }
               }
             >

@@ -10,7 +10,8 @@ import type {
 } from "../../interfaces";
 import { useGetAttendanceTables, useGetLanguage } from "../../react-query";
 import { summarizeAttendance, tintColor } from "../../utils";
-import { statusByDay } from "../../utils/attendanceCalendar";
+import { statusByDay, textOn } from "../../utils/attendanceCalendar";
+import { InlineError } from "../app/InlineError";
 import { Sheet } from "../app/Sheet";
 import AttendanceCalendar from "./AttendanceCalendar";
 
@@ -61,7 +62,8 @@ export default function AttendancePane({ subjectId, studentId }: Props) {
   );
 
   const colorOf = (status: string) =>
-    table?.statusLists.find((s) => s.title === status)?.color || NO_STATUS_COLOR;
+    table?.statusLists.find((s) => s.title === status)?.color ||
+    NO_STATUS_COLOR;
 
   const best = summary?.best ?? null;
   const cheer =
@@ -72,6 +74,10 @@ export default function AttendancePane({ subjectId, studentId }: Props) {
         : best.percent >= 75
           ? subjectHomeLanguage.cheerGood(lang)
           : subjectHomeLanguage.cheerLow(lang);
+
+  if (query.isError && !query.data) {
+    return <InlineError onRetry={() => query.refetch()} />;
+  }
 
   if (query.isLoading) {
     return (
@@ -92,7 +98,10 @@ export default function AttendancePane({ subjectId, studentId }: Props) {
   return (
     <div className="flex flex-col gap-3 font-Anuphan">
       {tables.length > 1 && (
-        <ul data-no-swipe className="-mx-3 flex gap-2 overflow-x-auto px-3 pb-1">
+        <ul
+          data-no-swipe
+          className="-mx-3 flex gap-2 overflow-x-auto px-3 pb-1"
+        >
           {tables.map((t) => {
             const on = t.id === table.id;
             return (
@@ -219,15 +228,15 @@ export default function AttendancePane({ subjectId, studentId }: Props) {
                   type="button"
                   aria-label={subjectHomeLanguage.note(lang)}
                   onClick={() => setNote(attendance.note)}
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-[#E3E8F0] text-lg text-[#7A80A0]"
+                  className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-[#E3E8F0] text-lg text-[#7A80A0] after:absolute after:-inset-1 after:content-['']"
                 >
                   <LuStickyNote aria-hidden />
                 </button>
               )}
               {attendance?.status ? (
                 <span
-                  className="max-w-[8rem] shrink-0 truncate rounded-full px-3 py-1 text-xs font-bold text-white"
-                  style={{ backgroundColor: color }}
+                  className="max-w-[8rem] shrink-0 truncate rounded-full px-3 py-1 text-xs font-bold"
+                  style={{ backgroundColor: color, color: textOn(color) }}
                 >
                   {attendance.status}
                 </span>

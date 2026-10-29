@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { dayKey, monthGrid, statusByDay } from "./attendanceCalendar";
+import { dayKey, monthGrid, statusByDay, textOn } from "./attendanceCalendar";
 
 test("monthGrid lays a month out in Sunday-first weeks", () => {
   const oct = monthGrid(2026, 9); // October 2026 starts on a Thursday
@@ -34,6 +34,16 @@ test("statusByDay keeps the worst status per day and ignores unknown ones", () =
     ],
     lists,
   );
-  assert.deepEqual(map.get("2026-10-07"), { title: "Absent", color: "#F04438" });
+  assert.deepEqual(map.get("2026-10-07"), {
+    title: "Absent",
+    color: "#F04438",
+  });
   assert.equal(map.has("2026-10-08"), false);
+});
+
+test("textOn picks dark text on light colours and white on dark ones", () => {
+  assert.equal(textOn("#FFCD1B"), "#383767");
+  assert.equal(textOn("#27AE60"), "#fff");
+  assert.equal(textOn("#F04438"), "#fff");
+  assert.equal(textOn("not-a-colour"), "#fff");
 });
