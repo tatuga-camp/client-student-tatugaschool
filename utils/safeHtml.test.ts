@@ -204,28 +204,66 @@ test("deeply nested markup does not blow the stack", () => {
   assert.equal(parseSafeHtml("<p>x</p>".repeat(3000)).visible, true);
 });
 
+// A raw HTML sink outside utils/safeHtml: the parser imported any way, React's
+// escape hatch, DOM HTML writes, or an iframe fed a document string.
+const RAW_HTML = [
+  /\bfrom\s*["']html-react-parser["']/,
+  /\b(?:import|require)\s*\(\s*["']html-react-parser["']\s*\)/,
+  /\bdangerouslySetInnerHTML\b/,
+  /\b(?:inner|outer)HTML\s*\+?=(?!=)/,
+  /\binsertAdjacentHTML\s*\(/,
+  /\bsrcdoc\b/i,
+];
+
+/** The code without its comments (a comment may name a sink it warns about). */
+function withoutComments(code: string): string {
+  return (
+    code
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      // Not a URL's "//" (after ":") or one that opens a string.
+      .replace(/(^|[^:"'`\\])\/\/.*$/gm, "$1")
+  );
+}
+
+test("a comment naming a sink is not a sink; the sinks themselves are", () => {
+  const code = (s: string) =>
+    RAW_HTML.some((re) => re.test(withoutComments(s)));
+  assert.equal(code("// never use dangerouslySetInnerHTML here"), false);
+  assert.equal(code("/* el.innerHTML = x */ const a = 1;"), false);
+  assert.equal(code('const u = "https://x.test/a"; // srcDoc'), false);
+  assert.equal(code('const p = await import("html-react-parser");'), true);
+  assert.equal(code('const p = require("html-react-parser");'), true);
+  assert.equal(code("el.innerHTML = html;"), true);
+  assert.equal(code("if (el.innerHTML === html) {}"), false);
+  assert.equal(code("<iframe srcDoc={html} />"), true);
+  assert.equal(code("<div dangerouslySetInnerHTML={{ __html: h }} />"), true);
+});
+
 test("server and teacher HTML renders only through parseSafeHtml", () => {
-  // Every app source file outside this module: no raw html-react-parser
-  // and no dangerouslySetInnerHTML (an announcement or note is teacher HTML).
+  // Every source file of the app, outside this module and the tests.
   const root = join(__dirname, "..");
+  const skip = new Set(["node_modules", "public"]);
   const files: string[] = [];
   const walk = (dir: string) => {
     for (const entry of readdirSync(dir, { withFileTypes: true })) {
       const path = join(dir, entry.name);
+      // .next, .superpowers, .git: build output and tooling, not the app.
+      if (entry.name.startsWith(".") || skip.has(entry.name)) continue;
       if (entry.isDirectory()) walk(path);
-      else if (/\.tsx?$/.test(entry.name) && !/\.test\.tsx?$/.test(entry.name))
+      else if (
+        /\.[cm]?[jt]sx?$/.test(entry.name) &&
+        !/\.test\.[cm]?[jt]sx?$/.test(entry.name)
+      )
         files.push(path);
     }
   };
-  for (const dir of ["components", "pages", "hook", "react-query", "utils"])
-    walk(join(root, dir));
+  walk(root);
   const raw = files
     .filter((file) => file !== join(__dirname, "safeHtml.ts"))
-    .filter((file) =>
-      /from ["']html-react-parser["']|dangerouslySetInnerHTML/.test(
-        readFileSync(file, "utf8"),
-      ),
-    )
+    .filter((file) => {
+      const code = withoutComments(readFileSync(file, "utf8"));
+      return RAW_HTML.some((re) => re.test(code));
+    })
     .map((file) => relative(root, file).split(sep).join("/"));
   assert.deepEqual(raw, []);
 });
