@@ -107,6 +107,7 @@ function AssignmentText({
           menubar={false}
           statusbar={false}
           toolbar={NOTE_TOOLBAR}
+          ariaText={assignmentPageLanguage.noteText(lang)}
         />
       </div>
       {!readOnly && (

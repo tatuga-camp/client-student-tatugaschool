@@ -231,6 +231,7 @@ export const assignmentPageLanguage = {
   add: t("Add", "เพิ่ม"),
   save: t("Save", "บันทึก"),
   noteTitlePlaceholder: t("Add your title", "ใส่ชื่อบันทึก"),
+  noteText: t("Note text", "เนื้อหาบันทึก"),
   fileUploaded: t("File uploaded", "อัปโหลดไฟล์แล้ว"),
   uploadRejected: t(
     "Your file couldn't be uploaded. Please try again.",
