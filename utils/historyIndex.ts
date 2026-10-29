@@ -7,16 +7,20 @@
  * there is no in-app history behind it.
  */
 export function createHistoryIndex(): {
-  /** The index of the entry with this key, recording it if it is new. */
-  visit(key: string | null | undefined): number;
+  /** The index of the entry with this key, recording it if it is new, and
+   *  its path when given (a replace on the entry updates it). */
+  visit(key: string | null | undefined, path?: string): number;
   /** The index of a known entry, or undefined; never moves the position. */
   peek(key: string | null | undefined): number | undefined;
   /** The index of the entry the shell is on. */
   current(): number;
   /** The key of the entry the shell is on (null if none). */
   currentKey(): string | null;
+  /** The last path seen on the entry behind the current one, if known. */
+  previousPath(): string | undefined;
 } {
   const indexes = new Map<string, number>();
+  const paths = new Map<number, string>();
   let current = -1;
   let currentKeyValue: string | null = null;
   return {
@@ -29,7 +33,10 @@ export function createHistoryIndex(): {
     currentKey() {
       return currentKeyValue;
     },
-    visit(key) {
+    previousPath() {
+      return paths.get(current - 1);
+    },
+    visit(key, path) {
       if (!key) return 0;
       currentKeyValue = key;
       let index = indexes.get(key);
@@ -39,6 +46,7 @@ export function createHistoryIndex(): {
         indexes.set(key, index);
       }
       current = index;
+      if (path !== undefined) paths.set(index, path);
       return index;
     },
   };

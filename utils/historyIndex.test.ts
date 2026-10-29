@@ -63,3 +63,26 @@ test("peek and current read the index without moving it", () => {
   assert.equal(h.peek("zzz"), undefined);
   assert.equal(h.current(), 1);
 });
+
+test("previousPath is the latest path of the entry behind the current one", () => {
+  const h = createHistoryIndex();
+  h.visit("a", "/subject/s1");
+  // A tab change replaces the entry: same key, new path.
+  h.visit("a", "/subject/s1?tab=classwork");
+  h.visit("b", "/subject/s1/assignment/x");
+  assert.equal(h.previousPath(), "/subject/s1?tab=classwork");
+  // A read without a path (backTarget's) keeps what is known.
+  h.visit("b");
+  assert.equal(h.previousPath(), "/subject/s1?tab=classwork");
+});
+
+test("previousPath: nothing behind the first entry; a push after going back follows its entry", () => {
+  const h = createHistoryIndex();
+  h.visit("d", "/subject/s1/assignment/x");
+  assert.equal(h.previousPath(), undefined);
+  h.visit("e", "/subject/s1/assignment/y");
+  h.visit("d");
+  // Back on d, then a new push: the entry behind it is still d.
+  h.visit("f", "/subject/s1/assignment/z");
+  assert.equal(h.previousPath(), "/subject/s1/assignment/x");
+});

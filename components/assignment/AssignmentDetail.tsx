@@ -14,7 +14,11 @@ import {
   useUpdateStudentOnAssignment,
 } from "../../react-query";
 import { TAB_BODY_CLASS } from "../app/TabHeader";
-import { type DetailPaneProps, useShellNav } from "../app/shell/useShellRoute";
+import {
+  type DetailPaneProps,
+  previousEntryPath,
+  useShellNav,
+} from "../app/shell/useShellRoute";
 import TextEditor from "../common/TextEditor";
 import {
   hasRichContent,
@@ -30,6 +34,7 @@ import VideoQuizPlayer from "./video/VideoQuizPlayer";
 import TeacherFiles from "./TeacherFiles";
 import TitleCard from "./TitleCard";
 import { useDetailFocus } from "./useDetailFocus";
+import { classworkBack } from "../../utils/tabs";
 import { withTimeout } from "../../utils/withTimeout";
 import { workError } from "./workFeedback";
 import YourWorkSheet from "./YourWorkSheet";
@@ -263,7 +268,14 @@ export default function AssignmentDetail({
           }}
           onBack={() => {
             setCelebration(null);
-            // Lands on the Classwork list, however the student got here.
+            // Lands on the Classwork list, however the student got here: back
+            // to it when it is the entry behind (no duplicate entry), else
+            // replace this page with it.
+            const previousPath = previousEntryPath();
+            if (classworkBack({ previousPath, subjectId }) === "back") {
+              void nav.back();
+              return;
+            }
             router.replace({
               pathname: "/subject/[subjectId]",
               query: { subjectId, tab: "classwork" },

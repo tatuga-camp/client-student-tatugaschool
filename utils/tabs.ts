@@ -100,6 +100,25 @@ export function backTarget(input: {
   return { kind: "replace", url: `/subject/${input.subjectId}` };
 }
 
+/**
+ * "Back to classwork" after a turn-in: go back when the entry behind is this
+ * subject's Classwork list, else replace with it. A replace onto a list that
+ * is already behind would leave two equal entries, and a dead back press.
+ */
+export function classworkBack(input: {
+  previousPath: string | undefined;
+  subjectId: string;
+}): "back" | "replace" {
+  if (!input.previousPath) return "replace";
+  const [pathname, search = ""] = input.previousPath.split("#")[0].split("?");
+  const query = new URLSearchParams(search);
+  return pathname === `/subject/${input.subjectId}` &&
+    parseTab(query.get("tab")) === "classwork" &&
+    !query.has("announcement_id")
+    ? "back"
+    : "replace";
+}
+
 /** The Progress switch's panes, in order: only what the teacher lets students see. */
 export function progressPanes(s: {
   allowStudentViewOverallScore: boolean;

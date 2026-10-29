@@ -25,10 +25,17 @@ const ASSIGNMENT_PATHNAME = "/subject/[subjectId]/assignment/[assignmentId]";
 const historyIndex = createHistoryIndex();
 let tracking = false;
 
-function currentHistoryIdx(): number {
+/** The current entry's index; `path` (after a navigation) is recorded too. */
+function currentHistoryIdx(path?: string): number {
   return historyIndex.visit(
     (window.history.state as { key?: string } | null)?.key,
+    path,
   );
+}
+
+/** The path of the entry behind the current one, if the shell saw it. */
+export function previousEntryPath(): string | undefined {
+  return historyIndex.previousPath();
 }
 
 /**
@@ -65,8 +72,10 @@ export function takeInAppPop(): boolean {
 function trackHistory(): void {
   if (tracking) return;
   tracking = true;
-  currentHistoryIdx();
-  Router.events.on("routeChangeComplete", currentHistoryIdx);
+  currentHistoryIdx(Router.asPath);
+  Router.events.on("routeChangeComplete", (url: string) =>
+    currentHistoryIdx(url),
+  );
 }
 
 /** The shell's state, read from the URL; null until the router is ready. */

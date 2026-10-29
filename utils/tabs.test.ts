@@ -8,6 +8,7 @@ import {
   swipeOutcome,
   edgeBackOutcome,
   backTarget,
+  classworkBack,
   canStartShellSwipe,
   isEditableTarget,
 } from "./tabs";
@@ -98,4 +99,18 @@ test("progressPanes follows the teacher's visibility settings", () => {
   assert.deepEqual(progressPanes({ allowStudentViewOverallScore: true, allowStudentViewAttendance: false }), ["grades"]);
   assert.deepEqual(progressPanes({ allowStudentViewOverallScore: false, allowStudentViewAttendance: true }), ["attendance"]);
   assert.deepEqual(progressPanes({ allowStudentViewOverallScore: false, allowStudentViewAttendance: false }), []);
+});
+
+test("classworkBack: back when the entry behind is this subject's Classwork list, else replace", () => {
+  const back = (previousPath: string | undefined) =>
+    classworkBack({ previousPath, subjectId: "s1" });
+  assert.equal(back("/subject/s1?tab=classwork"), "back");
+  assert.equal(back("/subject/s1"), "replace"); // Home
+  assert.equal(back("/subject/s1?tab=me"), "replace");
+  assert.equal(back("/subject/s2?tab=classwork"), "replace");
+  assert.equal(back("/subject/s1/assignment/x"), "replace");
+  // A notification link shows Classwork but would flash its announcement again.
+  assert.equal(back("/subject/s1?announcement_id=a1"), "replace");
+  // Sign-in or a deep link: the shell never saw the entry behind.
+  assert.equal(back(undefined), "replace");
 });
