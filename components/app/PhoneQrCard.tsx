@@ -78,7 +78,10 @@ export function PhoneQrCard() {
         />
       )}
       <div className="relative mx-auto box-content h-[150px] w-[150px] rounded-[14px] border-2 border-[#EEF1F6] bg-white p-2">
-        {url && <QRCodeSVG value={url} size={150} fgColor="#383767" />}
+        {/* Level H: the "T" tile covers the middle of the code. */}
+        {url && (
+          <QRCodeSVG value={url} size={150} level="H" fgColor="#383767" />
+        )}
         <span className="absolute left-1/2 top-1/2 -ml-[15px] -mt-[15px] grid h-[30px] w-[30px] place-items-center rounded-[9px] border-[3px] border-white bg-primary-color text-[13px] font-bold text-white">
           T
         </span>
