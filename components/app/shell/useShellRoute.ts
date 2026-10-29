@@ -49,6 +49,19 @@ function currentHistoryIdx(path?: string): number {
   return historyIndex.visit(key, path, key === lastPoppedKey);
 }
 
+// Told each pop's key once Next's own popstate handler has run, so a restore
+// whose landing Next never passed to beforePopState can be settled.
+const settleListeners = new Set<(key: string | undefined) => void>();
+
+export function onPopSettled(
+  listener: (key: string | undefined) => void,
+): () => void {
+  settleListeners.add(listener);
+  return () => {
+    settleListeners.delete(listener);
+  };
+}
+
 /** The path of the entry behind the current one, if the shell saw it. */
 export function previousEntryPath(): string | undefined {
   return historyIndex.previousPath();
@@ -94,7 +107,9 @@ function trackHistory(): void {
   window.addEventListener(
     "popstate",
     () => {
-      lastPoppedKey = stateKey();
+      const key = stateKey();
+      lastPoppedKey = key;
+      window.setTimeout(() => settleListeners.forEach((l) => l(key)), 0);
     },
     true,
   );

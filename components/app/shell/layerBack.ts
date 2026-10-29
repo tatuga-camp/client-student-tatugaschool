@@ -1,9 +1,13 @@
 import { topLayer } from "../modalLayers";
-import { layerPop } from "../../../utils/popGuard";
-import { popInfo } from "./useShellRoute";
+import { layerPop, settleRestore } from "../../../utils/popGuard";
+import { onPopSettled, popInfo } from "./useShellRoute";
 
 // The key of the entry a restore from a layer-closing back is heading to.
 let restoringKey: string | null = null;
+// Its landing may never reach beforePopState (see settleRestore).
+onPopSettled((key) => {
+  restoringKey = settleRestore(restoringKey, key);
+});
 
 /**
  * While a modal layer is open (a sheet, the image or PDF viewer), on a detail

@@ -1,9 +1,9 @@
 import { useRouter } from "next/router";
 import React from "react";
-import { popInfo } from "../components/app/shell/useShellRoute";
+import { onPopSettled, popInfo } from "../components/app/shell/useShellRoute";
 import { isSamePath } from "../utils";
 import { setLeaveInterceptor, setPopInterceptor } from "../utils/leaveGuard";
-import { decidePop, popOutcome } from "../utils/popGuard";
+import { decidePop, popOutcome, settleRestore } from "../utils/popGuard";
 
 /** How long a Leave/Submit lets the navigation it asked for through. */
 const BYPASS_MS = 2000;
@@ -159,6 +159,10 @@ function useConfirmSubmissionGuard({
       }
     };
     setPopInterceptor(onPop);
+    // A Stay restore's landing may never reach onPop (see settleRestore).
+    const offSettled = onPopSettled((key) => {
+      restoringKeyRef.current = settleRestore(restoringKeyRef.current, key);
+    });
 
     // Anything else (a programmatic push) can only be cancelled by throwing.
     const handleRouteChangeStart = (url: string) => {
@@ -179,6 +183,7 @@ function useConfirmSubmissionGuard({
       router.events.off("routeChangeStart", handleRouteChangeStart);
       setLeaveInterceptor(null, interceptor);
       setPopInterceptor(null, onPop);
+      offSettled();
     };
   }, [router]);
 

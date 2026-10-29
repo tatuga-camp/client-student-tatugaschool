@@ -119,3 +119,19 @@ export function layerPop(input: {
   }
   return { ...pass, restoringKey };
 }
+
+/**
+ * After Next's own handler is done with a pop: if it was the landing a
+ * restore is waiting for, the restore is over. Next doesn't hand every pop to
+ * beforePopState: on a page that hasn't navigated client-side yet it skips a
+ * pop onto the page's own URL, which is exactly where a restore lands. A
+ * landing it did hand over was already swallowed (no key left to wait for).
+ */
+export function settleRestore(
+  restoringKey: string | null,
+  landedKey: string | undefined,
+): string | null {
+  return restoringKey !== null && restoringKey === landedKey
+    ? null
+    : restoringKey;
+}

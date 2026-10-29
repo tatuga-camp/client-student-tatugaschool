@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createHistoryIndex, restoreDelta } from "./historyIndex";
-import { decidePop, layerPop, popOutcome } from "./popGuard";
+import { decidePop, layerPop, popOutcome, settleRestore } from "./popGuard";
 
 const base = {
   awayBy: 0,
@@ -411,4 +411,86 @@ test("P3-21/P3-25: detail back after a reload with a sheet open restores with go
     awayBy: 0,
   });
   assert.deepEqual(guard.action, { kind: "stay", go: 1 });
+});
+
+// Next skips beforePopState for a pop onto the page's own URL until the page
+// has navigated client-side (isSsr), so a restore's landing on a freshly
+// loaded page is never seen there. settleRestore runs once Next's handler is
+// done with each pop.
+test("a restore landing Next never delivered is settled, so a later real back is not swallowed", () => {
+  // Reloaded on Home H; a sheet open; back to the unseen P: restore go(1).
+  const back = layerPop({
+    ...layer,
+    top: "closes",
+    poppedKey: "P",
+    currentKey: "H",
+    delta: null,
+  });
+  assert.equal(back.restoringKey, "H");
+  // The go(1) lands on H, but Next skips beforePopState (isSsr): only the
+  // settle step sees it.
+  const settled = settleRestore(back.restoringKey, "H");
+  assert.equal(settled, null);
+  // Later: the student opened an assignment D (a push) and presses back to H.
+  const later = layerPop({
+    ...layer,
+    restoringKey: settled,
+    top: "none",
+    poppedKey: "H",
+    currentKey: "D",
+    delta: 1,
+  });
+  assert.deepEqual(later, {
+    take: false,
+    close: false,
+    go: null,
+    restoringKey: null,
+  });
+  // Left stale, the same back would be swallowed: URL on H, screen on D.
+  const stale = layerPop({
+    ...layer,
+    restoringKey: "H",
+    top: "none",
+    poppedKey: "H",
+    currentKey: "D",
+    delta: 1,
+  });
+  assert.equal(stale.take, true);
+});
+
+test("settleRestore leaves a delivered landing and a newly started restore alone", () => {
+  // Delivered and swallowed: nothing is pending any more.
+  assert.equal(settleRestore(null, "H"), null);
+  // This pop (to P) started a restore back to H: still on its way.
+  assert.equal(settleRestore("H", "P"), "H");
+  // A pop with no key (not Next's) changes nothing.
+  assert.equal(settleRestore("H", undefined), "H");
+});
+
+test("the leave guard's Stay restore settles the same way", () => {
+  // Reloaded on a detail D with unsent work; the question is open and the
+  // student presses back to the unseen L: Stay, restore go(1).
+  const stay = decidePop({
+    restoringKey: null,
+    poppedKey: "L",
+    currentKey: "D",
+    pending: true,
+    needsAnswer: true,
+    delta: null,
+    awayBy: 0,
+  });
+  assert.deepEqual(stay.action, { kind: "stay", go: 1 });
+  // Its landing on D is skipped by Next; settled afterwards.
+  const settled = settleRestore(stay.restoringKey, "D");
+  // The next back (asking again) is not swallowed.
+  const next = decidePop({
+    restoringKey: settled,
+    poppedKey: "L",
+    currentKey: "D",
+    pending: false,
+    needsAnswer: true,
+    delta: null,
+    awayBy: 0,
+  });
+  assert.deepEqual(next.action, { kind: "ask" });
 });
