@@ -117,13 +117,57 @@ export const SCENE_PALETTES: Record<DayPeriod, ScenePalette> = {
   },
 };
 
-// Phone viewBox 0 0 280 330. At night this is the moon.
-export const SUN_POSITION: Record<DayPeriod, { x: number; y: number }> = {
+type Point = { x: number; y: number };
+
+const PHONE_VIEWBOX = { width: 280, height: 330 };
+const SUN_RADIUS = 18.5;
+
+// Phone viewBox 0 0 280 330. At night this is the moon. Drawn 390 wide, the
+// top ~93 units of the sky are cropped on Home (see sunDisc), so the high
+// noon sun and the moon sit just below the status bar: beside the bell,
+// above the greeting.
+export const SUN_POSITION: Record<DayPeriod, Point> = {
   morning: { x: 52, y: 150 },
-  noon: { x: 222, y: 92 },
+  noon: { x: 222, y: 151 },
   afternoon: { x: 232, y: 160 },
-  night: { x: 220, y: 92 },
+  night: { x: 220, y: 151 },
 };
+
+/**
+ * /welcome's scene is 30 px shorter (more sky cropped) and its top corners
+ * hold the badge and the TH/EN pill: the noon sun and the moon sit between
+ * them, below the status bar.
+ */
+export const WELCOME_SUN_POSITION: Record<DayPeriod, Point> = {
+  ...SUN_POSITION,
+  noon: { x: 172, y: 176 },
+  night: { x: 170, y: 176 },
+};
+
+/**
+ * The sun's disc on screen, in px from the scene's top-left, for a phone
+ * scene drawn into `box` with xMidYMax slice (the top of the sky is cropped).
+ */
+export function sunDisc(
+  at: Point,
+  box: { width: number; height: number },
+): { left: number; top: number; right: number; bottom: number } {
+  const scale = Math.max(
+    box.width / PHONE_VIEWBOX.width,
+    box.height / PHONE_VIEWBOX.height,
+  );
+  const cropX = (PHONE_VIEWBOX.width * scale - box.width) / 2;
+  const cropY = PHONE_VIEWBOX.height * scale - box.height;
+  const cx = at.x * scale - cropX;
+  const cy = at.y * scale - cropY;
+  const r = SUN_RADIUS * scale;
+  return {
+    left: Math.round(cx - r),
+    top: Math.round(cy - r),
+    right: Math.round(cx + r),
+    bottom: Math.round(cy + r),
+  };
+}
 
 /**
  * `hex` (#RRGGBB) mixed `amount` of the way toward white, e.g. the header

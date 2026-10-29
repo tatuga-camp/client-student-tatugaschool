@@ -191,11 +191,17 @@ const CONFIG = {
   },
 };
 
-function targetFor(period: DayPeriod, variant: Variant): SceneTarget {
+type SunPositions = Record<DayPeriod, { x: number; y: number }>;
+
+function targetFor(
+  period: DayPeriod,
+  variant: Variant,
+  phoneSun: SunPositions,
+): SceneTarget {
   const p = SCENE_PALETTES[period];
   const cfg = CONFIG[variant];
   const night = period === "night";
-  const sun = (variant === "phone" ? SUN_POSITION : DESKTOP_SUN)[period];
+  const sun = (variant === "phone" ? phoneSun : DESKTOP_SUN)[period];
   const [c0, c1, c2] =
     variant === "phone" ? PHONE_CLOUDS[period] : desktopClouds(night);
   return {
@@ -240,10 +246,12 @@ function Scene({
   variant,
   period,
   className,
+  sun,
 }: {
   variant: Variant;
   period: DayPeriod;
   className?: string;
+  sun: SunPositions;
 }) {
   const uid = useId().replace(/:/g, "");
   const reduced = usePrefersReducedMotion();
@@ -251,7 +259,7 @@ function Scene({
   const rootRef = useRef<SVGSVGElement>(null);
   const onScreen = useOnScreen(rootRef);
   const s = useSpring({
-    to: targetFor(period, variant),
+    to: targetFor(period, variant, sun),
     config: { tension: 120, friction: 26 },
   });
   const cfg = CONFIG[variant];
@@ -343,16 +351,26 @@ export function SchoolyardScene({
   variant,
   className,
   period,
+  sun = SUN_POSITION,
 }: {
   variant: Variant;
   className?: string;
   /** Forces a period. Used only by the dev preview page. */
   period?: DayPeriod;
+  /** The phone scene's sun positions, when the scene isn't Home's. */
+  sun?: SunPositions;
 }) {
   const tod = useTimeOfDay();
   const resolved = period ?? tod?.period;
   if (!resolved) {
     return <div className={className} style={{ background: "#F7F8FA" }} />;
   }
-  return <Scene variant={variant} period={resolved} className={className} />;
+  return (
+    <Scene
+      variant={variant}
+      period={resolved}
+      className={className}
+      sun={sun}
+    />
+  );
 }

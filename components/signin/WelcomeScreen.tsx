@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { defaultCanvas } from "../../data";
 import { useTimeOfDay } from "../../hook/useTimeOfDay";
+import { WELCOME_SUN_POSITION } from "../../utils/timeOfDay";
 import { SchoolyardScene } from "../app/scene/SchoolyardScene";
 import { JoinWithCode } from "./JoinWithCode";
 import { LanguagePill } from "./LanguagePill";
@@ -15,6 +16,7 @@ export function WelcomeScreen() {
           <SchoolyardScene
             variant="phone"
             period={tod?.period ?? "morning"}
+            sun={WELCOME_SUN_POSITION}
             className="absolute inset-0 h-full w-full"
           />
           <div
