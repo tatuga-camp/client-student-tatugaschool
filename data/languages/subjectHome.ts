@@ -52,6 +52,15 @@ export const subjectHomeLanguage = {
   emptyFilter: t("Nothing here yet", "ยังไม่มีงานในหมวดนี้"),
   emptyClasswork: t("No classwork yet", "ยังไม่มีงานในวิชานี้"),
   emptyAnnouncements: t("No announcements yet", "ยังไม่มีประกาศ"),
+  notTurnedIn: t("Not turned in", "ยังไม่ส่ง"),
+  commentSendFailed: t(
+    "Couldn't send your comment. Try again.",
+    "ส่งความคิดเห็นไม่สำเร็จ ลองใหม่อีกครั้ง",
+  ),
+  commentDeleteFailed: t(
+    "Couldn't delete the comment. Try again.",
+    "ลบความคิดเห็นไม่สำเร็จ ลองใหม่อีกครั้ง",
+  ),
 
   // Attendance
   attendanceTitle: t("My attendance", "การเข้าเรียนของฉัน"),

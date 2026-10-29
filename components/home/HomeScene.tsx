@@ -94,7 +94,9 @@ export function HomeScene({
           ),
         }}
       >
-        <div className="home-bob relative h-full w-full drop-shadow-[0_8px_10px_rgba(0,0,0,.2)]">
+        <div
+          className={`relative h-full w-full drop-shadow-[0_8px_10px_rgba(0,0,0,.2)]${active ? " home-bob" : ""}`}
+        >
           {shown && student && (
             <MascotAvatar
               clips={mascotForStudent(student)}

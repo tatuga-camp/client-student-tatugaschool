@@ -92,7 +92,7 @@ function statusLabel(status: StudentAssignmentStatus, lang: Language) {
     case "IMPROVED":
       return classworkCardDataLanguage.Improve(lang);
     default:
-      return classworkCardDataLanguage.NoWork(lang);
+      return subjectHomeLanguage.notTurnedIn(lang);
   }
 }
 
