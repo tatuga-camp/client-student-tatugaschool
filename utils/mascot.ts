@@ -262,6 +262,17 @@ export function mascotForStudent(student: {
   return MASCOTS[mascotKeyForStudent(student)];
 }
 
+/**
+ * A class-list entry (StudentOnSubject) shows its student's mascot, the one
+ * they see once signed in: the pick hashes the Student id, not the entry's.
+ */
+export function mascotForStudentOnSubject(entry: {
+  studentId: string;
+  photo?: string | null;
+}): MascotClips {
+  return mascotForStudent({ id: entry.studentId, photo: entry.photo });
+}
+
 export function mascotForPhoto(photo: string | undefined): MascotClips | null {
   if (!photo || !Object.hasOwn(MASCOTS, photo)) return null;
   return MASCOTS[photo];

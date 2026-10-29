@@ -8,6 +8,7 @@ import {
   MASCOT_KEYS,
   mascotForPhoto,
   mascotForStudent,
+  mascotForStudentOnSubject,
   mascotHash,
   mascotKeyForStudent,
   mascotVideoFormat,
@@ -225,6 +226,25 @@ test("a mascot added to MASCOTS changes no one's pick", () => {
   } finally {
     everyMascot.pop();
   }
+});
+
+test("a class-list entry shows its student's mascot, not its own id's", () => {
+  // Michael (No. 3) and John (No. 1): enrolment id, Student id, real photo.
+  const photo = "https://development-storage.tatugaschool.com/photo.jpg";
+  const michael = { id: "6909b2b28b5bfdd6c4a3396f", studentId: "6909b27f8b5bfdd6c4a33947", photo };
+  const john = { id: "6909b2b28b5bfdd6c4a3396d", studentId: "6909b27e8b5bfdd6c4a33945", photo };
+  for (const sos of [michael, john]) {
+    const signedIn = mascotForStudent({ id: sos.studentId, photo: sos.photo });
+    assert.equal(mascotForStudentOnSubject(sos), signedIn, sos.id);
+    assert.notEqual(mascotForStudentOnSubject(sos), mascotForStudent(sos), sos.id);
+  }
+  assert.equal(mascotForStudentOnSubject(michael), mascotForPhoto(AVATAR(13)));
+  assert.equal(mascotForStudentOnSubject(john), mascotForPhoto(AVATAR(2)));
+  // A cartoon photo is still that cartoon's mascot.
+  assert.equal(
+    mascotForStudentOnSubject({ ...john, photo: AVATAR(4) }),
+    mascotForPhoto(AVATAR(4)),
+  );
 });
 
 test("a photo named like an Object member falls back to the hash pick", () => {

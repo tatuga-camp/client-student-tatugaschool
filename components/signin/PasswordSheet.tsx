@@ -2,13 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import { LuEye, LuEyeOff, LuLock } from "react-icons/lu";
 import { subjectDataLanguage as t } from "../../data/languages";
 import { useGetLanguage } from "../../react-query";
-import { mascotForStudent } from "../../utils/mascot";
+import { mascotForStudentOnSubject } from "../../utils/mascot";
 import { Sheet } from "../app/Sheet";
 import { SignInSheetHeader, SignInSheetMascot } from "./SignInSheetHeader";
 
 type Props = {
   open: boolean;
-  /** `id` is the enrolment id (it picks the mascot, as in the grid). */
+  /** `id` is the enrolment id; `studentId` picks the mascot, as in the grid. */
   student: {
     id: string;
     studentId: string;
@@ -67,7 +67,7 @@ export function PasswordSheet({
       overlay={
         student && (
           <SignInSheetMascot
-            clips={mascotForStudent(student)}
+            clips={mascotForStudentOnSubject(student)}
             mascotId={`password-${student.id}`}
           />
         )
