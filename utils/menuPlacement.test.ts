@@ -113,11 +113,17 @@ test("visibleScreen: the on-screen keyboard cuts the screen's bottom", () => {
     bottom: 600,
   });
   // No keyboard, or no visualViewport: the screen itself.
-  assert.deepEqual(visibleScreen(SCREEN, { offsetTop: 0, height: 844 }), SCREEN);
+  assert.deepEqual(
+    visibleScreen(SCREEN, { offsetTop: 0, height: 844 }),
+    SCREEN,
+  );
   assert.deepEqual(visibleScreen(SCREEN, undefined), SCREEN);
   // A framed screen inside a taller window: the window cuts nothing.
   const framed: Box = { left: 445, top: 24, right: 835, bottom: 776 };
-  assert.deepEqual(visibleScreen(framed, { offsetTop: 0, height: 800 }), framed);
+  assert.deepEqual(
+    visibleScreen(framed, { offsetTop: 0, height: 800 }),
+    framed,
+  );
 });
 
 test("keyboard up: a ⋯ near the keyboard opens its menu above it", () => {

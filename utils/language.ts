@@ -4,7 +4,8 @@ import { safeGet, safeSet } from "./safeStorage";
 // The choice made in this page's life: with storage blocked it is all there is.
 let sessionChoice: Language | null = null;
 
-const isLanguage = (v: string | null): v is Language => v === "en" || v === "th";
+const isLanguage = (v: string | null): v is Language =>
+  v === "en" || v === "th";
 
 /**
  * The language the student chose (stored, else earlier this session), else

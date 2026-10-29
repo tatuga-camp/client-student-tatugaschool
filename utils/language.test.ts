@@ -13,7 +13,11 @@ function browser(language: string, storage: () => Storage) {
 }
 
 const store = (value: string | null) =>
-  ({ getItem: () => value, setItem() {}, removeItem() {} }) as unknown as Storage;
+  ({
+    getItem: () => value,
+    setItem() {},
+    removeItem() {},
+  }) as unknown as Storage;
 
 test("a Thai browser starts in TH even with site data blocked", () => {
   browser("th-TH", () => {
