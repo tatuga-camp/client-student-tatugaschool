@@ -1,5 +1,5 @@
 import { animated, useSpring } from "@react-spring/web";
-import { useDrag } from "@use-gesture/react";
+import { type Handler, useDrag } from "@use-gesture/react";
 import React, {
   useContext,
   useEffect,
@@ -70,6 +70,11 @@ function setInert(el: HTMLElement, inert: boolean) {
 }
 
 const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
+
+// Where the browser has touch events, the drag listens to them (a body drag
+// can then stop the native scroll), and a mouse, which sends only pointer
+// events (a touch laptop, a hasTouch browser), gets a binding of its own.
+const TOUCH_EVENTS = typeof window !== "undefined" && "ontouchstart" in window;
 
 /** Bottom sheet; see SheetProps for where it renders. */
 export function Sheet({
@@ -292,32 +297,80 @@ export function Sheet({
     };
   }, [rendered]);
 
-  const usePanelDrag = (fromBody: boolean) =>
-    useDrag(
-      ({ first, last, movement: [, my], velocity: [, vy], direction: [, dirY], event, cancel }) => {
-        const collapsedPeek = isPeek && !expanded;
-        if (!gestureClosable && !collapsedPeek) return cancel();
-        if (first && fromBody && (bodyRef.current?.scrollTop ?? 0) > 0) return cancel();
-        const height = panelRef.current?.offsetHeight || heightRef.current;
-        heightRef.current = height;
-        if (isPeek && !expanded) {
-          // Collapsed peek: dragging up expands.
-          if (last && (my < -40 || (vy > 0.5 && dirY < 0))) onExpandedChange?.(true);
-          return;
-        }
-        if (my > 0 && event.cancelable) event.preventDefault();
-        if (!last) return void api.start({ y: Math.max(0, my), immediate: true });
-        const outcome = sheetDragOutcome({ dy: my, vy: dirY > 0 ? vy : 0, height });
-        if (outcome === "close") dismiss();
-        else api.start({ y: 0, immediate: false });
-      },
-      {
-        axis: "y",
-        filterTaps: true,
-        pointer: { touch: true },
-        eventOptions: { passive: false },
-      },
-    );
+  // Set once a press moves past the tap threshold, so the click it ends with
+  // is dropped. This replaces use-gesture's own click filter, which only
+  // knows the device it listens to: with touch events it ate mouse clicks.
+  const draggedRef = useRef(false);
+  const dragClickProps = {
+    onPointerDownCapture: () => {
+      draggedRef.current = false;
+    },
+    onClickCapture: (e: React.MouseEvent) => {
+      if (!draggedRef.current || e.detail === 0) return;
+      draggedRef.current = false;
+      e.preventDefault();
+      e.stopPropagation();
+    },
+  };
+
+  const usePanelDrag = (fromBody: boolean) => {
+    const onDrag: Handler<"drag"> = ({
+      first,
+      last,
+      tap,
+      movement: [, my],
+      velocity: [, vy],
+      direction: [, dirY],
+      event,
+      cancel,
+    }) => {
+      if (!tap) draggedRef.current = true;
+      const collapsedPeek = isPeek && !expanded;
+      if (!gestureClosable && !collapsedPeek) return cancel();
+      if (first && fromBody && (bodyRef.current?.scrollTop ?? 0) > 0)
+        return cancel();
+      const height = panelRef.current?.offsetHeight || heightRef.current;
+      heightRef.current = height;
+      if (isPeek && !expanded) {
+        // Collapsed peek: dragging up expands.
+        if (last && (my < -40 || (vy > 0.5 && dirY < 0)))
+          onExpandedChange?.(true);
+        return;
+      }
+      if (my > 0 && event.cancelable) event.preventDefault();
+      if (!last) return void api.start({ y: Math.max(0, my), immediate: true });
+      const outcome = sheetDragOutcome({
+        dy: my,
+        vy: dirY > 0 ? vy : 0,
+        height,
+      });
+      if (outcome === "close") dismiss();
+      else api.start({ y: 0, immediate: false });
+    };
+    const options = {
+      axis: "y",
+      filterTaps: true,
+      eventOptions: { passive: false },
+    } as const;
+    const touch = useDrag(onDrag, { ...options, pointer: { touch: true } });
+    const mouse = useDrag(onDrag, {
+      ...options,
+      enabled: TOUCH_EVENTS,
+      pointer: { keys: false },
+    });
+    return () => {
+      if (!TOUCH_EVENTS) return touch();
+      const m = mouse();
+      return {
+        ...touch(),
+        ...m,
+        // A finger also sends pointer events: the touch binding has those.
+        onPointerDown: (e: React.PointerEvent) => {
+          if (e.pointerType === "mouse") m.onPointerDown?.(e);
+        },
+      };
+    };
+  };
   const bindHandle = usePanelDrag(false);
   const bindBody = usePanelDrag(true);
 
@@ -368,6 +421,7 @@ export function Sheet({
       >
         <div
           {...bindHandle()}
+          {...dragClickProps}
           data-testid="sheet-handle"
           className={`relative flex shrink-0 cursor-grab justify-center pt-3 ${
             dismissible && modal && closeButton ? "min-h-[44px]" : "pb-2"
@@ -392,6 +446,7 @@ export function Sheet({
         <div
           ref={bodyRef}
           {...bindBody()}
+          {...dragClickProps}
           className="app-scroll min-h-0 flex-1 px-4"
           style={{
             // Clear the home indicator, unless it sits on the keyboard.
