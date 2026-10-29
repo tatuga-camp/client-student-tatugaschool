@@ -8,6 +8,7 @@ import React, {
 import { createPortal } from "react-dom";
 import { LuMoreHorizontal } from "react-icons/lu";
 import { overlayTarget } from "../../utils/frameRoutes";
+import { placeMenu } from "../../utils/menuPlacement";
 import { OverlayRootContext } from "../app/OverlayScope";
 
 export type ActionMenuItem = {
@@ -24,13 +25,12 @@ type Props = {
   disabled?: boolean;
 };
 
-const MARGIN = 8;
-
 /**
  * A small ⋯ popover menu; closes on outside press, scroll, Esc or choosing an
  * item. The list renders in the sheet's panel when the button is in a sheet,
  * else in the overlay container (so no scroller clips it), below the button
- * when it fits, else above, always clamped inside that container.
+ * when it fits, else above, kept on the phone screen and never over the
+ * button (above a short sheet it reaches past the panel).
  */
 export default function ActionMenu({ items, ariaLabel, disabled }: Props) {
   const scoped = useContext(OverlayRootContext);
@@ -73,18 +73,16 @@ export default function ActionMenu({ items, ariaLabel, disabled }: Props) {
     const button = buttonRef.current;
     const list = listRef.current;
     if (!button || !list) return;
-    const b = button.getBoundingClientRect();
-    const c = container.getBoundingClientRect();
-    const w = list.offsetWidth;
-    const h = list.offsetHeight;
-    const below = b.bottom - c.top + 4;
-    const top = below + h > c.height - MARGIN ? b.top - c.top - h - 4 : below;
-    const clamp = (n: number, max: number) =>
-      Math.max(MARGIN, Math.min(n, max));
-    setPos({
-      left: clamp(b.right - c.left - w, c.width - w - MARGIN),
-      top: clamp(top, c.height - h - MARGIN),
-    });
+    setPos(
+      placeMenu({
+        button: button.getBoundingClientRect(),
+        container: container.getBoundingClientRect(),
+        // The phone screen: the sheet's panel is often shorter than the menu.
+        screen: overlayTarget().getBoundingClientRect(),
+        width: list.offsetWidth,
+        height: list.offsetHeight,
+      }),
+    );
   }, [container]);
 
   useEffect(() => {
