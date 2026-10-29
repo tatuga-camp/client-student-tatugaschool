@@ -45,7 +45,8 @@ export default function AnnouncementCard({
       style={{
         outline: flash ? "2px solid #2C7CD1" : "2px solid transparent",
         outlineOffset: 2,
-        transition: "outline-color 300ms",
+        backgroundColor: flash ? "#EAF2FC" : undefined,
+        transition: "outline-color 300ms, background-color 300ms",
       }}
     >
       <div className="flex items-center gap-3">
@@ -143,7 +144,8 @@ export default function AnnouncementCard({
           className="ml-auto flex min-h-10 items-center gap-1.5 rounded-full px-2.5 text-xs font-bold text-[#7A80A0]"
         >
           <LuMessageCircle aria-hidden className="text-base" />
-          {announcement._count.comments} {announcementDataLanguage.comments(lang)}
+          {announcement._count.comments}{" "}
+          {announcementDataLanguage.comments(lang)}
         </button>
       </div>
     </li>

@@ -4,27 +4,30 @@ import { Language } from "../../interfaces";
 import { useGetAnnouncements, useGetStudent } from "../../react-query";
 import LoadingBar from "../common/LoadingBar";
 import SubjectEmptyState from "../subject/SubjectEmptyState";
+import { InlineError } from "../app/InlineError";
+import { flashTiming } from "../../utils/deepLink";
 import AnnouncementCard from "./AnnouncementCard";
 import AnnouncementCommentsSheet from "./AnnouncementCommentsSheet";
 
 type Props = {
   subjectId: string;
   lang: Language;
-  deepLinkId: string | null;
+  /** A new object per notification tap; null when there is none. */
+  deepLink: { id: string } | null;
 };
-
-const FLASH_MS = 1500;
 
 export default function AnnouncementsView({
   subjectId,
   lang,
-  deepLinkId,
+  deepLink,
 }: Props) {
   const announcements = useGetAnnouncements({ subjectId });
   const student = useGetStudent();
   const [commentsFor, setCommentsFor] = useState<string | null>(null);
   const [flashId, setFlashId] = useState<string | null>(null);
-  const doneLink = useRef<string | null>(null);
+  const doneLink = useRef<object | null>(null);
+  const flashTimer = useRef<ReturnType<typeof setTimeout>>();
+  const deepLinkId = deepLink?.id ?? null;
 
   const ready = !!announcements.data && !!student.data;
   const target = useMemo(
@@ -32,13 +35,16 @@ export default function AnnouncementsView({
     [announcements.data, deepLinkId],
   );
 
-  // Deep link: bring the card into the pane's scroller, then flash it once.
+  // Deep link: bring the card into the pane's scroller, then, once the scroll
+  // has settled, flash it.
   useEffect(() => {
-    if (!ready || !deepLinkId || doneLink.current === deepLinkId) return;
-    if (!target) return;
+    if (!ready || !deepLink || doneLink.current === deepLink || !target) return;
     const raf = requestAnimationFrame(() => {
-      doneLink.current = deepLinkId;
-      const el = document.getElementById(`announcement-${deepLinkId}`);
+      doneLink.current = deepLink;
+      const timing = flashTiming(
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+      );
+      const el = document.getElementById(`announcement-${target.id}`);
       const scroller = el?.closest<HTMLElement>(".app-scroll");
       if (el && scroller) {
         const delta =
@@ -47,19 +53,19 @@ export default function AnnouncementsView({
           16;
         scroller.scrollTo({
           top: scroller.scrollTop + delta,
-          behavior: "smooth",
+          behavior: timing.behavior,
         });
       }
-      setFlashId(deepLinkId);
+      flashTimer.current = setTimeout(() => {
+        setFlashId(target.id);
+        flashTimer.current = setTimeout(() => setFlashId(null), timing.holdMs);
+      }, timing.startDelay);
     });
     return () => cancelAnimationFrame(raf);
-  }, [ready, deepLinkId, target]);
+  }, [ready, deepLink, target]);
 
-  useEffect(() => {
-    if (!flashId) return;
-    const off = setTimeout(() => setFlashId(null), FLASH_MS);
-    return () => clearTimeout(off);
-  }, [flashId]);
+  // The flash timers outlive a refetch of the list, but not this view.
+  useEffect(() => () => clearTimeout(flashTimer.current), []);
 
   const sheetTitle =
     announcements.data?.find((a) => a.id === commentsFor)?.title ?? "";
@@ -68,7 +74,9 @@ export default function AnnouncementsView({
   return (
     <div className="px-3 pb-10">
       {announcements.isLoading && <LoadingBar />}
-      {!announcements.isLoading && count === 0 ? (
+      {announcements.isError && !announcements.data ? (
+        <InlineError onRetry={() => announcements.refetch()} />
+      ) : !announcements.isLoading && count === 0 ? (
         <SubjectEmptyState
           text={subjectHomeLanguage.emptyAnnouncements(lang)}
         />

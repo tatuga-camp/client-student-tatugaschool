@@ -1,3 +1,4 @@
+import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
 import { LuFileText, LuMegaphone } from "react-icons/lu";
 import { homeLanguage, subjectHomeLanguage } from "../../data/languages";
@@ -7,6 +8,7 @@ import {
   useGetLanguage,
 } from "../../react-query";
 import { countClassworkBuckets } from "../../utils";
+import { consumeAnnouncementLink } from "../../utils/deepLink";
 import { SubjectChip } from "../app/SubjectChip";
 import { TAB_BODY_CLASS, TabHeader } from "../app/TabHeader";
 import { useShellRoute, type TabPaneProps } from "../app/shell/useShellRoute";
@@ -15,7 +17,8 @@ import AssignmentsView from "./AssignmentsView";
 
 type View = "assignments" | "announcements";
 
-export default function ClassworkTab({ subjectId }: TabPaneProps) {
+export default function ClassworkTab({ subjectId, active }: TabPaneProps) {
+  const router = useRouter();
   const language = useGetLanguage();
   const lang = language.data ?? "en";
   const announcementId = useShellRoute()?.announcementId ?? null;
@@ -27,12 +30,26 @@ export default function ClassworkTab({ subjectId }: TabPaneProps) {
     if (scroller.current) scroller.current.scrollTop = 0;
   };
 
-  // A notification link opens the announcements side.
+  // A notification link opens the announcements side. It is taken in once
+  // and dropped from the URL, or coming back from an assignment would jump
+  // here again; each tap is a new `link`, so the same card can be re-shown.
+  const [link, setLink] = useState<{ id: string } | null>(
+    announcementId ? { id: announcementId } : null,
+  );
   useEffect(() => {
-    if (announcementId) setView("announcements");
+    if (!announcementId) return;
+    setView("announcements");
+    setLink({ id: announcementId });
+    const query = consumeAnnouncementLink(router.query);
+    if (query)
+      router.replace({ query }, undefined, { shallow: true, scroll: false });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [announcementId]);
 
-  const assignments = useGetAssignments({ subjectId });
+  const assignments = useGetAssignments(
+    { subjectId },
+    { refetchInterval: active ? undefined : false },
+  );
   const announcements = useGetAnnouncements({ subjectId });
   const announcementCount = announcements.data?.length ?? 0;
   const todo = assignments.data
@@ -83,7 +100,7 @@ export default function ClassworkTab({ subjectId }: TabPaneProps) {
           <AnnouncementsView
             subjectId={subjectId}
             lang={lang}
-            deepLinkId={announcementId}
+            deepLink={link}
           />
         )}
       </div>
@@ -124,4 +141,3 @@ function SwitchButton({
     </button>
   );
 }
-
