@@ -80,10 +80,15 @@ export function PhoneFrame({
     <div
       ref={scrollRef}
       className="app-scroll h-full"
-      style={{
-        paddingTop: "var(--safe-top)",
-        paddingBottom: "var(--safe-bottom)",
-      }}
+      style={
+        {
+          paddingTop: "var(--safe-top)",
+          paddingBottom: "var(--safe-bottom)",
+          // What `dvh` means to the page: the screen, less the padding.
+          "--app-dvh":
+            "calc(var(--screen-h) - var(--safe-top) - var(--safe-bottom))",
+        } as React.CSSProperties
+      }
     >
       {children}
     </div>
@@ -120,19 +125,25 @@ export function PhoneFrame({
               {...dragClick}
               className={
                 framed
-                  ? "relative w-[390px] overflow-hidden rounded-[44px] bg-background-color"
-                  : "relative h-full"
+                  ? "phone-screen relative w-[390px] overflow-hidden rounded-[44px] bg-background-color"
+                  : "phone-screen relative h-full"
               }
+              // --screen-h is the screen's height; pages sized with `dvh`
+              // get --app-dvh instead of the window (styles/globals.css).
               style={
                 framed
                   ? {
                       // dvh: iPad Safari's toolbars eat into 100vh.
-                      height: "min(844px, 100dvh - 48px)",
+                      "--screen-h": "min(844px, 100dvh - 48px)",
+                      "--app-dvh": "var(--screen-h)",
+                      height: "var(--screen-h)",
                       contain: "layout paint",
                       "--safe-top": "47px",
                       "--safe-bottom": "34px",
                     } as React.CSSProperties
                   : {
+                      "--screen-h": "100dvh",
+                      "--app-dvh": "var(--screen-h)",
                       "--safe-top": "env(safe-area-inset-top)",
                       "--safe-bottom": "env(safe-area-inset-bottom)",
                     } as React.CSSProperties

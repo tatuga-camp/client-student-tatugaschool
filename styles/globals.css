@@ -198,6 +198,15 @@
 .app-scroll .w-screen {
   width: 100%;
 }
+/* `dvh` is the window too. PhoneFrame sets --app-dvh to the phone screen's
+   height (less the safe areas inside the legacy wrapper): a length, not a
+   percentage, so a min-h-dvh nested in another still fills the screen. */
+.phone-screen .h-dvh {
+  height: var(--app-dvh);
+}
+.phone-screen .min-h-dvh {
+  min-height: var(--app-dvh);
+}
 
 /* Home mascot: a gentle idle bob once it has dropped in. */
 @media (prefers-reduced-motion: no-preference) {
