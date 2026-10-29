@@ -1,6 +1,8 @@
 import { Editor } from "@tinymce/tinymce-react";
 import React, { memo } from "react";
 import { TinyMCE } from "tinymce";
+import { requestDataLanguage } from "../../data/languages";
+import { useGetLanguage } from "../../react-query";
 import {
   getSignedURLStudentService,
   UploadSignURLService,
@@ -37,9 +39,14 @@ function TextEditor({
   toolbar = "undo redo | formatselect | blocks | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | image | link",
 }: Props) {
   const [isLoaded, setIsLoaded] = React.useState(false);
+  const language = useGetLanguage();
   return (
     <>
-      {!isLoaded && <span className="animate-pulse">Loading...</span>}
+      {!isLoaded && (
+        <span className="animate-pulse">
+          {requestDataLanguage.loading(language.data ?? "en")}
+        </span>
+      )}
       <Editor
         onInit={(_event, editor) => {
           // iframe_aria_text labels the body; outside Firefox TinyMCE titles
