@@ -12,7 +12,11 @@ export function workToast(title: string): void {
     showConfirmButton: false,
     toast: true,
     position: "top-end",
-    customClass: { popup: "rounded-2xl border border-gray-100 shadow-md" },
+    customClass: {
+      // Below the status bar (and the frame's Dynamic Island).
+      container: "!top-[var(--safe-top)]",
+      popup: "rounded-2xl border border-gray-100 shadow-md",
+    },
   });
 }
 
