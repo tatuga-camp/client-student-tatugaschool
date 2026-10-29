@@ -1,15 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { getLocalStorage, setLocalStorage } from "../utils";
 import { Language } from "../interfaces";
-
-function detectInitialLanguage(): Language {
-  if (typeof window === "undefined") return "en";
-  const stored = getLocalStorage("language") as Language | null;
-  if (stored === "en" || stored === "th") return stored;
-  const browser = (window.navigator?.language ?? "").toLowerCase();
-  return browser.startsWith("th") ? "th" : "en";
-}
+import { detectInitialLanguage, saveLanguage } from "../utils/language";
 
 export function useGetLanguage() {
   const query = useQuery({
@@ -28,7 +20,8 @@ export function useUpdateLanguage() {
   return useMutation({
     mutationKey: ["language"],
     mutationFn: (request: Language) => {
-      setLocalStorage("language", request);
+      // Blocked storage still switches the language for this session.
+      saveLanguage(request);
       queryClient.setQueryData(["language"], request);
       return Promise.resolve(request); // Ensure it returns a Promise
     },
