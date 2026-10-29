@@ -109,7 +109,13 @@ function trackHistory(): void {
     () => {
       const key = stateKey();
       lastPoppedKey = key;
-      window.setTimeout(() => settleListeners.forEach((l) => l(key)), 0);
+      // A flag set before this pop was for this pop. By the tick below Next
+      // has handled it, through beforePopState or not, so the flag is spent.
+      const forThisPop = inAppPop;
+      window.setTimeout(() => {
+        if (forThisPop) inAppPop = false;
+        settleListeners.forEach((l) => l(key));
+      }, 0);
     },
     true,
   );
@@ -117,9 +123,9 @@ function trackHistory(): void {
   Router.events.on("routeChangeComplete", (url: string) =>
     currentHistoryIdx(url),
   );
-  // The pop back() causes reaches beforePopState before any route event.
-  // A back that never gets there (nothing behind it, or a pop Next settles
-  // without beforePopState) must not leave the flag to the browser's next.
+  // A back with nothing behind it pops nothing: its flag lasts until the
+  // next navigation completes or fails. (The pop back() causes reaches
+  // beforePopState before any route event.)
   const clearInAppPop = () => {
     inAppPop = false;
   };
