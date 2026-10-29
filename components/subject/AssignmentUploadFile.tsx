@@ -1,7 +1,5 @@
 import React from "react";
 import {
-  UnreadableFileError,
-  UploadNetworkError,
   generateBlurHash,
   overallUploadPercent,
   snapshotFileForUpload,
@@ -18,7 +16,10 @@ import {
   useCreateFileStudentAssignment,
   useGetLanguage,
 } from "../../react-query";
-import { initialUploadProgress } from "../../utils/assignmentDetail";
+import {
+  initialUploadProgress,
+  uploadFailure,
+} from "../../utils/assignmentDetail";
 import { workError, workToast } from "../assignment/workFeedback";
 
 export type UploadProgress = {
@@ -110,11 +111,11 @@ export function useStudentFileUpload({
       return true;
     } catch (error) {
       workError(
-        error instanceof UploadNetworkError
-          ? new Error(classworkDataLanguage.uploadNetworkError(lang))
-          : error instanceof UnreadableFileError
-            ? new Error(classworkDataLanguage.uploadFileUnreadable(lang))
-            : error,
+        uploadFailure(error, {
+          network: classworkDataLanguage.uploadNetworkError(lang),
+          unreadable: classworkDataLanguage.uploadFileUnreadable(lang),
+          rejected: assignmentPageLanguage.uploadRejected(lang),
+        }),
         lang,
       );
       return false;

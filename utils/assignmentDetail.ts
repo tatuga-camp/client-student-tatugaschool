@@ -3,6 +3,11 @@ import type {
   StudentAssignmentContentType,
   StudentAssignmentStatus,
 } from "../interfaces";
+import {
+  UnreadableFileError,
+  UploadHttpError,
+  UploadNetworkError,
+} from "./uploadWithRetry";
 
 /** Formats the browsers (other than Safari) can't draw in an <img>. */
 const SAFARI_ONLY_IMAGE = /^image\/hei[cf]$/i;
@@ -149,4 +154,24 @@ export function noteCloseAction(dirty: boolean): "close" | "confirm" {
 /** A score as the student sees it: up to 2 decimals, none when whole. */
 export function formatScore(score: number): string {
   return String(Number(score.toFixed(2)));
+}
+
+/**
+ * An upload failure as workError should show it. The ones made on this side
+ * (a dropped connection, an unreadable file, storage refusing the PUT) carry
+ * an English message, so they become our TH/EN line; a refusal keeps its
+ * HTTP status as the error code. A server reply passes through unchanged.
+ */
+export function uploadFailure(
+  error: unknown,
+  text: { network: string; unreadable: string; rejected: string },
+): unknown {
+  if (error instanceof UploadNetworkError) return new Error(text.network);
+  if (error instanceof UnreadableFileError) return new Error(text.unreadable);
+  if (error instanceof UploadHttpError) {
+    return Object.assign(new Error(text.rejected), {
+      statusCode: error.status,
+    });
+  }
+  return error;
 }

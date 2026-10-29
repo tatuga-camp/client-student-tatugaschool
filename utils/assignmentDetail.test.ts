@@ -14,9 +14,16 @@ import {
   reviewedMood,
   teacherFileOpenMode,
   turnInSummary,
+  uploadFailure,
   workItemMenu,
   yourWorkMode,
 } from "./assignmentDetail";
+import { errorSwalContent } from "./errorSwal";
+import {
+  UnreadableFileError,
+  UploadHttpError,
+  UploadNetworkError,
+} from "./uploadWithRetry";
 
 test("teacherFileOpenMode picks the viewer by type, then url", () => {
   assert.equal(
@@ -259,4 +266,44 @@ test("shouldSubmitAfterUpload turns in only when every upload landed in time", (
 test("noteCloseAction confirms only a dirty draft", () => {
   assert.equal(noteCloseAction(false), "close");
   assert.equal(noteCloseAction(true), "confirm");
+});
+
+const uploadText = {
+  network: "net TH/EN",
+  unreadable: "unreadable TH/EN",
+  rejected: "rejected TH/EN",
+};
+
+test("a storage rejection shows our TH/EN line and its status code, not the storage reply", () => {
+  const shown = errorSwalContent(
+    uploadFailure(
+      new UploadHttpError(
+        403,
+        "<Error><Code>SignatureDoesNotMatch</Code></Error>",
+      ),
+      uploadText,
+    ),
+    "fallback",
+  );
+  assert.deepEqual(shown, {
+    title: "fallback",
+    text: "rejected TH/EN",
+    footer: "Code Error: 403",
+  });
+});
+
+test("the other known upload failures map to their TH/EN lines", () => {
+  const network = uploadFailure(new UploadNetworkError(3), uploadText);
+  assert.ok(network instanceof Error);
+  assert.equal((network as Error).message, "net TH/EN");
+  const unreadable = uploadFailure(
+    new UnreadableFileError("a.png"),
+    uploadText,
+  );
+  assert.equal((unreadable as Error).message, "unreadable TH/EN");
+});
+
+test("a server reply passes through unchanged (workError makes it TH/EN)", () => {
+  const reply = { message: "Forbidden", error: "Forbidden", statusCode: 403 };
+  assert.equal(uploadFailure(reply, uploadText), reply);
 });
