@@ -43,8 +43,9 @@ export default function ActionMenu({ items, ariaLabel, disabled }: Props) {
   const [host, setHost] = useState<HTMLElement | null>(null);
   const container = open ? (host ?? scoped ?? overlayTarget()) : null;
   const wasOpen = useRef(false);
-  // A choice puts focus back on ⋯ before the item runs, so a dialog or field
-  // the item opens keeps the focus it takes.
+  // Closed with focus already placed: by a choice (focus goes back to ⋯
+  // before the item runs, so a dialog or field it opens keeps the focus it
+  // takes) or by Tab moving focus on. Only other closes refocus ⋯.
   const chose = useRef(false);
 
   // Focus moves into the menu on open and back to the button on close.
@@ -135,6 +136,14 @@ export default function ActionMenu({ items, ariaLabel, disabled }: Props) {
           <ul
             ref={listRef}
             role="menu"
+            // Focus moved on out of the menu (Tab): close it, and leave
+            // focus where it went.
+            onBlur={(e) => {
+              const next = e.relatedTarget as Node | null;
+              if (!next || listRef.current?.contains(next)) return;
+              chose.current = true;
+              setOpen(false);
+            }}
             className="chunky absolute z-[70] min-w-[150px] list-none overflow-hidden p-1 shadow-lg"
             style={{
               left: pos?.left ?? 0,
