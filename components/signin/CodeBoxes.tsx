@@ -1,6 +1,6 @@
 import { animated, useSpring } from "@react-spring/web";
 import { useEffect, useRef, useState } from "react";
-import { normalizeJoinCode } from "../../utils/joinCode";
+import { cleanCodeInput } from "../../utils/joinCode";
 
 type Props = {
   length: 6;
@@ -14,11 +14,6 @@ type Props = {
 };
 
 const SHAKE = [0, -10, 10, -6, 6, 0];
-
-const clean = (raw: string, mode: Props["mode"], length: number) =>
-  mode === "digits"
-    ? raw.replace(/[^0-9]/g, "").slice(0, length)
-    : normalizeJoinCode(raw).slice(0, length);
 
 export function CodeBoxes({
   length,
@@ -64,7 +59,7 @@ export function CodeBoxes({
       <input
         ref={inputRef}
         value={value}
-        onChange={(e) => onChange(clean(e.target.value, mode, length))}
+        onChange={(e) => onChange(cleanCodeInput(e.target.value, mode))}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
         inputMode={mode === "digits" ? "numeric" : "text"}
@@ -72,7 +67,8 @@ export function CodeBoxes({
         autoCapitalize="characters"
         autoCorrect="off"
         spellCheck={false}
-        maxLength={length * 4}
+        // Room for a pasted teacher link: the code is taken out of it.
+        maxLength={200}
         aria-label={ariaLabel}
         aria-invalid={invalid || undefined}
         className="absolute inset-0 h-full w-full cursor-text opacity-0"

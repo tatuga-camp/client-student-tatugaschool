@@ -10,7 +10,7 @@ import {
   GetSubjectByCodeService,
   ResponseGetSubjectByCodeService,
 } from "../services";
-import { joinCodeForLookup } from "../utils/joinCode";
+import { joinCodeFromQuery } from "../utils/joinCode";
 
 type IndexProps = {
   subjectData: ResponseGetSubjectByCodeService;
@@ -66,11 +66,13 @@ Index.getLayout = (page: React.ReactElement) => page;
 
 export default Index;
 
+const NOT_FOUND = { statusCode: 404, message: null };
+
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
   try {
     const query: SubjectQuery = ctx.query as SubjectQuery;
 
-    if (!query.subject_code) {
+    if (query.subject_code === undefined) {
       return {
         redirect: {
           destination: "/welcome",
@@ -78,7 +80,10 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
         },
       };
     }
-    const code = joinCodeForLookup(query.subject_code);
+    // A code the server can't take (wrong length, a repeated param) is a
+    // class that doesn't exist, not a failed load.
+    const code = joinCodeFromQuery(query.subject_code);
+    if (code === null) return { props: { error: NOT_FOUND } };
     const subject = await GetSubjectByCodeService({ code });
     return {
       props: {
@@ -91,6 +96,8 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     };
   } catch (error: any) {
     console.error("Error fetching subject", error);
+    // The server answers a malformed code with 400: no such class either.
+    if (error?.statusCode === 400) return { props: { error: NOT_FOUND } };
     return {
       props: {
         error: {
