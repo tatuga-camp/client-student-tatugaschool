@@ -1,747 +1,276 @@
 import Head from "next/head";
-import React from "react";
 import { useRouter } from "next/router";
-import { LuChevronLeft } from "react-icons/lu";
+import React, { useEffect, useRef, useState } from "react";
+import { LuChevronRight } from "react-icons/lu";
 import {
-  FaRegFile,
-  FaRegFileImage,
-  FaRegFileVideo,
-  FaRegSadTear,
-} from "react-icons/fa";
-import { FcLink, FcPlus, FcUpload } from "react-icons/fc";
-import { IoChevronDownSharp } from "react-icons/io5";
-import { MdLink, MdOutlineDone, MdOutlineRemoveDone } from "react-icons/md";
-import { RiEmotionHappyFill } from "react-icons/ri";
-import Swal from "../../utils/appSwal";
-import FileAssignmentVideoPlayer from "../common/FileAssignmentVideoPlayer";
-import LoadingSpinner from "../common/LoadingSpinner";
-import StudentVideoPlayer, {
-  StudentVideoPlayerRef,
-} from "../common/StudentVideoPlayer";
-import TextEditor from "../common/TextEditor";
-import PopupLayout from "../layouts/PopupLayout";
-import AssignmentLink from "../subject/AssignmentLink";
-import AssignmentStatusCard from "../subject/AssignmentStatus";
-import AssignmentText from "../subject/AssignmentText";
-import AssignmentUploadFile from "../subject/AssignmentUploadFile";
-import CommentSection from "../subject/CommentSection";
-import FileStudentAssignmentCard from "../subject/FileStudentAssignmentCard";
-import ScoreHiddenBadge from "../subject/ScoreHiddenBadge";
-import { classworkDataLanguage, homeLanguage } from "../../data/languages";
-import useClickOutside from "../../hook/useClickOutside";
-import useConfirmSubmissionGuard from "../../hook/useConfirmSubmissionGuard";
-import useAdjustPosition from "../../hook/useWindow";
-import {
-  FileOnAssignment,
-  FileOnStudentOnAssignment,
-  StudentAssignmentStatus,
-  StudentOnAssignment,
-} from "../../interfaces";
+  assignmentPageLanguage,
+  classworkDataLanguage,
+} from "../../data/languages";
 import {
   useGetAssignments,
-  useGetFileStudentAssignment,
   useGetLanguage,
+  useGetStudent,
   useGetSubjectById,
   useUpdateStudentOnAssignment,
 } from "../../react-query";
-import {
-  canStudentViewScore,
-  errorSwalContent,
-  hasUnconfirmedWork,
-  timeAgo,
-  timeLeft,
-} from "../../utils";
+import { TAB_BODY_CLASS } from "../app/TabHeader";
 import { type DetailPaneProps, useShellNav } from "../app/shell/useShellRoute";
+import TextEditor from "../common/TextEditor";
+import {
+  hasRichContent,
+  nextAssignmentAfter,
+  turnInSummary,
+  yourWorkMode,
+} from "../../utils/assignmentDetail";
+import CommentsChat from "./CommentsChat";
+import ReviewedCard from "./ReviewedCard";
+import TurnedInCelebration from "./TurnedInCelebration";
+import DetailHeader from "./DetailHeader";
+import VideoQuizPlayer from "./video/VideoQuizPlayer";
+import TeacherFiles from "./TeacherFiles";
+import TitleCard from "./TitleCard";
+import { useDetailFocus } from "./useDetailFocus";
+import { withTimeout } from "../../utils/withTimeout";
+import { workError } from "./workFeedback";
+import YourWorkSheet from "./YourWorkSheet";
 
-const SummitWorkMenus = [
-  {
-    title: "Link",
-    icon: <FcLink />,
-  },
-  {
-    title: "Create",
-    icon: <FcPlus />,
-  },
-  {
-    title: "Upload",
-    icon: <FcUpload />,
-  },
-] as const;
+const sectionLabel =
+  "mx-0.5 mb-1.5 mt-1 text-[10px] font-bold uppercase tracking-wider text-[#7A80A0]";
 
-type SummitWorkMenu = (typeof SummitWorkMenus)[number]["title"];
-
-const menuSummitLists = [
-  {
-    title: "done",
-    icon: (
-      <div className="flex h-5 w-5 items-center justify-center overflow-hidden rounded-full bg-green-200 text-green-600">
-        <MdOutlineDone />
-      </div>
-    ),
-  },
-  {
-    title: "notdone",
-    icon: (
-      <div className="flex h-5 w-5 items-center justify-center overflow-hidden rounded-full bg-red-200 text-red-600">
-        <MdOutlineRemoveDone />
-      </div>
-    ),
-  },
-] as const;
-
-function AssignmentBody({ assignmentId, subjectId }: DetailPaneProps) {
-  const language = useGetLanguage();
-  // Adapter to replace primereact Toast with Swal custom popup to fit the theme
-  const toast = React.useRef<any>({
-    show: (options: {
-      severity: string;
-      summary: string;
-      detail: string;
-      life?: number;
-    }) => {
-      Swal.fire({
-        title: options.summary,
-        text: options.detail,
-        icon: options.severity === "error" ? "error" : "success",
-        timer: options.life || 3000,
-        showConfirmButton: false,
-        toast: true,
-        position: "top-end",
-        customClass: {
-          popup: "rounded-2xl border border-gray-100 shadow-md",
-        },
-      });
-    },
-  });
-  const divRef = React.useRef<HTMLDivElement>(null);
-  const videoPlayerRef = React.useRef<StudentVideoPlayerRef>(null);
-  // handleUpdateWork is declared after the early !assignment return, but the
-  // guard hook below must be called before it; the ref bridges the gap.
-  const handleUpdateWorkRef = React.useRef<
-    (status: StudentAssignmentStatus) => Promise<boolean>
-  >(() => Promise.resolve(false));
-  const updateWork = useUpdateStudentOnAssignment();
-  const adjustedStyle = useAdjustPosition(divRef, 20); // 20px padding
-  const [triggerSummitDropDown, setTriggerSummitDropDown] =
-    React.useState(false);
-  const [selectMenu, setSelectMenu] = React.useState<{
-    title: SummitWorkMenu;
-    file?: FileOnStudentOnAssignment;
-  } | null>(null);
-  const [activeVideo, setActiveVideo] = React.useState<{
-    url: string;
-    fileOnAssignment: FileOnAssignment;
-  } | null>(null);
-  const subject = useGetSubjectById({ id: subjectId });
-
-  const assignments = useGetAssignments({ subjectId });
-  const assignment = assignments.data?.find((item) => item.id === assignmentId);
-  const router = useRouter();
-  React.useEffect(() => {
-    if (assignment?.type === "Quiz") {
-      router.replace(`/subject/${subjectId}/quiz/${assignmentId}`);
-    }
-  }, [assignment?.type]);
-
-  const studentFiles = useGetFileStudentAssignment({
-    studentOnAssignmentId: assignment?.studentOnAssignment.id as string,
-  });
-
-  useClickOutside(divRef, () => {
-    setTriggerSummitDropDown(false);
-  });
-
-  const unconfirmedWork = assignment
-    ? hasUnconfirmedWork({
-        assignmentType: assignment.type,
-        fileCount: studentFiles.data?.length ?? 0,
-        status: assignment.studentOnAssignment.status,
-      })
-    : false;
-
-  useConfirmSubmissionGuard({
-    enabled: unconfirmedWork && !updateWork.isPending,
-    onConfirm: () => handleUpdateWorkRef.current("SUBMITTED"),
-    language: language.data ?? "en",
-  });
-
-  if (!assignment) {
-    return (
-      <div>
-        <h1>{classworkDataLanguage.notFound(language.data ?? "en")}</h1>
-      </div>
-    );
-  }
-
-  const nextAssignment = assignments.data
-    // 1. Keep only assignments that come AFTER the current one
-    ?.filter((item) => item.order > assignment?.order)
-    // 2. Sort them from lowest order to highest order
-    .sort((a, b) => a.order - b.order)[0];
-
-  const studentOnAssignment: StudentOnAssignment =
-    assignment.studentOnAssignment;
-
-  const SummitWork = () => {
-    if (assignment.type === "Material") {
-      return null;
-    }
-    return (
-      <div className="h-max w-full rounded-2xl border bg-white p-2">
-        <span className="text-lg">
-          {classworkDataLanguage.attrachs(language.data ?? "en")}
-        </span>
-        <div className="mt-3 flex h-32 w-full items-center justify-evenly gap-2 overflow-hidden rounded-2xl border-b pb-5">
-          {SummitWorkMenus.map((menu, index) => {
-            return (
-              <label
-                onClick={() => setSelectMenu({ title: menu.title })}
-                className="group flex cursor-pointer flex-col items-center justify-center gap-2"
-                key={index}
-              >
-                <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border text-xl transition group-hover:scale-110 group-hover:bg-gray-200">
-                  {menu.icon}
-                </div>
-                <span className="text-sm">
-                  {classworkDataLanguage.attrachType[
-                    menu.title.toLowerCase() as keyof typeof classworkDataLanguage.attrachType
-                  ](language.data ?? "en")}
-                </span>
-              </label>
-            );
-          })}
-        </div>
-
-        <h1 className="flex w-full items-center justify-between p-2 text-xl font-semibold">
-          {classworkDataLanguage.yourWork(language.data ?? "en")}
-        </h1>
-        <ul className="grid w-full gap-2">
-          {studentFiles.data?.map((file, index) => {
-            return (
-              <FileStudentAssignmentCard
-                key={index}
-                file={file}
-                onShowText={(file) => setSelectMenu({ title: "Create", file })}
-              />
-            );
-          })}
-        </ul>
-      </div>
-    );
-  };
-
-  const handleUpdateWork = async (
-    status: StudentAssignmentStatus,
-  ): Promise<boolean> => {
-    try {
-      await updateWork.mutateAsync({
-        query: {
-          studentOnAssignmentId: studentOnAssignment.id,
-        },
-        body: {
-          status,
-        },
-      });
-      toast.current?.show({
-        severity: "success",
-        summary: "Success",
-        detail: "Work updated successfully",
-        life: 3000,
-      });
-      setTriggerSummitDropDown(false);
-      return true;
-    } catch (error) {
-      Swal.fire({
-        ...errorSwalContent(error),
-        icon: "error",
-      });
-      return false;
-    }
-  };
-  handleUpdateWorkRef.current = handleUpdateWork;
-
-  const SummitStatus = () => {
-    if (assignment.type === "Material") {
-      return null;
-    }
-    return (
-      <div className="h-max w-full rounded-2xl border bg-white p-2">
-        <div className="flex w-full items-center justify-between p-2 text-xl font-semibold">
-          <div className="flex flex-col gap-0">
-            {classworkDataLanguage.summitWorkTitle(language.data ?? "en")}
-            <span className="text-xs font-normal text-gray-500">
-              {classworkDataLanguage.summitWorkDescription(
-                language.data ?? "en",
-              )}
-            </span>
-          </div>{" "}
-        </div>
-        {unconfirmedWork && (
-          <div className="mx-2 mb-2 flex items-center gap-2 rounded-xl border border-warning-color bg-warning-color/20 p-2 text-sm font-medium text-gray-800">
-            ⚠️
-            {classworkDataLanguage.unsubmittedBanner(language.data ?? "en")}
-          </div>
-        )}
-        <div className="relative flex items-center">
-          {(studentOnAssignment.status === "PENDDING" ||
-            studentOnAssignment.status === "IMPROVED") && (
-            <button
-              onClick={() => {
-                handleUpdateWork("SUBMITTED");
-              }}
-              disabled={updateWork.isPending}
-              type="submit"
-              className="flex h-10 w-52 items-center justify-center gap-2 rounded-2xl rounded-r-none bg-primary-color p-2 text-base font-medium text-white opacity-85 hover:opacity-100"
-            >
-              {updateWork.isPending ? (
-                <LoadingSpinner />
-              ) : (
-                classworkDataLanguage.menuSummitLists.done(
-                  language.data ?? "en",
-                )
-              )}
-              <div className="flex h-5 w-5 items-center justify-center overflow-hidden rounded-full bg-green-200 text-green-600">
-                <MdOutlineDone />
-              </div>
-            </button>
-          )}
-          {studentOnAssignment.status === "SUBMITTED" && (
-            <button
-              onClick={() => {
-                handleUpdateWork("PENDDING");
-              }}
-              disabled={updateWork.isPending}
-              type="submit"
-              className="flex h-10 w-52 items-center justify-center gap-2 rounded-2xl rounded-r-none bg-gray-400 p-2 text-base font-medium text-white opacity-85 hover:opacity-100"
-            >
-              {updateWork.isPending ? (
-                <LoadingSpinner />
-              ) : (
-                classworkDataLanguage.menuSummitLists.notdone(
-                  language.data ?? "en",
-                )
-              )}
-
-              <div className="flex h-5 w-5 items-center justify-center overflow-hidden rounded-full bg-red-200 text-red-600">
-                <MdOutlineRemoveDone />
-              </div>
-            </button>
-          )}
-
-          {studentOnAssignment.status === "REVIEWD" && (
-            <button
-              disabled={true}
-              type="submit"
-              className="flex h-10 w-52 items-center justify-center gap-2 rounded-2xl rounded-r-none bg-primary-color p-2 text-base font-medium text-white opacity-85 hover:opacity-100"
-            >
-              {classworkDataLanguage.menuSummitLists.review(
-                language.data ?? "en",
-              )}
-            </button>
-          )}
-          <button
-            onClick={() => setTriggerSummitDropDown((prev) => !prev)}
-            type="button"
-            className="flex h-10 w-max items-center justify-center rounded-2xl rounded-l-none bg-primary-color p-2 text-base font-medium text-white"
-          >
-            <IoChevronDownSharp />
-          </button>
-          {triggerSummitDropDown && (
-            <div
-              style={{
-                position: "absolute",
-                ...adjustedStyle,
-              }}
-              ref={divRef}
-            >
-              <div className="absolute top-8 z-40 h-max w-60 rounded-2xl border bg-white p-1 drop-shadow">
-                {menuSummitLists.map((menu, index) => {
-                  return (
-                    <button
-                      disabled={updateWork.isPending}
-                      onClick={() => {
-                        if (menu.title === "done") {
-                          handleUpdateWork("SUBMITTED");
-                        }
-                        if (menu.title === "notdone") {
-                          handleUpdateWork("PENDDING");
-                        }
-                      }}
-                      key={index}
-                      className={`flex w-full items-center justify-start gap-10 p-2 text-base font-medium text-gray-500 hover:bg-primary-color hover:text-white`}
-                    >
-                      {menu.icon}
-                      {classworkDataLanguage.menuSummitLists[
-                        menu.title as keyof typeof classworkDataLanguage.menuSummitLists
-                      ](language.data ?? "en")}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </div>
-        <span>
-          {assignment.studentOnAssignment.completedAt && (
-            <div className="mt-2 break-words text-sm font-medium text-green-500">
-              Marked as done at{" "}
-              {new Date(
-                assignment.studentOnAssignment.completedAt,
-              ).toLocaleDateString(undefined, {
-                minute: "numeric",
-                hour: "numeric",
-                day: "numeric",
-                month: "long",
-              })}{" "}
-            </div>
-          )}
-        </span>
-      </div>
-    );
-  };
-  const StudentWorkInfo = () => {
-    if (assignment.type === "Material") {
-      return null;
-    }
-    return (
-      <div className="h-max w-full rounded-2xl border bg-white p-2">
-        <div className="flex w-full items-center justify-between p-2 text-xl font-semibold">
-          {classworkDataLanguage.assignment(language.data ?? "en")}
-        </div>
-        <ul className="mt-2 grid w-full">
-          <li className="flex h-max items-center justify-start gap-1 border-b p-2">
-            <div className="w-40 font-semibold">
-              {classworkDataLanguage.status(language.data ?? "en")}:
-            </div>
-            <div className="w-max max-w-40">
-              <AssignmentStatusCard
-                status={assignment.studentOnAssignment.status}
-              />
-            </div>
-          </li>
-          <li className="flex h-max items-center justify-start gap-1 border-b p-2">
-            <div className="w-40 font-semibold">
-              {classworkDataLanguage.score(language.data ?? "en")}:
-            </div>
-            {canStudentViewScore(subject.data, assignment) ? (
-              <div className="w-max max-w-40 text-2xl font-semibold">
-                {assignment.studentOnAssignment.score !== null ? (
-                  <span>
-                    {assignment.studentOnAssignment.score.toFixed(2)} /{" "}
-                    {assignment.maxScore}{" "}
-                  </span>
-                ) : (
-                  classworkDataLanguage.notGraded(language.data ?? "en")
-                )}
-              </div>
-            ) : (
-              <ScoreHiddenBadge size="md" />
-            )}
-          </li>
-
-          {assignment.studentOnAssignment.completedAt && (
-            <li className="flex h-max items-center justify-start gap-1 border-b p-2">
-              <div className="w-40 font-semibold">
-                {classworkDataLanguage.summitAt(language.data ?? "en")}:
-              </div>
-              <div className="flex flex-col items-start gap-1">
-                <span className="font-semibold text-blue-600">
-                  {new Date(
-                    assignment.studentOnAssignment.completedAt,
-                  ).toLocaleDateString(undefined, {
-                    day: "numeric",
-                    month: "long",
-                  })}
-                </span>
-                <span className="text-xs">
-                  {new Date(
-                    assignment.studentOnAssignment.completedAt,
-                  ).toLocaleDateString(undefined, {
-                    minute: "numeric",
-                    hour: "numeric",
-                  })}
-                </span>
-              </div>
-            </li>
-          )}
-          {assignment.studentOnAssignment.reviewdAt && (
-            <li className="flex h-max items-center justify-start gap-1 border-b p-2">
-              <div className="w-40 font-semibold">
-                {classworkDataLanguage.reviewAt(language.data ?? "en")}:
-              </div>
-              <div className="flex flex-col items-start gap-1">
-                <span className="font-semibold text-green-600">
-                  {new Date(
-                    assignment.studentOnAssignment.reviewdAt,
-                  ).toLocaleDateString(undefined, {
-                    day: "numeric",
-                    month: "long",
-                  })}
-                </span>
-                <span className="text-xs">
-                  {new Date(
-                    assignment.studentOnAssignment.reviewdAt,
-                  ).toLocaleDateString(undefined, {
-                    minute: "numeric",
-                    hour: "numeric",
-                  })}
-                </span>
-              </div>
-            </li>
-          )}
-          {assignment.dueDate && (
-            <li className="flex h-max items-center justify-start gap-1 border-b p-2">
-              <div className="w-40 font-semibold">
-                {classworkDataLanguage.deadline(language.data ?? "en")}:
-              </div>
-              <div>
-                {new Date(assignment.dueDate).getTime() <=
-                new Date().getTime() ? (
-                  <span className="flex items-center gap-1 font-semibold text-red-600">
-                    {timeAgo({
-                      pastTime: new Date(assignment.dueDate).toISOString(),
-                      language: language.data ?? "en",
-                    })}{" "}
-                    {classworkDataLanguage.ago(language.data ?? "en")}{" "}
-                    <FaRegSadTear />
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-1 font-semibold text-green-600">
-                    {timeLeft({
-                      targetTime: new Date(assignment.dueDate).toISOString(),
-                      language: language.data ?? "en",
-                    })}{" "}
-                    {classworkDataLanguage.left(language.data ?? "en")}{" "}
-                    <RiEmotionHappyFill />
-                  </span>
-                )}{" "}
-                <span className="text-xs">
-                  {new Date(assignment.dueDate).toLocaleTimeString(undefined, {
-                    hour: "numeric",
-                    minute: "numeric",
-                    day: "numeric",
-                    month: "long",
-                  })}
-                </span>
-              </div>
-            </li>
-          )}
-        </ul>
-      </div>
-    );
-  };
-
-  const FileOnAssignments = () => {
-    return (
-      <div className="h-max w-full rounded-2xl border bg-white p-2">
-        <div className="flex w-full items-center justify-between p-2 text-xl font-semibold">
-          {classworkDataLanguage.assignmentFiles(language.data ?? "en")}
-        </div>
-        <ul className="grid w-full gap-2">
-          {assignment.files?.map((file, index) => {
-            const isImage = file.type.includes("image");
-            const isVideo = file.type.includes("video");
-            const fileName = file.name ?? file.url.split("/").pop();
-            const isLink = file.type === "LINK";
-            return (
-              <li
-                title={isLink ? file.url : fileName}
-                onClick={() => {
-                  if (isVideo) {
-                    setActiveVideo({
-                      url: file.url,
-                      fileOnAssignment: file,
-                    });
-                  } else {
-                    window.open(file.url, "_blank");
-                  }
-                }}
-                key={index}
-                className="flex h-14 w-full items-center justify-between overflow-hidden rounded-2xl border bg-white transition hover:cursor-pointer hover:bg-gray-100"
-              >
-                <div className="flex h-full w-full items-center justify-start gap-2">
-                  <div className="flex h-full w-16 items-center justify-center border-r bg-primary-color text-lg text-white">
-                    {isLink ? (
-                      <MdLink />
-                    ) : isImage ? (
-                      <FaRegFileImage />
-                    ) : isVideo ? (
-                      <FaRegFileVideo />
-                    ) : (
-                      <FaRegFile />
-                    )}
-                  </div>
-                  <div className="w-10/12 truncate text-sm">
-                    {isLink && file.name
-                      ? fileName
-                      : isLink && !file.name
-                        ? file.url
-                        : fileName}
-                  </div>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
-    );
-  };
+function DetailSkeleton() {
+  const bar = "rounded-lg bg-[#E3E8F0] motion-safe:animate-pulse";
   return (
-    <>
-      <Head>
-        <title>Assignment: {assignment.title} </title>
-      </Head>
-      {activeVideo && (
-        <FileAssignmentVideoPlayer
-          src={activeVideo.url}
-          config={{
-            preventFastForward:
-              activeVideo.fileOnAssignment.preventFastForward ?? false,
-          }}
-          onClose={() => setActiveVideo(null)}
-        />
-      )}
-      {selectMenu !== null && (
-        <PopupLayout onClose={() => setSelectMenu(null)}>
-          {selectMenu.title === "Create" && (
-            <AssignmentText
-              assignment={assignment}
-              schoolId={studentOnAssignment.schoolId}
-              onClose={() => setSelectMenu(null)}
-              text={selectMenu.file}
-              studentOnAssignmentId={studentOnAssignment.id}
-              toast={toast}
-            />
-          )}
-          {selectMenu.title === "Upload" && (
-            <AssignmentUploadFile
-              onClose={() => setSelectMenu(null)}
-              schoolId={studentOnAssignment.schoolId}
-              toast={toast}
-              studentOnAssignmentId={studentOnAssignment.id}
-            />
-          )}
-          {selectMenu.title === "Link" && (
-            <AssignmentLink
-              onClose={() => setSelectMenu(null)}
-              toast={toast}
-              studentOnAssignmentId={studentOnAssignment.id}
-            />
-          )}
-        </PopupLayout>
-      )}
-      <div className="flex w-full flex-col gap-3 px-3 pb-6">
-        <main className="flex h-max w-full flex-col gap-5">
-          <div className="w-full rounded-2xl bg-white p-3">
-            <h1 className="mb-5 border-b text-xl">{assignment.title}</h1>
-            {(assignment.type === "Assignment" ||
-              assignment.type === "Material") && (
-              <div className={`my-5 h-60 lg:h-96`}>
-                <TextEditor
-                  disabled={false}
-                  schoolId={assignment.schoolId}
-                  value={assignment.description}
-                  onChange={() => {}}
-                  menubar={false}
-                  toolbar={false}
-                />
-              </div>
-            )}
-            {assignment.type === "VideoQuiz" && assignment.videoURL && (
-              <>
-                <StudentVideoPlayer
-                  nextVideoURL={
-                    nextAssignment &&
-                    `/subject/${subjectId}/assignment/${nextAssignment.id}`
-                  }
-                  ref={videoPlayerRef}
-                  src={assignment.videoURL}
-                  config={{
-                    preventFastForward:
-                      studentOnAssignment.status === "REVIEWD"
-                        ? false
-                        : (assignment.preventFastForward ?? false),
-                    questions: assignment.questions,
-                  }}
-                  cannotSummit={studentOnAssignment.status === "REVIEWD"}
-                  onSubmit={
-                    studentOnAssignment.status === "REVIEWD"
-                      ? undefined
-                      : (score, total) => {
-                          const scorePerQuestions =
-                            assignment.maxScore / assignment.questions.length;
-
-                          updateWork.mutate({
-                            query: {
-                              studentOnAssignmentId: studentOnAssignment.id,
-                            },
-                            body: {
-                              status: "REVIEWD",
-                              score: Number(
-                                (scorePerQuestions * score).toFixed(2),
-                              ),
-                            },
-                          });
-                        }
-                  }
-                />
-                {studentOnAssignment.status === "REVIEWD" && (
-                  <div className="mt-4 flex animate-pulse items-center justify-center gap-3 rounded-2xl border-2 border-yellow-200 bg-yellow-50 p-4 text-center font-medium text-yellow-800 shadow-sm transition-all hover:bg-yellow-100">
-                    <span className="text-2xl">👀</span>
-                    <span>
-                      {language.data === "th"
-                        ? "คุณสามารถดูวิดีโอได้ แต่ไม่สามารถส่งงานได้อีกต่อไปเนื่องจากได้รับการตรวจแล้ว"
-                        : "You can watch the video, but you cannot submit anymore as it has been reviewed."}
-                    </span>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-        </main>
-        <FileOnAssignments />
-        <StudentWorkInfo />
-        <SummitStatus />
-        <SummitWork />
-        <CommentSection
-          studentOnAssignmentId={assignment.studentOnAssignment.id}
-        />
+    <div aria-hidden className="flex flex-col gap-3">
+      <div className="chunky p-3">
+        <div className={`${bar} h-4 w-1/3`} />
+        <div className={`${bar} mt-3 h-5 w-4/5`} />
+        <div className={`${bar} mt-3 h-4 w-2/3`} />
       </div>
-    </>
+      <div className="chunky p-3">
+        <div className={`${bar} h-3 w-full`} />
+        <div className={`${bar} mt-2 h-3 w-5/6`} />
+        <div className={`${bar} mt-2 h-3 w-2/3`} />
+      </div>
+    </div>
   );
 }
 
 /**
- * Placeholder until Part 3 rewrites the assignment page: today's page body
- * (main column, then the side column) under a back button.
+ * The assignment page: sky header with back, the reviewed score card, title
+ * card, instructions, the teacher's files, the comment chat, and the "Your
+ * work" sheet, plus the video quiz player for video quizzes.
  */
 export default function AssignmentDetail({
   subjectId,
   assignmentId,
 }: DetailPaneProps) {
   const nav = useShellNav();
+  const router = useRouter();
   const language = useGetLanguage();
+  const lang = language.data ?? "en";
+  const subject = useGetSubjectById({ id: subjectId });
+  const student = useGetStudent();
+  const assignments = useGetAssignments({ subjectId });
+  const assignment = assignments.data?.find((item) => item.id === assignmentId);
+  const pageRef = useRef<HTMLDivElement>(null);
+  const backRef = useRef<HTMLButtonElement>(null);
+  useDetailFocus(backRef, pageRef);
+
+  const isQuiz = assignment?.type === "Quiz";
+  useEffect(() => {
+    if (isQuiz) router.replace(`/subject/${subjectId}/quiz/${assignmentId}`);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isQuiz]);
+
+  // "Not found" only once the list has loaded (or failed) without it.
+  const loading = assignments.isPending || isQuiz;
+  const updateWork = useUpdateStudentOnAssignment();
+  const [videoState, setVideoState] = useState({
+    playing: false,
+    questionOpen: false,
+    expanded: false,
+  });
+  const [celebration, setCelebration] = useState<ReturnType<
+    typeof turnInSummary
+  > | null>(null);
+  const next = assignment
+    ? nextAssignmentAfter(assignments.data ?? [], assignment)
+    : null;
+  // The quiz score is maxScore / questions x correct (done in the player).
+  const submitVideoScore = async (score: number): Promise<boolean> => {
+    if (!assignment) return false;
+    try {
+      const result = await withTimeout(
+        updateWork.mutateAsync({
+          query: { studentOnAssignmentId: assignment.studentOnAssignment.id },
+          body: { status: "REVIEWD", score: Number(score.toFixed(2)) },
+        }),
+        30_000,
+      );
+      if (!result.ok) {
+        // Not saved (yet): the player keeps the result and offers Try again.
+        workError(new Error(assignmentPageLanguage.submitTimeout(lang)), lang);
+        return false;
+      }
+      return true;
+    } catch (error) {
+      // The player keeps the result and offers Try again.
+      workError(error, lang, {
+        title: assignmentPageLanguage.updateFailedTitle(lang),
+        text: assignmentPageLanguage.updateFailedText(lang),
+      });
+      return false;
+    }
+  };
+  const reviewed =
+    !!assignment &&
+    assignment.type !== "Material" &&
+    assignment.studentOnAssignment.status === "REVIEWD";
+  // Room under the content for the "Your work" peek.
+  const hasSheet =
+    !!assignment &&
+    yourWorkMode(assignment.type, assignment.studentOnAssignment.status) !==
+      "none";
+
   return (
-    <div className="flex h-full w-full flex-col font-Anuphan">
+    <div ref={pageRef} className="flex h-full w-full flex-col font-Anuphan">
+      {assignment && (
+        <Head>
+          <title>Assignment: {assignment.title}</title>
+        </Head>
+      )}
+      <DetailHeader
+        ref={backRef}
+        title={subject.data?.title ?? ""}
+        lang={lang}
+        onBack={nav.back}
+      />
       <div
-        className="flex shrink-0 items-center gap-2 bg-background-color px-3 pb-2"
-        style={{ paddingTop: "calc(var(--safe-top) + 8px)" }}
-      >
-        <button
-          type="button"
-          onClick={nav.back}
-          aria-label={homeLanguage.back(language.data ?? "en")}
-          className="grid h-10 w-10 place-items-center rounded-xl border-2 border-b-4 border-[#E3E8F0] bg-white text-xl text-icon-color active:translate-y-0.5 active:border-b-2"
-        >
-          <LuChevronLeft aria-hidden />
-        </button>
-      </div>
-      <div
-        className="app-scroll min-h-0 flex-1"
+        className={`${TAB_BODY_CLASS} hideScrollBar`}
         style={{ paddingBottom: "var(--safe-bottom)" }}
       >
-        <AssignmentBody subjectId={subjectId} assignmentId={assignmentId} />
+        <div
+          className={`flex flex-col gap-3 px-3 pt-4 ${hasSheet ? "pb-44" : "pb-6"}`}
+        >
+          {loading ? (
+            <DetailSkeleton />
+          ) : !assignment ? (
+            <h2 className="py-10 text-center text-base font-bold text-icon-color">
+              {classworkDataLanguage.notFound(lang)}
+            </h2>
+          ) : (
+            <>
+              {assignment.type === "VideoQuiz" && assignment.videoURL && (
+                <VideoQuizPlayer
+                  src={assignment.videoURL}
+                  questions={assignment.questions}
+                  preventFastForward={assignment.preventFastForward ?? false}
+                  reviewed={assignment.studentOnAssignment.status === "REVIEWD"}
+                  maxScore={assignment.maxScore}
+                  onSubmit={submitVideoScore}
+                  onNext={next ? () => nav.openAssignment(next.id) : undefined}
+                  onStateChange={setVideoState}
+                />
+              )}
+              {reviewed && subject.data && student.data && (
+                <ReviewedCard
+                  assignment={assignment}
+                  subject={subject.data}
+                  lang={lang}
+                  student={student.data}
+                />
+              )}
+              <TitleCard assignment={assignment} lang={lang} now={new Date()} />
+              {(assignment.type === "Assignment" ||
+                assignment.type === "Material") &&
+                hasRichContent(assignment.description) && (
+                  <section>
+                    <h3 className={sectionLabel}>
+                      {assignmentPageLanguage.instructions(lang)}
+                    </h3>
+                    <div className="chunky overflow-hidden p-2">
+                      <TextEditor
+                        disabled
+                        autoHeight
+                        schoolId={assignment.schoolId}
+                        value={assignment.description}
+                        onChange={() => {}}
+                        menubar={false}
+                        toolbar={false}
+                      />
+                    </div>
+                  </section>
+                )}
+              {assignment.files?.length > 0 && (
+                <section>
+                  <h3 className={sectionLabel}>
+                    {assignmentPageLanguage.fromTeacher(lang)}
+                  </h3>
+                  <TeacherFiles files={assignment.files} lang={lang} />
+                </section>
+              )}
+              <CommentsChat
+                studentOnAssignmentId={assignment.studentOnAssignment.id}
+                lang={lang}
+              />
+              {reviewed && next && (
+                <button
+                  type="button"
+                  onClick={() => nav.openAssignment(next.id)}
+                  className="chunky flex min-h-[52px] w-full items-center justify-between gap-2 px-3 text-left active:translate-y-0.5"
+                >
+                  <span className="min-w-0 truncate text-[13px] font-bold text-icon-color">
+                    {assignmentPageLanguage.nextAssignment(lang, next.title)}
+                  </span>
+                  <LuChevronRight
+                    aria-hidden
+                    className="shrink-0 text-[#9AA3B8]"
+                  />
+                </button>
+              )}
+            </>
+          )}
+        </div>
       </div>
+      {assignment && (
+        <YourWorkSheet
+          assignment={assignment}
+          hidden={
+            videoState.playing || videoState.questionOpen || videoState.expanded
+          }
+          subject={subject.data}
+          onTurnedIn={({ itemCount }) =>
+            setCelebration(
+              turnInSummary({
+                dueDate: assignment.dueDate,
+                completedAt: new Date().toISOString(),
+                itemCount,
+              }),
+            )
+          }
+        />
+      )}
+      {assignment && student.data && celebration && (
+        <TurnedInCelebration
+          open
+          lang={lang}
+          student={student.data}
+          summary={celebration}
+          next={next ? { id: next.id, title: next.title } : null}
+          onNext={() => {
+            setCelebration(null);
+            if (next) nav.openAssignment(next.id);
+          }}
+          onBack={() => {
+            setCelebration(null);
+            // Lands on the Classwork list, however the student got here.
+            router.replace({
+              pathname: "/subject/[subjectId]",
+              query: { subjectId, tab: "classwork" },
+            });
+          }}
+        />
+      )}
     </div>
   );
 }

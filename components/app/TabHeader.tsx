@@ -4,6 +4,8 @@ import { lighten, SCENE_PALETTES } from "../../utils/timeOfDay";
 
 type Props = {
   title: string;
+  /** Bottom-left slot before the title, e.g. a detail page's back button. */
+  leading?: React.ReactNode;
   /** Bottom-right slot, e.g. the subject chip. */
   right?: React.ReactNode;
   /** Me's taller band (room for the photo). */
@@ -54,7 +56,7 @@ const CLOUDS = {
  * The title is dark on the light morning sky (the palette's statusText),
  * white otherwise.
  */
-export function TabHeader({ title, right, tall = false }: Props) {
+export function TabHeader({ title, leading, right, tall = false }: Props) {
   const timeOfDay = useTimeOfDay();
   const palette = timeOfDay?.palette ?? SCENE_PALETTES.noon;
   const sky = palette.skyTop;
@@ -80,14 +82,17 @@ export function TabHeader({ title, right, tall = false }: Props) {
         {clouds.shapes}
       </svg>
       <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-3 pb-7 pl-4 pr-3.5">
-        <h1
-          className="min-w-0 truncate text-[22px] font-bold leading-tight"
-          style={{
-            color: palette.statusText === "dark" ? "#383767" : "#FFFFFF",
-          }}
-        >
-          {title}
-        </h1>
+        <div className="flex min-w-0 items-center gap-2.5">
+          {leading && <div className="shrink-0">{leading}</div>}
+          <h1
+            className="min-w-0 truncate text-[22px] font-bold leading-tight"
+            style={{
+              color: palette.statusText === "dark" ? "#383767" : "#FFFFFF",
+            }}
+          >
+            {title}
+          </h1>
+        </div>
         {right && <div className="shrink-0">{right}</div>}
       </div>
     </header>

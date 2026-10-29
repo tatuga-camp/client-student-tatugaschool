@@ -10,12 +10,17 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import AssignmentDetail from "../../assignment/AssignmentDetail";
 import { OverlayScope } from "../OverlayScope";
 import { canStartShellSwipe, edgeBackOutcome } from "../../../utils/tabs";
+import { DetailActiveContext } from "./DetailActive";
+import { interceptLayerPop } from "./layerBack";
+import { interceptPop, leaveGuardActive } from "../../../utils/leaveGuard";
 import PaneErrorBoundary from "./PaneErrorBoundary";
 import { inertProps, TAP_SLOP } from "./TabPager";
 import { ShellRoute, takeInAppPop, useShellNav } from "./useShellRoute";
 
 export const DETAIL_SPRING = { tension: 320, friction: 34 };
 const EDGE = 24;
+// How long an edge-back waits for the router to start navigating.
+const NO_NAV_MS = 500;
 
 type Detail = NonNullable<ShellRoute["detail"]>;
 
@@ -54,7 +59,11 @@ export default function DetailStack({ subjectId, detail, depthApi }: Props) {
   // Note browser back/forward so Safari's own swipe isn't animated twice;
   // the shell's own back button pops history too, and that one animates.
   useEffect(() => {
-    Router.beforePopState(() => {
+    Router.beforePopState((state) => {
+      // A modal layer open on the page closes first (back = close the sheet).
+      if (currentKey.current !== null && interceptLayerPop()) return false;
+      // The unsent-work guard may take a browser back over (and cancel it).
+      if (interceptPop(state)) return false;
       popped.current = !takeInAppPop();
       return true;
     });
@@ -92,6 +101,48 @@ export default function DetailStack({ subjectId, detail, depthApi }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, depthApi]);
 
+  // An embedded iframe (YouTube) swallows the pointer events of a drag that
+  // crosses it, so the gesture would never see its end. While an edge-drag
+  // runs the panel's iframes ignore the pointer, and whatever way the press
+  // ends the panel is made to rest again.
+  const frozen = useRef<HTMLIFrameElement[]>([]);
+  const dragLive = useRef<(() => void) | null>(null);
+  const thaw = () => {
+    frozen.current.forEach((f) => (f.style.pointerEvents = ""));
+    frozen.current = [];
+  };
+  const startGuard = (panel: HTMLElement, settleNow: () => void) => {
+    frozen.current = Array.from(panel.querySelectorAll("iframe"));
+    frozen.current.forEach((f) => (f.style.pointerEvents = "none"));
+    dragLive.current = settleNow;
+    dropRescue();
+    const rescue = () => {
+      dropRescue();
+      thaw();
+      // If use-gesture did not deliver its own last event, settle here.
+      window.setTimeout(() => {
+        dragLive.current?.();
+        dragLive.current = null;
+      }, 0);
+    };
+    rescueRef.current = rescue;
+    window.addEventListener("pointerup", rescue);
+    window.addEventListener("pointercancel", rescue);
+  };
+  const rescueRef = useRef<(() => void) | null>(null);
+  const dropRescue = () => {
+    if (!rescueRef.current) return;
+    window.removeEventListener("pointerup", rescueRef.current);
+    window.removeEventListener("pointercancel", rescueRef.current);
+    rescueRef.current = null;
+  };
+  const endGuard = () => {
+    thaw();
+    dragLive.current = null;
+    dropRescue();
+  };
+  useEffect(() => endGuard, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const bind = useDrag(
     ({
       args: [ctrl, key],
@@ -115,7 +166,10 @@ export default function DetailStack({ subjectId, detail, depthApi }: Props) {
       // A tap, or the extra release use-gesture sends after cancel():
       // nothing to decide, just make sure the page rests in place.
       if (tap || canceled) {
-        if (last) settle();
+        if (last) {
+          endGuard();
+          settle();
+        }
         return memo;
       }
       const panel = currentTarget as HTMLElement;
@@ -128,6 +182,7 @@ export default function DetailStack({ subjectId, detail, depthApi }: Props) {
         ? ix - panel.getBoundingClientRect().left
         : memo;
       if (first && startX > EDGE) return cancel();
+      if (first) startGuard(panel, settle);
       const width = panel.clientWidth || 1;
       const x = Math.max(0, mx);
       if (!last) {
@@ -135,6 +190,7 @@ export default function DetailStack({ subjectId, detail, depthApi }: Props) {
         depthApi.start({ depth: 1 - x / width, immediate: true });
         return startX;
       }
+      endGuard();
       // The click that ends a mouse edge-drag must not hit what it was over.
       suppressClick.current = true;
       window.setTimeout(() => {
@@ -150,16 +206,40 @@ export default function DetailStack({ subjectId, detail, depthApi }: Props) {
         settle();
         return startX;
       }
-      // Slide back if the navigation is refused (e.g. the unsent-work
-      // prompt cancels it) or ends with this page still open.
+      // Unsent work: the guard sheet decides. Park the page at x: 0 now, and
+      // watch nothing (no settle timer, no route events), so nothing can
+      // move it again while the student chooses; leaving then slides it out.
+      if (leaveGuardActive()) {
+        stopWatching.current?.();
+        settle();
+        void nav.back();
+        return startX;
+      }
+      // Slide back if the navigation is refused or ends with this page
+      // still open.
       stopWatching.current?.();
       const done = () => {
         stopWatching.current?.();
         if (currentKey.current === key) settle();
       };
+      // back() may start no navigation at all (nothing to go back to, or a
+      // refusal before routeChangeStart): the page must not stay off-position.
+      let started = false;
+      const onStart = () => {
+        started = true;
+      };
+      const idle = window.setTimeout(() => {
+        if (started) return;
+        // Nothing popped: the next real pop is the browser's, not ours.
+        takeInAppPop();
+        done();
+      }, NO_NAV_MS);
+      Router.events.on("routeChangeStart", onStart);
       Router.events.on("routeChangeError", done);
       Router.events.on("routeChangeComplete", done);
       stopWatching.current = () => {
+        window.clearTimeout(idle);
+        Router.events.off("routeChangeStart", onStart);
         Router.events.off("routeChangeError", done);
         Router.events.off("routeChangeComplete", done);
         stopWatching.current = null;
@@ -198,10 +278,12 @@ export default function DetailStack({ subjectId, detail, depthApi }: Props) {
         {/* Sheets opened from this page render in the panel and move with it. */}
         <OverlayScope>
           <PaneErrorBoundary onBack={nav.back}>
-            <AssignmentDetail
-              subjectId={subjectId}
-              assignmentId={item.assignmentId}
-            />
+            <DetailActiveContext.Provider value={!leaving}>
+              <AssignmentDetail
+                subjectId={subjectId}
+                assignmentId={item.assignmentId}
+              />
+            </DetailActiveContext.Provider>
           </PaneErrorBoundary>
         </OverlayScope>
       </animated.div>

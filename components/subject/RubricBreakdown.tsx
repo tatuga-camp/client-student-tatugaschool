@@ -1,16 +1,36 @@
-import { useGetStudentRubricBreakdown } from "../../react-query";
+import { assignmentPageLanguage } from "../../data/languages";
+import {
+  useGetLanguage,
+  useGetStudentRubricBreakdown,
+} from "../../react-query";
 
 type Props = {
   studentOnAssignmentId: string;
 };
 
+// Full class names only: Tailwind cannot see classes built from strings.
+function levelTone(points: number, max: number) {
+  const ratio = max > 0 ? points / max : 0;
+  if (ratio >= 0.9) return "bg-emerald-100 text-emerald-700";
+  if (ratio >= 0.6) return "bg-blue-100 text-primary-color";
+  return "bg-amber-100 text-amber-700";
+}
+
+const scorePill =
+  "inline-block shrink-0 whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-bold";
+const pill =
+  "inline-block max-w-[60%] truncate rounded-full px-2 py-0.5 text-[11px] font-bold";
+
+/** The teacher's rubric for one assignment: a row per criterion. */
 function RubricBreakdown({ studentOnAssignmentId }: Props) {
+  const language = useGetLanguage();
+  const lang = language.data ?? "en";
   const breakdown = useGetStudentRubricBreakdown({ studentOnAssignmentId });
 
   if (breakdown.isLoading) {
     return (
       <div className="flex w-full items-center justify-center py-3 text-sm text-gray-400">
-        Loading rubric...
+        {assignmentPageLanguage.loadingRubric(lang)}
       </div>
     );
   }
@@ -23,39 +43,51 @@ function RubricBreakdown({ studentOnAssignmentId }: Props) {
   const rubric = data.rubric;
 
   return (
-    <section className="mt-3 w-full rounded-xl border bg-white p-4 font-Anuphan">
-      <header className="flex items-center justify-between gap-2 border-b pb-2">
-        <span className="text-lg font-semibold text-black">{rubric.title}</span>
-        <span className="text-base font-bold text-blue-700">
-          Score: {data.finalScore ?? 0}
+    <section className="chunky mt-2 w-full px-3 py-2 font-Anuphan">
+      <header className="flex items-center justify-between gap-2 border-b-[1.5px] border-[#EEF1F6] py-1.5">
+        <span className="min-w-0 truncate text-[13px] font-bold text-icon-color">
+          {rubric.title || assignmentPageLanguage.rubric(lang)}
+        </span>
+        <span className={`${scorePill} bg-emerald-100 text-emerald-700`}>
+          {data.finalScore ?? 0}
           {data.maxScore !== null ? ` / ${data.maxScore}` : ""}
         </span>
       </header>
-      <ul className="mt-3 flex w-full flex-col gap-3">
+      <ul className="list-none">
         {rubric.criteria.map((criterion) => {
           const selectedLevel = criterion.levels.find(
             (level) => level.id === criterion.selectedLevelId,
+          );
+          const maxPoints = Math.max(
+            0,
+            ...criterion.levels.map((level) => level.points),
           );
 
           return (
             <li
               key={criterion.id}
-              className="flex flex-col gap-1 rounded-lg border bg-gray-50 p-3"
+              className="border-b-[1.5px] border-[#EEF1F6] py-1.5 last:border-b-0"
             >
-              <span className="font-semibold text-black">
-                {criterion.title}
-              </span>
-              {selectedLevel ? (
-                <span className="text-sm text-gray-700">
-                  {selectedLevel.title} ({selectedLevel.points} points)
+              <div className="flex items-center justify-between gap-2">
+                <span className="min-w-0 text-[12px] font-bold text-icon-color">
+                  {criterion.title}
                 </span>
-              ) : (
-                <span className="text-sm text-gray-400">Not graded</span>
-              )}
+                {selectedLevel ? (
+                  <span
+                    className={`${pill} ${levelTone(selectedLevel.points, maxPoints)}`}
+                  >
+                    {selectedLevel.title} · {selectedLevel.points}/{maxPoints}
+                  </span>
+                ) : (
+                  <span className={`${pill} bg-gray-100 text-gray-500`}>
+                    {assignmentPageLanguage.rubricNotGraded(lang)}
+                  </span>
+                )}
+              </div>
               {criterion.comment && (
-                <span className="text-sm italic text-gray-500">
-                  Teacher&apos;s note: {criterion.comment}
-                </span>
+                <p className="mt-0.5 text-[11px] text-[#7A80A0]">
+                  {assignmentPageLanguage.teacherNote(lang)} {criterion.comment}
+                </p>
               )}
             </li>
           );

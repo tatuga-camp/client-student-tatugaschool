@@ -15,6 +15,14 @@ import { OVERLAY_ROOT_ID } from "../../utils/frameRoutes";
 import { keyboardFit } from "../../utils/keyboardFit";
 import { isEditableTarget, sheetDragOutcome } from "../../utils/tabs";
 import { OverlayRootContext } from "./OverlayScope";
+import {
+  allocLayerId,
+  notifyStack,
+  openStack,
+  registerLayerCloser,
+  stackListeners,
+  unregisterLayerCloser,
+} from "./modalLayers";
 
 /**
  * Where it renders: the nearest OverlayScope's container (each detail panel
@@ -24,20 +32,42 @@ import { OverlayRootContext } from "./OverlayScope";
  * shrinks to the visible area, so its fields stay in view.
  */
 type SheetProps = {
+  /** The parent must flip this to false in `onClose`, or a dragged-away
+   *  sheet stays stranded at the dragged position. Ignored with `peek`. */
   open: boolean;
   onClose: () => void;
   children: React.ReactNode;
   size?: "auto" | "full";
+  /** A peek sheet is always shown (it ignores `open`); `children` is the
+   *  expanded content. */
   peek?: React.ReactNode;
   expanded?: boolean;
   onExpandedChange?: (v: boolean) => void;
   dismissible?: boolean;
+  /** Content with unsaved work: a flick, the backdrop and Esc do nothing. The
+   *  X (and a back press) still call `onClose`, which should confirm. */
+  guardClose?: boolean;
+  /** This sheet handles a browser back itself (the leave-guard sheet). */
+  ownsBack?: boolean;
+  /** Render the ✕ in the handle row (default). Off when the content brings
+   *  its own visible close, so assistive tech doesn't find two. */
+  closeButton?: boolean;
   ariaLabel: string;
 };
 
-// Open modal sheets, topmost last: Esc closes only the topmost one.
-const openStack: number[] = [];
-let nextId = 0;
+// A sheet is inert (and hidden from assistive tech) while a modal layer is
+// open above it: a collapsed peek under any open modal, or a modal that is
+// not the topmost. Sheets re-evaluate whenever the open stack changes
+// (components/app/modalLayers.ts), so ones that mount later are covered too.
+function setInert(el: HTMLElement, inert: boolean) {
+  if (inert) {
+    el.setAttribute("inert", "");
+    el.setAttribute("aria-hidden", "true");
+  } else {
+    el.removeAttribute("inert");
+    el.removeAttribute("aria-hidden");
+  }
+}
 
 const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
 
@@ -51,6 +81,9 @@ export function Sheet({
   expanded = false,
   onExpandedChange,
   dismissible = true,
+  guardClose = false,
+  ownsBack = false,
+  closeButton = true,
   ariaLabel,
 }: SheetProps) {
   const scopedRoot = useContext(OverlayRootContext);
@@ -59,12 +92,14 @@ export function Sheet({
   const [rendered, setRendered] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
+  const sheetRootRef = useRef<HTMLDivElement>(null);
   const openerRef = useRef<HTMLElement | null>(null);
+  const openerAtOpenRef = useRef<HTMLElement | null>(null);
   const heightRef = useRef(600);
   const visibleRef = useRef(false);
   const enteredRef = useRef(false);
   const idRef = useRef(0);
-  if (idRef.current === 0) idRef.current = ++nextId;
+  if (idRef.current === 0) idRef.current = allocLayerId();
   const language = useGetLanguage();
   const [{ y }, api] = useSpring(() => ({ y: 600 }));
   // Set while the keyboard (visual viewport) hides part of the root.
@@ -75,6 +110,11 @@ export function Sheet({
   // Peek panel collapsed = no backdrop; expanded or normal sheet = backdrop.
   const modal = isPeek ? expanded : true;
   visibleRef.current = visible;
+  // Who had focus the moment this sheet was asked to open: render runs before
+  // the children mount, so before an autoFocus field inside takes focus.
+  if (!visible) openerAtOpenRef.current = null;
+  else if (!openerAtOpenRef.current && typeof document !== "undefined")
+    openerAtOpenRef.current = document.activeElement as HTMLElement | null;
 
   useEffect(() => {
     if (scopedRoot === undefined) {
@@ -173,14 +213,29 @@ export function Sheet({
   // Focus in on open, back to the opener on close.
   useEffect(() => {
     if (!visible || !rendered || !modal) return;
-    openerRef.current = document.activeElement as HTMLElement | null;
+    // A peek captures at expand time; a sheet uses the focus from open time.
+    const atOpen = isPeek ? null : openerAtOpenRef.current;
+    openerRef.current =
+      atOpen && atOpen !== document.body
+        ? atOpen
+        : (document.activeElement as HTMLElement | null);
     panelRef.current?.focus({ preventScroll: true });
     return () => {
       const opener = openerRef.current;
       openerRef.current = null;
-      if (opener && document.contains(opener)) opener.focus({ preventScroll: true });
+      // Deferred: the openStack effect below (declared later, so cleaned up
+      // later) un-inerts the sheet under us, and the opener may be in it.
+      queueMicrotask(() => {
+        if (opener && document.contains(opener)) opener.focus({ preventScroll: true });
+      });
     };
-  }, [visible, rendered, modal]);
+  }, [visible, rendered, modal, isPeek]);
+
+  // A peek that collapses (drag, X, Esc or the parent) must land back at y=0,
+  // not stay where a drag left it.
+  useEffect(() => {
+    if (isPeek && rendered) api.start({ y: 0 });
+  }, [expanded, isPeek, rendered, api]);
 
   const dismiss = () => {
     if (isPeek) onExpandedChange?.(false);
@@ -189,13 +244,22 @@ export function Sheet({
 
   // Latest props for Esc, so re-renders (inline onClose lambdas) don't
   // re-register: the stack must follow the order sheets opened in.
-  const escRef = useRef({ dismiss, dismissible });
-  escRef.current = { dismiss, dismissible };
+  const gestureClosable = dismissible && !guardClose;
+  const escRef = useRef({ dismiss, dismissible: gestureClosable, plain: dismissible });
+  escRef.current = { dismiss, dismissible: gestureClosable, plain: dismissible };
 
   useEffect(() => {
     if (!visible || !modal) return;
     const id = idRef.current;
     openStack.push(id);
+    registerLayerCloser(id, {
+      // A back press closes this sheet (through onClose, which may confirm).
+      close: () => {
+        if (escRef.current.plain) escRef.current.dismiss();
+      },
+      ownsBack,
+    });
+    notifyStack();
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape" || openStack[openStack.length - 1] !== id) return;
       // A non-dismissible sheet on top keeps Esc from closing the one below.
@@ -206,14 +270,33 @@ export function Sheet({
       document.removeEventListener("keydown", onKey);
       const i = openStack.lastIndexOf(id);
       if (i >= 0) openStack.splice(i, 1);
+      unregisterLayerCloser(id);
+      notifyStack();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible, modal]);
+
+  // Keep this sheet's own inert state in step with the open stack.
+  useEffect(() => {
+    const mine = sheetRootRef.current;
+    if (!rendered || !mine) return;
+    const apply = () => {
+      const i = openStack.indexOf(idRef.current);
+      setInert(mine, i >= 0 ? i < openStack.length - 1 : openStack.length > 0);
+    };
+    apply();
+    stackListeners.add(apply);
+    return () => {
+      stackListeners.delete(apply);
+      setInert(mine, false);
+    };
+  }, [rendered]);
 
   const usePanelDrag = (fromBody: boolean) =>
     useDrag(
       ({ first, last, movement: [, my], velocity: [, vy], direction: [, dirY], event, cancel }) => {
         const collapsedPeek = isPeek && !expanded;
-        if (!dismissible && !collapsedPeek) return cancel();
+        if (!gestureClosable && !collapsedPeek) return cancel();
         if (first && fromBody && (bodyRef.current?.scrollTop ?? 0) > 0) return cancel();
         const height = panelRef.current?.offsetHeight || heightRef.current;
         heightRef.current = height;
@@ -243,14 +326,16 @@ export function Sheet({
   const full = size === "full";
   return createPortal(
     <div
+      ref={sheetRootRef}
+      data-sheet-root=""
       data-no-swipe
       className="absolute inset-0 z-50"
-      style={{ pointerEvents: modal ? "auto" : "none" }}
+      style={{ pointerEvents: modal && visible ? "auto" : "none" }}
     >
       {modal && (
         <animated.div
           data-testid="sheet-backdrop"
-          onClick={dismissible ? dismiss : undefined}
+          onClick={gestureClosable ? dismiss : undefined}
           className="absolute inset-0"
           style={{
             background: "rgba(20,24,48,.45)",
@@ -267,7 +352,7 @@ export function Sheet({
         className="absolute inset-x-0 bottom-0 flex flex-col bg-white outline-none"
         style={{
           y,
-          pointerEvents: "auto",
+          pointerEvents: visible ? "auto" : "none",
           bottom: fit ? fit.lift : undefined,
           height: full && modal ? (fit ? fit.room : "100%") : undefined,
           // Full screen: keep the handle and ✕ clear of the status bar / notch.
@@ -284,22 +369,26 @@ export function Sheet({
         <div
           {...bindHandle()}
           data-testid="sheet-handle"
-          className="relative flex shrink-0 cursor-grab justify-center pb-2 pt-3"
+          className={`relative flex shrink-0 cursor-grab justify-center pt-3 ${
+            dismissible && modal && closeButton ? "min-h-[44px]" : "pb-2"
+          }`}
           style={{ touchAction: "none" }}
         >
           <div className="h-1.5 w-10 rounded-full bg-[#E3E8F0]" />
-          {dismissible && modal && (
-            <button
-              type="button"
-              aria-label={profileLanguage.close(language.data ?? "en")}
-              onClick={dismiss}
-              onPointerDown={(e) => e.stopPropagation()}
-              className="absolute right-3 top-2 flex h-8 w-8 items-center justify-center rounded-full text-[#383767]"
-            >
-              <LuX size={20} />
-            </button>
-          )}
         </div>
+        {dismissible && modal && closeButton && (
+          // Outside the handle: use-gesture's tap filter on the handle eats
+          // real clicks (detail > 0) that did not start a gesture.
+          <button
+            type="button"
+            aria-label={profileLanguage.close(language.data ?? "en")}
+            onClick={dismiss}
+            className="absolute right-1 flex h-11 w-11 items-center justify-center rounded-full text-[#383767]"
+            style={{ top: full && modal ? "var(--safe-top)" : 0 }}
+          >
+            <LuX size={20} />
+          </button>
+        )}
         <div
           ref={bodyRef}
           {...bindBody()}

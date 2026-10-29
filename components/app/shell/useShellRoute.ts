@@ -1,7 +1,8 @@
 import Router, { useRouter } from "next/router";
 import { useEffect, useMemo } from "react";
 import { queryString } from "../../common/RouteParamsGate";
-import { createHistoryIndex } from "../../../utils/historyIndex";
+import { leaveIfAllowed } from "../../../utils/leaveGuard";
+import { createHistoryIndex, restoreDelta } from "../../../utils/historyIndex";
 import { backTarget, parseTab, TabKey } from "../../../utils/tabs";
 
 export type ShellRoute = {
@@ -28,6 +29,25 @@ function currentHistoryIdx(): number {
   return historyIndex.visit(
     (window.history.state as { key?: string } | null)?.key,
   );
+}
+
+/**
+ * Read while a browser pop is being handled (before the shell has moved):
+ * the popped and current entries' keys, and how far history.go() must go to
+ * get back to the entry we were on (null when the popped entry is unknown).
+ */
+export function popInfo(): {
+  poppedKey: string | undefined;
+  currentKey: string | null;
+  delta: number | null;
+} {
+  const poppedKey =
+    (window.history.state as { key?: string } | null)?.key ?? undefined;
+  return {
+    poppedKey,
+    currentKey: historyIndex.currentKey(),
+    delta: restoreDelta(historyIndex.current(), historyIndex.peek(poppedKey)),
+  };
 }
 
 // Set while our own back() pops history, so the detail stack can tell it
@@ -79,7 +99,8 @@ export function useShellRoute(): ShellRoute | null {
 export function useShellNav(): {
   goTab(tab: TabKey): void;
   openAssignment(id: string): void;
-  back(): void;
+  /** Resolves "stayed" when the unsent-work guard kept the student here. */
+  back(): Promise<"left" | "stayed">;
   switchSubject(id: string): void;
 } {
   const router = useRouter();
@@ -103,15 +124,19 @@ export function useShellNav(): {
       },
       back() {
         const subjectId = queryString(router.query.subjectId);
-        if (!subjectId) return;
-        const target = backTarget({
-          historyIdx: currentHistoryIdx(),
-          subjectId,
+        if (!subjectId) return Promise.resolve("left" as const);
+        // The unsent-work guard is asked first; history is only popped once
+        // it allows leaving, so "stay" never changes the URL.
+        return leaveIfAllowed(() => {
+          const target = backTarget({
+            historyIdx: currentHistoryIdx(),
+            subjectId,
+          });
+          if (target.kind === "history") {
+            inAppPop = true;
+            router.back();
+          } else router.replace(target.url);
         });
-        if (target.kind === "history") {
-          inAppPop = true;
-          router.back();
-        } else router.replace(target.url);
       },
       switchSubject(id: string) {
         router.push(`/subject/${id}`);
