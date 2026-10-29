@@ -13,10 +13,12 @@ import {
 } from "../../react-query";
 import { errorSwalContent } from "../../utils";
 import Swal from "../../utils/appSwal";
+import { subjectHref } from "../../utils/notificationLink";
 import { safeSet } from "../../utils/safeStorage";
 import { isPasswordRejection, needsPassword } from "../../utils/signInError";
 import { signInRequest } from "../../utils/signInRequest";
 import { hiddenQueryReady, searchStudents } from "../../utils/studentSearch";
+import { useLayerBack } from "../app/shell/layerBack";
 import { HiddenListSearch } from "./HiddenListSearch";
 import { PasswordSheet } from "./PasswordSheet";
 import { StudentGrid } from "./StudentGrid";
@@ -81,6 +83,8 @@ export function PickNameScreen({ subjectCode, announcementId }: Props) {
   const data = subject.data;
   const hideList = data?.allowHideStudentList === true;
   const query = search.trim();
+  // Back closes the password or teachers sheet first.
+  useLayerBack();
 
   useEffect(() => {
     if (data) safeSet("subject_id", data.id);
@@ -93,11 +97,7 @@ export function PickNameScreen({ subjectCode, announcementId }: Props) {
   );
 
   const goToSubject = () =>
-    router.push(
-      announcementId
-        ? `/subject/${data?.id}?tab=classwork&announcement_id=${announcementId}`
-        : `/subject/${data?.id}`,
-    );
+    router.push(subjectHref(data?.id ?? "", announcementId));
 
   const closePasswordSheet = () => {
     setPwOpen(false);

@@ -89,7 +89,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
       props: {
         subjectData: subject,
         code,
-        ...(query.announcement_id
+        ...(typeof query.announcement_id === "string" && query.announcement_id
           ? { announcementId: query.announcement_id }
           : {}),
       },

@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { notificationHref } from "./notificationLink";
+import { notificationHref, subjectHref } from "./notificationLink";
 
 test("an announcement opens Classwork at that card, in its own subject", () => {
   assert.equal(
@@ -42,4 +42,13 @@ test("ids are URL-encoded", () => {
     notificationHref({ subjectId: "s 1", link: "/x?announcement_id=a&b" }),
     "/subject/s%201?tab=classwork&announcement_id=a",
   );
+});
+
+test("subjectHref: the announcement id stays one encoded param", () => {
+  assert.equal(subjectHref("s1", null), "/subject/s1");
+  const href = subjectHref("s1", "x&tab=me=1");
+  assert.equal(href, "/subject/s1?tab=classwork&announcement_id=x%26tab%3Dme%3D1");
+  const query = new URL(href, "https://app.invalid").searchParams;
+  assert.deepEqual(query.getAll("tab"), ["classwork"]);
+  assert.equal(query.get("announcement_id"), "x&tab=me=1");
 });

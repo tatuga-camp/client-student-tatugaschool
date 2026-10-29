@@ -1,6 +1,8 @@
+import Router, { useRouter } from "next/router";
+import { useEffect } from "react";
 import { topLayer } from "../modalLayers";
 import { layerPop, settleRestore } from "../../../utils/popGuard";
-import { onPopSettled, popInfo } from "./useShellRoute";
+import { onPopSettled, popInfo, trackHistory } from "./useShellRoute";
 
 // The key of the entry a restore from a layer-closing back is heading to.
 let restoringKey: string | null = null;
@@ -30,4 +32,21 @@ export function interceptLayerPop(): boolean {
   if (decision.go !== null) window.history.go(decision.go);
   if (decision.close) top?.close();
   return decision.take;
+}
+
+/**
+ * The same back handling on a page outside the shell (the sign-in page): a
+ * back with one of its sheets open closes the sheet and stays. Installed
+ * while the page is mounted; Next's default comes back on unmount, before the
+ * shell's DetailStack installs its own.
+ */
+export function useLayerBack(): void {
+  const { isReady } = useRouter();
+  useEffect(() => {
+    if (!isReady) return;
+    // The restore needs the entries numbered, as in the shell.
+    trackHistory();
+    Router.beforePopState(() => !interceptLayerPop());
+    return () => Router.beforePopState(() => true);
+  }, [isReady]);
 }

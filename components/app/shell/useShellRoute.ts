@@ -99,8 +99,11 @@ export function takeInAppPop(): boolean {
   return was;
 }
 
-/** The first entry the shell sees counts as 0: no in-app history behind it. */
-function trackHistory(): void {
+/**
+ * Starts numbering history entries (once). The first entry seen, the shell's
+ * or the sign-in page's, counts as 0: no in-app history behind it.
+ */
+export function trackHistory(): void {
   if (tracking) return;
   tracking = true;
   // Capture: runs before Next's own popstate listener starts the navigation.
