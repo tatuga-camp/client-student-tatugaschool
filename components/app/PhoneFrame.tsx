@@ -1,5 +1,11 @@
 import { useRouter } from "next/router";
 import React, { useEffect, useRef } from "react";
+import {
+  dropsClick,
+  movePress,
+  Press,
+  startPress,
+} from "../../utils/clickSlop";
 import { OVERLAY_ROOT_ID, isFrameExcluded } from "../../utils/frameRoutes";
 import { DesktopStage, PhoneChrome } from "./DesktopStage";
 import { useIsFramed } from "./useIsFramed";
@@ -10,6 +16,32 @@ const BEZEL_SHADOW = "0 30px 60px rgba(0,0,0,.35), inset 0 0 0 2px #2a2a2a";
 
 // The page never scrolls; only the phone's content does.
 const LOCK_PAGE_SCROLL = "html, body { height: 100%; overflow: hidden; }";
+
+/**
+ * The click that ends a mouse drag is dropped, wherever on the phone screen
+ * the drag began: the shell's panes, detail pages, sheets and pop-ups all
+ * render inside it (utils/clickSlop.ts).
+ */
+function useDragClickFilter() {
+  const press = useRef<Press | null>(null);
+  return {
+    onPointerDownCapture: (e: React.PointerEvent) => {
+      if (e.isPrimary)
+        press.current = startPress(e.pointerType, e.clientX, e.clientY);
+    },
+    onPointerMoveCapture: (e: React.PointerEvent) => {
+      if (press.current && e.buttons !== 0)
+        press.current = movePress(press.current, e.clientX, e.clientY);
+    },
+    onClickCapture: (e: React.MouseEvent) => {
+      const drop = dropsClick(press.current, e.detail);
+      press.current = null;
+      if (!drop) return;
+      e.preventDefault();
+      e.stopPropagation();
+    },
+  };
+}
 
 /**
  * Wraps every page. Phones get the app full-screen; tablets and desktops get
@@ -29,6 +61,7 @@ export function PhoneFrame({
   const router = useRouter();
   const framed = useIsFramed();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const dragClick = useDragClickFilter();
   // The scroller persists across pages, so Next's scroll reset no longer
   // reaches it: reset it when the pathname changes.
   useEffect(() => {
@@ -84,6 +117,7 @@ export function PhoneFrame({
             style={framed ? { boxShadow: BEZEL_SHADOW } : undefined}
           >
             <div
+              {...dragClick}
               className={
                 framed
                   ? "relative w-[390px] overflow-hidden rounded-[44px] bg-background-color"
