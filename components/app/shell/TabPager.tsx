@@ -173,6 +173,10 @@ export default function TabPager({
       onPointerDownCapture={(e) => {
         startTarget.current = e.target;
       }}
+      // A mouse drag that starts on a link or an image would become the
+      // browser's own drag-and-drop, which ends the pointer stream: the
+      // swipe would never see it.
+      onDragStart={(e) => e.preventDefault()}
       onClickCapture={(e) => {
         if (!suppressClick.current) return;
         suppressClick.current = false;
