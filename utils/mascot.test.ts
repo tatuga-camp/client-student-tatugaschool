@@ -12,6 +12,7 @@ import {
   mascotKeyForStudent,
   mascotVideoFormat,
   moodForPoints,
+  realPhoto,
   onMascotReact,
   pickIdleToPlay,
   reactMascot,
@@ -239,4 +240,13 @@ test("a photo named like an Object member falls back to the hash pick", () => {
     assert.ok(mascotForStudent({ id, photo }).poster, photo);
     assert.equal(mascotForPhoto(photo), null, photo);
   }
+});
+
+test("realPhoto keeps an uploaded photo and drops a mascot picked as the photo", () => {
+  const upload = "https://storage.tatugaschool.com/student/abc.jpg";
+  assert.equal(realPhoto(upload), upload);
+  assert.equal(realPhoto(MASCOT_HASH_KEYS[0]), null);
+  assert.equal(realPhoto(""), null);
+  assert.equal(realPhoto(null), null);
+  assert.equal(realPhoto(undefined), null);
 });

@@ -1,32 +1,54 @@
-import { MascotClips } from "../../utils/mascot";
+import { StudentOnSubject } from "../../interfaces";
+import { mascotForStudentOnSubject, realPhoto } from "../../utils/mascot";
+import { PhotoOrFallback } from "../app/PhotoOrFallback";
 import MascotAvatar from "../student/MascotAvatar";
 
-type MascotProps = {
-  clips: MascotClips;
+type AvatarProps = {
+  student: Pick<StudentOnSubject, "id" | "studentId" | "photo" | "blurHash">;
   /** Matches `reactMascot(id, mood)` calls. */
   mascotId: string;
 };
 
-/** How far the mascot sits down into the sheet, over its top edge. */
+/** How far the avatar sits down into the sheet, over its top edge. */
 const OVERLAP = 26;
 
 /**
- * The mascot greeting a student, riding on a sign-in sheet's top edge: pass
- * it as the Sheet's `overlay`. The handle row below it clears the overlap.
+ * The student greeted on a sign-in sheet, riding on its top edge: pass it as
+ * the Sheet's `overlay`. The handle row below it clears the overlap. Their
+ * own photo, as on the class list; their mascot when they have none.
  */
-export function SignInSheetMascot({ clips, mascotId }: MascotProps) {
+export function SignInSheetAvatar({ student, mascotId }: AvatarProps) {
+  const mascot = (
+    <MascotAvatar
+      clips={mascotForStudentOnSubject(student)}
+      alt=""
+      id={mascotId}
+      idle={false}
+      greetOnMount
+      sizes="120px"
+    />
+  );
+  const photo = realPhoto(student.photo);
+  if (!photo) {
+    return (
+      <div
+        className="home-bob relative mx-auto h-[120px] w-[120px] drop-shadow-[0_8px_10px_rgba(0,0,0,.2)]"
+        style={{ marginBottom: -OVERLAP }}
+      >
+        {mascot}
+      </div>
+    );
+  }
   return (
     <div
-      className="home-bob relative mx-auto h-[120px] w-[120px] drop-shadow-[0_8px_10px_rgba(0,0,0,.2)]"
+      className="relative mx-auto h-[112px] w-[112px] overflow-hidden rounded-full border-4 border-white bg-[#E8F1FD] shadow-[0_8px_16px_rgba(0,0,0,.18)]"
       style={{ marginBottom: -OVERLAP }}
     >
-      <MascotAvatar
-        clips={clips}
-        alt=""
-        id={mascotId}
-        idle={false}
-        greetOnMount
-        sizes="120px"
+      <PhotoOrFallback
+        src={photo}
+        blurHash={student.blurHash}
+        sizes="112px"
+        fallback={mascot}
       />
     </div>
   );

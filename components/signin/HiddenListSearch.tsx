@@ -1,9 +1,9 @@
 import { subjectDataLanguage as t } from "../../data/languages";
 import { Language, StudentOnSubject } from "../../interfaces";
-import { mascotForStudentOnSubject } from "../../utils/mascot";
 import { highlightMatch } from "../../utils/studentSearch";
 import MascotAvatar from "../student/MascotAvatar";
 import { guideClips, tintFor } from "./mascotAvatars";
+import { StudentAvatar } from "./StudentAvatar";
 
 type Props = {
   /** Matches for the query; null until enough has been typed. */
@@ -64,13 +64,7 @@ export function HiddenListSearch({
               className="relative h-11 w-11 shrink-0 rounded-full"
               style={{ background: tintFor(student.studentId) }}
             >
-              <MascotAvatar
-                clips={mascotForStudentOnSubject(student)}
-                alt=""
-                id={student.id}
-                idle={false}
-                sizes="44px"
-              />
+              <StudentAvatar student={student} size={44} />
             </span>
             <span className="min-w-0 flex-1">
               <span className="block truncate text-sm font-bold text-[#383767]">

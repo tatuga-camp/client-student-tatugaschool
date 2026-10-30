@@ -3,9 +3,10 @@ import type { IconType } from "react-icons";
 import { LuBookOpen, LuLayers, LuTrendingUp, LuUser } from "react-icons/lu";
 import { homeLanguage } from "../../../data/languages";
 import { Language, Student } from "../../../interfaces";
-import { mascotForStudent } from "../../../utils/mascot";
+import { mascotForStudent, realPhoto } from "../../../utils/mascot";
 import type { TabKey } from "../../../utils/tabs";
 import MascotAvatar from "../../student/MascotAvatar";
+import { PhotoOrFallback } from "../PhotoOrFallback";
 
 const SIDE_TABS: {
   key: Exclude<TabKey, "home">;
@@ -60,7 +61,7 @@ function SideTab({
   );
 }
 
-/** Classwork · Progress · (mascot Home) · Subjects · Me */
+/** Classwork · Progress · (student's photo or mascot: Home) · Subjects · Me */
 export default function TabBar({ tab, student, language, onSelect }: Props) {
   const onHome = tab === "home";
   const homeLabel = homeLanguage.tabHome(language);
@@ -102,12 +103,20 @@ export default function TabBar({ tab, student, language, onSelect }: Props) {
         }
       >
         {student && (
-          <MascotAvatar
-            clips={mascotForStudent(student)}
-            alt=""
-            id={student.id}
-            idle={false}
+          // Their own photo; their mascot when they have none.
+          <PhotoOrFallback
+            src={realPhoto(student.photo)}
+            blurHash={student.blurHash}
             sizes="60px"
+            fallback={
+              <MascotAvatar
+                clips={mascotForStudent(student)}
+                alt=""
+                id={student.id}
+                idle={false}
+                sizes="60px"
+              />
+            }
           />
         )}
       </button>

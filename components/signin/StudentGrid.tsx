@@ -1,9 +1,8 @@
 import { LuLoader } from "react-icons/lu";
 import { subjectDataLanguage as t } from "../../data/languages";
 import { Language, StudentOnSubject } from "../../interfaces";
-import { mascotForStudentOnSubject } from "../../utils/mascot";
-import MascotAvatar from "../student/MascotAvatar";
 import { tintFor } from "./mascotAvatars";
+import { StudentAvatar } from "./StudentAvatar";
 
 type Props = {
   students: StudentOnSubject[];
@@ -40,13 +39,7 @@ export function StudentGrid({ students, lang, pendingId, onPick }: Props) {
                 className="relative h-[54px] w-[54px] rounded-full"
                 style={{ background: tintFor(student.studentId) }}
               >
-                <MascotAvatar
-                  clips={mascotForStudentOnSubject(student)}
-                  alt=""
-                  id={student.id}
-                  idle={false}
-                  sizes="54px"
-                />
+                <StudentAvatar student={student} size={54} />
               </span>
               <span className="w-full truncate text-xs font-bold text-[#383767]">
                 {student.firstName}

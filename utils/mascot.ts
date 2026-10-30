@@ -270,6 +270,11 @@ export function mascotForStudentOnSubject(entry: {
   return mascotForStudent({ id: entry.studentId, photo: entry.photo });
 }
 
+/** The student's own picture, or null when there is none or it is a mascot. */
+export function realPhoto(photo: string | null | undefined): string | null {
+  return photo && !mascotForPhoto(photo) ? photo : null;
+}
+
 export function mascotForPhoto(photo: string | undefined): MascotClips | null {
   if (!photo || !Object.hasOwn(MASCOTS, photo)) return null;
   return MASCOTS[photo];

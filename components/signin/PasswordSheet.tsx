@@ -2,18 +2,21 @@ import { useEffect, useRef, useState } from "react";
 import { LuEye, LuEyeOff, LuLock } from "react-icons/lu";
 import { subjectDataLanguage as t } from "../../data/languages";
 import { useGetLanguage } from "../../react-query";
-import { mascotForStudentOnSubject } from "../../utils/mascot";
 import { Sheet } from "../app/Sheet";
-import { SignInSheetHeader, SignInSheetMascot } from "./SignInSheetHeader";
+import { SignInSheetAvatar, SignInSheetHeader } from "./SignInSheetHeader";
 
 type Props = {
   open: boolean;
-  /** `id` is the enrolment id; `studentId` picks the mascot, as in the grid. */
+  /**
+   * `id` is the enrolment id; the photo shows, as in the grid, and with none
+   * `studentId` picks the mascot.
+   */
   student: {
     id: string;
     studentId: string;
     firstName: string;
     photo: string;
+    blurHash: string;
   } | null;
   error: string | null;
   /** Changes on every failed attempt; refocuses the field. */
@@ -66,8 +69,8 @@ export function PasswordSheet({
       ariaLabel={title || t.password(lang)}
       overlay={
         student && (
-          <SignInSheetMascot
-            clips={mascotForStudentOnSubject(student)}
+          <SignInSheetAvatar
+            student={student}
             mascotId={`password-${student.id}`}
           />
         )

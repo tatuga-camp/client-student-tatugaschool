@@ -4,7 +4,7 @@ import { defaultBlurHash } from "../../data";
 import { homeLanguage, profileLanguage } from "../../data/languages";
 import type { Language, Student } from "../../interfaces";
 import { decodeBlurhashToCanvas } from "../../utils";
-import { mascotForPhoto, mascotForStudent } from "../../utils/mascot";
+import { mascotForStudent, realPhoto } from "../../utils/mascot";
 import { useTimeOfDay } from "../../hook/useTimeOfDay";
 import { SCENE_PALETTES } from "../../utils/timeOfDay";
 import { TabHeader } from "../app/TabHeader";
@@ -32,8 +32,7 @@ export default function MeHeader({
     (Array.from(student.firstName ?? "")[0] ?? "") +
     (Array.from(student.lastName ?? "")[0] ?? "");
   // A mascot picked as the "photo" is not a picture to show here.
-  const photo =
-    student.photo && !mascotForPhoto(student.photo) ? student.photo : null;
+  const photo = realPhoto(student.photo);
   const label = profileLanguage.profilePhoto(lang);
 
   return (
