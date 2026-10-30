@@ -82,7 +82,9 @@ export default function MeTab({ subjectId, active }: TabPaneProps) {
     subjectId,
     studentId: student.data?.id ?? "",
   });
-  const careers = useGetMyCareerSuggestion();
+  // The card only shows a report the student has already opened: the request
+  // is sent when they tap it (CareerSheet), never just for visiting Me.
+  const careers = useGetMyCareerSuggestion({ enabled: false });
   const toast = React.useRef<Toast>(null);
   const fileInput = React.useRef<HTMLInputElement>(null);
   const settingsRef = React.useRef<HTMLElement>(null);
