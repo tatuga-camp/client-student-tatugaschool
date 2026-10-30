@@ -87,42 +87,50 @@ export default function AttendancePane({ subjectId, studentId }: Props) {
     );
   }
 
-  if (!table || rows.length === 0) {
+  const empty = (
+    <p className="py-10 text-center text-sm font-semibold text-[#7A80A0]">
+      {subjectHomeLanguage.noAttendance(lang)}
+    </p>
+  );
+  if (!table) return empty;
+
+  const picker = tables.length > 1 && (
+    <ul data-no-swipe className="-mx-3 flex gap-2 overflow-x-auto px-3 pb-1">
+      {tables.map((t) => {
+        const on = t.id === table.id;
+        return (
+          <li key={t.id} className="shrink-0">
+            <button
+              type="button"
+              aria-pressed={on}
+              onClick={() => setTableId(t.id)}
+              className={`max-w-[14rem] truncate rounded-[13px] border-2 border-b-4 px-3 py-1.5 text-sm font-bold ${
+                on
+                  ? "border-[#275d96] bg-primary-color text-white"
+                  : "border-[#E3E8F0] bg-white text-[#383767]"
+              }`}
+            >
+              {t.title}
+            </button>
+          </li>
+        );
+      })}
+    </ul>
+  );
+
+  // A table with no classes yet keeps the picker, so the student can leave it.
+  if (rows.length === 0) {
     return (
-      <p className="py-10 text-center text-sm font-semibold text-[#7A80A0]">
-        {subjectHomeLanguage.noAttendance(lang)}
-      </p>
+      <div className="flex flex-col gap-3 font-Anuphan">
+        {picker}
+        {empty}
+      </div>
     );
   }
 
   return (
     <div className="flex flex-col gap-3 font-Anuphan">
-      {tables.length > 1 && (
-        <ul
-          data-no-swipe
-          className="-mx-3 flex gap-2 overflow-x-auto px-3 pb-1"
-        >
-          {tables.map((t) => {
-            const on = t.id === table.id;
-            return (
-              <li key={t.id} className="shrink-0">
-                <button
-                  type="button"
-                  aria-pressed={on}
-                  onClick={() => setTableId(t.id)}
-                  className={`max-w-[14rem] truncate rounded-[13px] border-2 border-b-4 px-3 py-1.5 text-sm font-bold ${
-                    on
-                      ? "border-[#275d96] bg-primary-color text-white"
-                      : "border-[#E3E8F0] bg-white text-[#383767]"
-                  }`}
-                >
-                  {t.title}
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      )}
+      {picker}
 
       <section
         className="flex items-center gap-4 rounded-[20px] bg-success-color p-4 text-white"
