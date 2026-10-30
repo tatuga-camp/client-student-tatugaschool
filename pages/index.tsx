@@ -42,10 +42,7 @@ function Index({ subjectData, code, announcementId, error }: IndexProps) {
           name="description"
           content={`welcome to subject ${subject.data?.title} by ${subject.data?.teacherOnSubjects[0]?.firstName}`}
         />
-        <link
-          rel="manifest"
-          href={`/api/manifest?subject_code=${encodeURIComponent(code)}`}
-        />
+        {/* No manifest here: Me → Install app links one only when asked. */}
         <meta name="theme-color" content="#2C7CD1" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta

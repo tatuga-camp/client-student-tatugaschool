@@ -3,6 +3,7 @@ import {
   LuBellRing,
   LuCamera,
   LuChevronRight,
+  LuDownload,
   LuHelpCircle,
   LuExternalLink,
   LuGlobe,
@@ -63,6 +64,8 @@ type Props = {
   onEditPhoto: () => void;
   onChangePassword: () => void;
   onOpenNotifications: () => void;
+  /** Left out inside the installed app, which hides the row. */
+  onInstallApp?: () => void;
   onLogout: () => void;
 };
 
@@ -75,6 +78,7 @@ export default function SettingsList({
   onEditPhoto,
   onChangePassword,
   onOpenNotifications,
+  onInstallApp,
   onLogout,
 }: Props) {
   const updateLanguage = useUpdateLanguage();
@@ -161,6 +165,15 @@ export default function SettingsList({
           </small>
           <Chevron />
         </button>
+        {onInstallApp && (
+          <button type="button" onClick={onInstallApp} className={ROW}>
+            <Tile tone="pink">
+              <LuDownload />
+            </Tile>
+            <span className="flex-1">{profileLanguage.installApp(lang)}</span>
+            <Chevron />
+          </button>
+        )}
         <a
           href={HELP_URL}
           target="_blank"
