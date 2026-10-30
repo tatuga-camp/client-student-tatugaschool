@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  doneAtLabel,
   newNoteTitle,
   noteCloseAction,
   shouldSubmitAfterUpload,
@@ -284,7 +285,10 @@ test("a new note is named one past the notes already there", () => {
 
 test("a new note's name skips a number another note goes by", () => {
   // Note 2 was deleted: two notes are left, but one is already "Note 3".
-  assert.equal(newNoteTitle([note("Note 1"), note("Note 3")], "Note"), "Note 4");
+  assert.equal(
+    newNoteTitle([note("Note 1"), note("Note 3")], "Note"),
+    "Note 4",
+  );
 });
 
 const uploadText = {
@@ -325,4 +329,10 @@ test("the other known upload failures map to their TH/EN lines", () => {
 test("a server reply passes through unchanged (workError makes it TH/EN)", () => {
   const reply = { message: "Forbidden", error: "Forbidden", statusCode: 403 };
   assert.equal(uploadFailure(reply, uploadText), reply);
+});
+
+test("doneAtLabel shows the day of a turn-in, and nothing without one", () => {
+  assert.equal(doneAtLabel(undefined), null);
+  assert.equal(doneAtLabel(null), null);
+  assert.match(doneAtLabel("2026-05-03T07:05:00Z") ?? "", /\b[34]\b/);
 });

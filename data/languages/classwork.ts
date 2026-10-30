@@ -325,6 +325,13 @@ export const assignmentPageLanguage = {
   ),
   tryAgain: t("Try again", "ลองอีกครั้ง"),
   submitting: t("Saving…", "กำลังบันทึก…"),
+  videoLeaveTitle: t("Submit your score before you go?", "ส่งคะแนนก่อนออกไหม?"),
+  videoLeaveBody: (l: Language, correct: number, total: number) =>
+    l === "th"
+      ? `ตอนนี้คุณตอบถูก ${correct} จาก ${total} ข้อ ถ้าออกตอนนี้ คะแนนนี้จะถูกส่งเป็นคะแนนสุดท้าย`
+      : `You have ${correct} of ${total} right so far. Leaving now submits this as your final score.`,
+  submitAndLeave: t("Submit and leave", "ส่งคะแนนแล้วออก"),
+  keepWatching: t("Keep watching", "ดูต่อ"),
   noSkipping: t("No skipping", "ห้ามข้าม"),
   volume: t("Volume", "ระดับเสียง"),
   discardNoteTitle: t("Discard your note?", "ทิ้งบันทึกของคุณ?"),
