@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  newNoteTitle,
   noteCloseAction,
   shouldSubmitAfterUpload,
   formatScore,
@@ -266,6 +267,24 @@ test("shouldSubmitAfterUpload turns in only when every upload landed in time", (
 test("noteCloseAction confirms only a dirty draft", () => {
   assert.equal(noteCloseAction(false), "close");
   assert.equal(noteCloseAction(true), "confirm");
+});
+
+const note = (name: string | null) => ({ contentType: "TEXT" as const, name });
+
+test("a new note is named one past the notes already there", () => {
+  assert.equal(newNoteTitle([], "Note"), "Note 1");
+  assert.equal(
+    newNoteTitle(
+      [note("Essay"), note(null), { contentType: "FILE", name: "a.png" }],
+      "บันทึก",
+    ),
+    "บันทึก 3",
+  );
+});
+
+test("a new note's name skips a number another note goes by", () => {
+  // Note 2 was deleted: two notes are left, but one is already "Note 3".
+  assert.equal(newNoteTitle([note("Note 1"), note("Note 3")], "Note"), "Note 4");
 });
 
 const uploadText = {
