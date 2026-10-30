@@ -9,6 +9,26 @@ import {
 } from "../../services";
 
 declare const tinymce: TinyMCE;
+// The context menu is built in since TinyMCE 5: no plugin to load for it.
+const ALL_PLUGINS = [
+  "advlist",
+  "autolink",
+  "lists",
+  "link",
+  "charmap",
+  "preview",
+  "anchor",
+  "searchreplace",
+  "visualblocks",
+  "code",
+  "fullscreen",
+  "insertdatetime",
+  "media",
+  "table",
+  "help",
+  "image",
+  "wordcount",
+];
 type Props = {
   value: string;
   onChange: (content: string) => void;
@@ -25,6 +45,9 @@ type Props = {
   onReady?: (content: string) => void;
   /** What screen readers call the editing area (TinyMCE's is English). */
   ariaText?: string;
+  /** TinyMCE fetches each plugin as its own script: pass only what the
+   *  toolbar uses (default: the full set). */
+  plugins?: string[];
 };
 function TextEditor({
   value,
@@ -35,6 +58,7 @@ function TextEditor({
   statusbar,
   onReady,
   ariaText,
+  plugins = ALL_PLUGINS,
   menubar = true,
   toolbar = "undo redo | formatselect | blocks | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | image | link",
 }: Props) {
@@ -107,27 +131,7 @@ function TextEditor({
 
             input.click();
           },
-          plugins: [
-            "contextmenu",
-            "advlist",
-            "autolink",
-            "lists",
-            "link",
-            "charmap",
-            "preview",
-            "anchor",
-            "searchreplace",
-            "visualblocks",
-            "code",
-            "fullscreen",
-            "insertdatetime",
-            "media",
-            "table",
-            "help",
-            "image",
-            "wordcount",
-            ...(autoHeight ? ["autoresize"] : []),
-          ],
+          plugins: [...plugins, ...(autoHeight ? ["autoresize"] : [])],
           contextmenu:
             "paste | link  inserttable | cell row column deletetable",
 

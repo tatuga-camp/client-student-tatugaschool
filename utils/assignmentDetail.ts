@@ -151,6 +151,21 @@ export function noteCloseAction(dirty: boolean): "close" | "confirm" {
   return dirty ? "confirm" : "close";
 }
 
+/**
+ * A new note's title, so the student needn't type one: "Note 3" when two
+ * notes are there, moving past a number another note already goes by.
+ */
+export function newNoteTitle(
+  files: { contentType: StudentAssignmentContentType; name: string | null }[],
+  label: string,
+): string {
+  const notes = files.filter((f) => f.contentType === "TEXT");
+  const taken = new Set(notes.map((f) => f.name?.trim()));
+  let n = notes.length + 1;
+  while (taken.has(`${label} ${n}`)) n++;
+  return `${label} ${n}`;
+}
+
 /** A score as the student sees it: up to 2 decimals, none when whole. */
 export function formatScore(score: number): string {
   return String(Number(score.toFixed(2)));
