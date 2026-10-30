@@ -57,6 +57,9 @@ export function useVideoQuiz({
     null,
   );
   const [selected, setSelected] = useState<number | null>(null);
+  // Answered since the start (or a retry or a submit); the question on screen
+  // counts as soon as it is answered.
+  const answeredCount = answered.length + (feedback ? 1 : 0);
   const resumeTimer = useRef<number | undefined>(undefined);
 
   // One surface over the uploaded <video> and the YouTube player.
@@ -244,6 +247,7 @@ export function useVideoQuiz({
     feedback,
     selected,
     correct,
+    answeredCount,
     showEnd,
     togglePlay,
     seekTo,

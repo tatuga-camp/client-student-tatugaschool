@@ -11,6 +11,7 @@ import {
   StudentAssignmentStatus,
   StudentOnAssignment,
 } from "../interfaces";
+import { getAccessToken } from "../utils/cookie";
 import createAxiosInstance from "./apiService";
 
 const axiosInstance = createAxiosInstance();
@@ -96,6 +97,34 @@ export async function UpdateWorkService(
     console.error("UpdateStudent request failed:", error.response.data);
     throw error?.response?.data;
   }
+}
+
+/**
+ * UpdateWorkService for a page that is closing: a keepalive fetch outlives
+ * the page, and unlike sendBeacon it carries the Bearer header. Resolves
+ * true when the server took it.
+ */
+export function sendWorkKeepalive(
+  input: RequestUpdateWorkService,
+): Promise<boolean> {
+  const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL ?? "";
+  const { access_token } = getAccessToken();
+  if (!serverUrl || !access_token) return Promise.resolve(false);
+  const url = new URL(
+    "v1/student-on-assignments/student",
+    serverUrl.endsWith("/") ? serverUrl : `${serverUrl}/`,
+  );
+  return fetch(url.toString(), {
+    method: "PATCH",
+    keepalive: true,
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${access_token}`,
+    },
+    body: JSON.stringify(input),
+  })
+    .then((res) => res.ok)
+    .catch(() => false);
 }
 
 type RequestGetFileOnStudentAssignmentService = {

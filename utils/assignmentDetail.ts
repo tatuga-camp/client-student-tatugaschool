@@ -166,6 +166,18 @@ export function newNoteTitle(
   return `${label} ${n}`;
 }
 
+/** When the work was marked done, in the device's locale ("May 3, 2:05 PM"). */
+export function doneAtLabel(completedAt: string | null | undefined) {
+  return completedAt
+    ? new Date(completedAt).toLocaleString(undefined, {
+        minute: "numeric",
+        hour: "numeric",
+        day: "numeric",
+        month: "long",
+      })
+    : null;
+}
+
 /** A score as the student sees it: up to 2 decimals, none when whole. */
 export function formatScore(score: number): string {
   return String(Number(score.toFixed(2)));

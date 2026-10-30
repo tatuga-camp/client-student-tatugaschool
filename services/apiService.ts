@@ -148,7 +148,8 @@ const createAxiosInstance = () => {
   return instance;
 };
 
-const isTokenExpired = (token: string) => {
+/** Expired, or expiring within `leewaySeconds`. */
+const isTokenExpired = (token: string, leewaySeconds = 0) => {
   if (!token) return true;
   try {
     const [, payload] = token.split(".");
@@ -163,10 +164,26 @@ const isTokenExpired = (token: string) => {
 
     // Optional: Add a 10-second buffer to prevent clock skew issues
     // if you really want to keep the client-side check.
-    return Math.floor(Date.now() / 1000) >= exp;
+    return Math.floor(Date.now() / 1000) + leewaySeconds >= exp;
   } catch (error) {
     console.log("error decoding token", error);
     return true; // Assume expired if we can't decode
   }
+};
+
+/**
+ * Refreshes the access token when it has under `seconds` left. For a page
+ * that must send on hide: a keepalive request can't refresh first, and the
+ * student token lives minutes while a playing video sends nothing.
+ */
+export const refreshAccessTokenWithin = async (seconds: number) => {
+  const { access_token } = getAccessToken();
+  if (access_token && !isTokenExpired(access_token, seconds)) return;
+  const { refresh_token } = getRefetchtoken();
+  if (!refresh_token || isTokenExpired(refresh_token)) return;
+  const { accessToken } = await StudentRefetchTokenService({
+    refreshToken: refresh_token,
+  });
+  setAccessToken({ access_token: accessToken });
 };
 export default createAxiosInstance;

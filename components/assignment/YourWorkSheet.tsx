@@ -25,9 +25,11 @@ import { hasUnconfirmedWork } from "../../utils";
 import Swal from "../../utils/appSwal";
 import { withTimeout } from "../../utils/withTimeout";
 import {
+  doneAtLabel,
   shouldSubmitAfterUpload,
   yourWorkMode,
 } from "../../utils/assignmentDetail";
+import { turnInBody, type UnsentVideo } from "../../utils/videoQuiz";
 import { useDetailActive } from "../app/shell/DetailActive";
 import { Sheet } from "../app/Sheet";
 import { useStudentFileUpload } from "../subject/AssignmentUploadFile";
@@ -48,6 +50,9 @@ type Props = {
   onTurnedIn: (info: { itemCount: number }) => void;
   /** Hide the peek (a video is playing or a question is open). */
   hidden?: boolean;
+  /** Video quiz answers not turned in: Mark as done (or Submit in the leave
+   *  guard, which then has no Leave anyway) sends their score as final. */
+  video?: UnsentVideo | null;
 };
 
 /** How long the guard's "Mark as done" waits for an upload before giving up. */
@@ -68,6 +73,7 @@ export default function YourWorkSheet({
   subject,
   onTurnedIn,
   hidden = false,
+  video = null,
 }: Props) {
   const language = useGetLanguage();
   const lang = language.data ?? "en";
@@ -106,7 +112,7 @@ export default function YourWorkSheet({
     try {
       await updateWork.mutateAsync({
         query: { studentOnAssignmentId: soa.id },
-        body: { status },
+        body: turnInBody(status, video),
       });
       // The list refetch lags a moment; until it lands, don't ask again.
       setJustSubmitted(status === "SUBMITTED");
@@ -179,8 +185,8 @@ export default function YourWorkSheet({
   }, []);
   // A page on its way out (after Leave anyway) must not guard anything.
   const active = useDetailActive();
-  const guardEnabled =
-    active && (unconfirmed || uploading) && !justSubmitted && !marking;
+  const unsent = unconfirmed || uploading || !!video;
+  const guardEnabled = active && unsent && !justSubmitted && !marking;
   // Nothing left to protect (e.g. the upload failed before any item landed)
   // while the question is open: the student asked to leave, so let them.
   useEffect(() => {
@@ -268,14 +274,7 @@ export default function YourWorkSheet({
         : assignmentPageLanguage.nothingAdded(lang)}
     </span>
   );
-  const doneAt = soa.completedAt
-    ? new Date(soa.completedAt).toLocaleString(undefined, {
-        minute: "numeric",
-        hour: "numeric",
-        day: "numeric",
-        month: "long",
-      })
-    : null;
+  const doneAt = doneAtLabel(soa.completedAt);
 
   const doneButtonFor = (className: string) => (
     <button
@@ -477,6 +476,7 @@ export default function YourWorkSheet({
         open={guardOpen}
         busy={guardBusy}
         submitDisabled={updateWork.isPending}
+        video={video}
         onChoose={choose}
       />
       <NoteSheet

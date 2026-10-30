@@ -9,6 +9,7 @@ import {
   exitFullscreen,
   getFullscreenElement,
 } from "../../../utils/fullscreen";
+import { videoQuizScore } from "../../../utils/videoQuiz";
 import YouTubeEmbed from "../../common/YouTubeEmbed";
 import { useIsFramed } from "../../app/useIsFramed";
 import VideoControls from "./VideoControls";
@@ -31,6 +32,13 @@ type Props = {
     questionOpen: boolean;
     expanded: boolean;
   }) => void;
+  /** The result so far: after each answer, and back to none on a retry or
+   *  a submit. */
+  onProgress?: (p: {
+    answered: number;
+    correct: number;
+    score: number;
+  }) => void;
 };
 
 /**
@@ -48,6 +56,7 @@ export default function VideoQuizPlayer({
   onSubmit,
   onNext,
   onStateChange,
+  onProgress,
 }: Props) {
   const language = useGetLanguage();
   const lang = language.data ?? "en";
@@ -102,6 +111,21 @@ export default function VideoQuizPlayer({
       expanded: full,
     });
   }, [quiz.playing, quiz.question, full, onStateChange]);
+
+  // The page turns this in if the student leaves before the end screen.
+  useEffect(() => {
+    onProgress?.({
+      answered: quiz.answeredCount,
+      correct: quiz.correct,
+      score: videoQuizScore(maxScore, questions.length, quiz.correct),
+    });
+  }, [
+    quiz.answeredCount,
+    quiz.correct,
+    maxScore,
+    questions.length,
+    onProgress,
+  ]);
 
   // A question opens over the whole phone screen (video and seek bar stay
   // above the sheet); it collapses again afterwards unless the student

@@ -34,7 +34,10 @@ import VideoQuizPlayer from "./video/VideoQuizPlayer";
 import TeacherFiles from "./TeacherFiles";
 import TitleCard from "./TitleCard";
 import { useDetailFocus } from "./useDetailFocus";
+import { refreshAccessTokenWithin } from "../../services/apiService";
+import { sendWorkKeepalive } from "../../services/assignment";
 import { classworkBack } from "../../utils/tabs";
+import { unsentVideo, videoQuizSubmission } from "../../utils/videoQuiz";
 import { withTimeout } from "../../utils/withTimeout";
 import { workError } from "./workFeedback";
 import YourWorkSheet from "./YourWorkSheet";
@@ -108,7 +111,7 @@ export default function AssignmentDetail({
       const result = await withTimeout(
         updateWork.mutateAsync({
           query: { studentOnAssignmentId: assignment.studentOnAssignment.id },
-          body: { status: "REVIEWD", score: Number(score.toFixed(2)) },
+          body: videoQuizSubmission(score),
         }),
         30_000,
       );
@@ -127,6 +130,46 @@ export default function AssignmentDetail({
       return false;
     }
   };
+  // Video quiz answers not turned in yet. Leaving asks to submit them
+  // (YourWorkSheet's guard); closing the page can't ask, so it sends them.
+  const [videoProgress, setVideoProgress] = useState({
+    answered: 0,
+    correct: 0,
+    score: 0,
+  });
+  const unsent = assignment
+    ? unsentVideo({
+        status: assignment.studentOnAssignment.status,
+        total: assignment.questions?.length ?? 0,
+        ...videoProgress,
+      })
+    : null;
+  const unsentRef = useRef(unsent);
+  unsentRef.current = unsent;
+  const hasUnsent = unsent !== null;
+  const soaId = assignment?.studentOnAssignment.id;
+  useEffect(() => {
+    if (!hasUnsent || !soaId) return;
+    // The send on page hide can't refresh the token, which lives minutes.
+    const keepFresh = () => {
+      refreshAccessTokenWithin(90).catch(() => {});
+    };
+    keepFresh();
+    const timer = window.setInterval(keepFresh, 60_000);
+    const onPageHide = () => {
+      const video = unsentRef.current;
+      if (!video) return;
+      void sendWorkKeepalive({
+        query: { studentOnAssignmentId: soaId },
+        body: videoQuizSubmission(video.score),
+      });
+    };
+    window.addEventListener("pagehide", onPageHide);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener("pagehide", onPageHide);
+    };
+  }, [hasUnsent, soaId]);
   const reviewed =
     !!assignment &&
     assignment.type !== "Material" &&
@@ -177,6 +220,7 @@ export default function AssignmentDetail({
                   onSubmit={submitVideoScore}
                   onNext={next ? () => nav.openAssignment(next.id) : undefined}
                   onStateChange={setVideoState}
+                  onProgress={setVideoProgress}
                 />
               )}
               {reviewed && subject.data && student.data && (
@@ -243,6 +287,7 @@ export default function AssignmentDetail({
       {assignment && (
         <YourWorkSheet
           assignment={assignment}
+          video={unsent}
           hidden={
             videoState.playing || videoState.questionOpen || videoState.expanded
           }

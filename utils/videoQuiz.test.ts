@@ -4,7 +4,10 @@ import {
   canSeekTo,
   dueQuestion,
   shouldRewind,
+  turnInBody,
+  unsentVideo,
   videoQuizScore,
+  videoQuizSubmission,
 } from "./videoQuiz";
 
 const questions = [
@@ -48,4 +51,39 @@ test("shouldRewind catches a jump past what was watched, only while locked", () 
     shouldRewind({ ...base, now: 60, preventFastForward: false }),
     false,
   );
+});
+
+test("a video quiz score goes in as final, to 2 decimals", () => {
+  assert.deepEqual(videoQuizSubmission(10 / 3), {
+    status: "REVIEWD",
+    score: 3.33,
+  });
+});
+
+const progress = { answered: 2, correct: 1, total: 5, score: 2 };
+
+test("answers given and not turned in are unsent, until reviewed", () => {
+  assert.deepEqual(unsentVideo({ ...progress, status: "PENDDING" }), {
+    correct: 1,
+    total: 5,
+    score: 2,
+  });
+  // Marked done earlier without a score: the answers still need sending.
+  assert.notEqual(unsentVideo({ ...progress, status: "SUBMITTED" }), null);
+  assert.equal(unsentVideo({ ...progress, status: "REVIEWD" }), null);
+  assert.equal(
+    unsentVideo({ ...progress, answered: 0, correct: 0, status: "PENDDING" }),
+    null,
+  );
+});
+
+test("turning in a video quiz with answers sends its score, not SUBMITTED", () => {
+  const video = { correct: 1, total: 5, score: 2 };
+  assert.deepEqual(turnInBody("SUBMITTED", video), {
+    status: "REVIEWD",
+    score: 2,
+  });
+  assert.deepEqual(turnInBody("SUBMITTED", null), { status: "SUBMITTED" });
+  // Undoing a turn-in never carries a score.
+  assert.deepEqual(turnInBody("PENDDING", video), { status: "PENDDING" });
 });
