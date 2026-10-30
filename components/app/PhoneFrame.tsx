@@ -16,8 +16,9 @@ export { OVERLAY_ROOT_ID, isFrameExcluded };
 // laid out by this CSS, not by JS: the server can't know the screen's width,
 // so its markup must already be framed on a wide screen and full-screen on a
 // phone. `--screen-h` is the screen's height; pages sized with `dvh` get
-// `--app-dvh` instead of the window (styles/globals.css). No quotes or
-// ampersands in it: React escapes them in a <style>'s server-rendered text.
+// `--app-dvh` instead of the window (styles/globals.css). No quotes,
+// ampersands, < or > in it (so no child combinators): React escapes them in a
+// <style>'s server-rendered text.
 const PAGE_CSS = `
 html, body { height: 100%; overflow: hidden; }
 .app-frame { position: relative; overflow: hidden; height: 100dvh; }
