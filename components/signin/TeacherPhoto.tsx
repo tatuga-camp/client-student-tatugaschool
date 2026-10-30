@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { defaultBlurHash } from "../../data";
 import { TeacherOnSubject } from "../../interfaces";
 import { decodeBlurhashToCanvas } from "../../utils";
@@ -12,11 +12,17 @@ export function TeacherPhoto({ teacher, size }: Props) {
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
   const failed = failedSrc === teacher.photo;
   // The blur is drawn on a canvas, which the server doesn't have: made after
-  // mount, so the server's markup and the first client render agree.
+  // mount, so the server's markup and the first client render agree. It is
+  // only for a photo still loading: one that is already there (cached, or
+  // loaded before hydration) gets none, and the blur goes once it loads.
+  const imgRef = useRef<HTMLImageElement>(null);
+  const [loadedSrc, setLoadedSrc] = useState<string | null>(null);
   const [blur, setBlur] = useState<string | null>(null);
   useEffect(() => {
+    if (imgRef.current?.complete) return;
     setBlur(decodeBlurhashToCanvas(teacher.blurHash ?? defaultBlurHash));
-  }, [teacher.blurHash]);
+  }, [teacher.photo, teacher.blurHash]);
+  const showBlur = blur !== null && loadedSrc !== teacher.photo;
   if (failed || !teacher.photo) {
     const small = size < 32;
     const initials = small
@@ -33,13 +39,15 @@ export function TeacherPhoto({ teacher, size }: Props) {
   }
   return (
     <Image
+      ref={imgRef}
       src={teacher.photo}
       alt=""
       fill
       sizes={`${size}px`}
-      placeholder={blur ? "blur" : "empty"}
-      blurDataURL={blur ?? undefined}
+      placeholder={showBlur ? "blur" : "empty"}
+      blurDataURL={showBlur ? blur : undefined}
       className="object-cover"
+      onLoad={() => setLoadedSrc(teacher.photo)}
       onError={() => setFailedSrc(teacher.photo)}
     />
   );
