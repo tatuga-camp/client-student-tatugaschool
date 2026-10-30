@@ -104,7 +104,21 @@ export function PhoneFrame({
     router.events.on("routeChangeComplete", onDone);
     return () => router.events.off("routeChangeComplete", onDone);
   }, [router.events, router.asPath]);
-  if (isFrameExcluded(router.pathname)) return <>{children}</>;
+  if (isFrameExcluded(router.pathname)) {
+    // Full width, but kept clear of a notch (the viewport covers it) and
+    // still holding the overlay root, which SweetAlert needs to open.
+    return (
+      <div
+        style={{
+          paddingTop: "env(safe-area-inset-top)",
+          paddingBottom: "env(safe-area-inset-bottom)",
+        }}
+      >
+        {children}
+        <div id={OVERLAY_ROOT_ID} />
+      </div>
+    );
+  }
 
   const content = scroll ? (
     <div

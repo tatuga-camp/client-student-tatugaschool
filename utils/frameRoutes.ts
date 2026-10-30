@@ -1,5 +1,10 @@
-// Big-screen routes keep their full-width layout: no phone frame.
-const EXCLUDED_PREFIXES = ["/word-cloud/results", "/progress/"];
+// No phone frame: the big-screen routes keep their full-width layout, and a
+// quiz runs full screen, as it always has.
+const EXCLUDED_PREFIXES = [
+  "/word-cloud/results",
+  "/progress/",
+  "/subject/[subjectId]/quiz/",
+];
 
 export function isFrameExcluded(pathname: string): boolean {
   return EXCLUDED_PREFIXES.some((prefix) => pathname.startsWith(prefix));

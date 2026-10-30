@@ -18,9 +18,15 @@ test("phoneHandoffUrl targets the welcome/home page, the subject join link, or /
   );
 });
 
-test("isFrameExcluded skips the big-screen routes only", () => {
+test("isFrameExcluded skips the big-screen routes and the quiz only", () => {
   assert.equal(isFrameExcluded("/word-cloud/results/[token]"), true);
   assert.equal(isFrameExcluded("/progress/[token]"), true);
+  assert.equal(isFrameExcluded("/subject/[subjectId]/quiz/[assignmentId]"), true);
   assert.equal(isFrameExcluded("/word-cloud/[wordCloudId]"), false);
+  assert.equal(isFrameExcluded("/subject/[subjectId]"), false);
+  assert.equal(
+    isFrameExcluded("/subject/[subjectId]/assignment/[assignmentId]"),
+    false,
+  );
   assert.equal(isFrameExcluded("/"), false);
 });
