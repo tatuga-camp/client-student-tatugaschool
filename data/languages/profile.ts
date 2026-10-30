@@ -44,6 +44,37 @@ export const profileLanguage = {
     pick(language, "Blocked", "ถูกบล็อก"),
   notificationsUnavailable: (language: Language) =>
     pick(language, "Unavailable", "ใช้ไม่ได้"),
+  installApp: (language: Language) =>
+    pick(language, "Install app", "ติดตั้งแอป"),
+  installBody: (language: Language, name: string) =>
+    pick(
+      language,
+      `Put ${name} on your home screen and open it in one tap, like any other app.`,
+      `เพิ่ม ${name} ไว้บนหน้าจอโฮม แล้วเปิดได้ในแตะเดียวเหมือนแอปทั่วไป`,
+    ),
+  install: (language: Language) => pick(language, "Install", "ติดตั้ง"),
+  installPreparing: (language: Language) =>
+    pick(language, "Getting ready…", "กำลังเตรียม…"),
+  installIosSteps: (language: Language) =>
+    pick(
+      language,
+      "Tap Share, then “Add to Home Screen”.",
+      "กดปุ่มแชร์ แล้วเลือก “เพิ่มไปยังหน้าจอโฮม”",
+    ),
+  installMenuSteps: (language: Language) =>
+    pick(
+      language,
+      "Open your browser menu (⋮) and choose “Install app” or “Add to Home screen”. Already installed? Open it from your home screen.",
+      "เปิดเมนูของเบราว์เซอร์ (⋮) แล้วเลือก “ติดตั้งแอป” หรือ “เพิ่มลงในหน้าจอหลัก” ถ้าติดตั้งไว้แล้ว เปิดได้จากหน้าจอโฮม",
+    ),
+  installedTitle: (language: Language) =>
+    pick(language, "Installed!", "ติดตั้งแล้ว!"),
+  installedBody: (language: Language) =>
+    pick(
+      language,
+      "Open it from your home screen or app list.",
+      "เปิดได้จากหน้าจอโฮมหรือรายการแอป",
+    ),
   logoutTitle: (language: Language) =>
     pick(language, "Log out?", "ออกจากระบบ?"),
   logoutBody: (language: Language) =>

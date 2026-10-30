@@ -41,6 +41,7 @@ import {
 import { uploadFailure } from "../../utils/assignmentDetail";
 import { errorSwalContent } from "../../utils/errorSwal";
 import { getPushStatus, PushStatus } from "../../utils/notifications";
+import { isStandaloneApp } from "../../utils/pwaManifest";
 import { NotificationPromptSheet } from "../app/NotificationPromptSheet";
 import { Sheet } from "../app/Sheet";
 import { TAB_BODY_CLASS } from "../app/TabHeader";
@@ -49,6 +50,7 @@ import LoadingBar from "../common/LoadingBar";
 import ChangePasswordSheet from "../student/ChangePasswordSheet";
 import EditNameSheet from "../student/EditNameSheet";
 import CareerSheet from "./CareerSheet";
+import InstallAppSheet from "./InstallAppSheet";
 import MeHeader from "./MeHeader";
 import PhotoEditorSheet from "./PhotoEditorSheet";
 import SettingsList from "./SettingsList";
@@ -89,18 +91,27 @@ export default function MeTab({ subjectId, active }: TabPaneProps) {
   const fileInput = React.useRef<HTMLInputElement>(null);
   const settingsRef = React.useRef<HTMLElement>(null);
   const [sheet, setSheet] = React.useState<
-    "name" | "password" | "career" | "notifications" | "logout" | null
+    | "name"
+    | "password"
+    | "career"
+    | "notifications"
+    | "install"
+    | "logout"
+    | null
   >(null);
   const [photoFile, setPhotoFile] = React.useState<File | null>(null);
   const [uploading, setUploading] = React.useState(false);
   const [loggingOut, setLoggingOut] = React.useState(false);
   const [pushStatus, setPushStatus] = React.useState<PushStatus | null>(null);
+  const [inApp, setInApp] = React.useState(false);
 
   // Read after mount (and after the notifications sheet closes): the status
   // comes from the browser, so the server render can't know it.
   React.useEffect(() => {
     if (sheet !== "notifications") setPushStatus(getPushStatus());
   }, [sheet]);
+
+  React.useEffect(() => setInApp(isStandaloneApp()), []);
 
   const completion = React.useMemo(
     () => calculateSubmissionCompletion(assignments.data ?? []),
@@ -332,6 +343,8 @@ export default function MeTab({ subjectId, active }: TabPaneProps) {
             onEditPhoto={pick}
             onChangePassword={() => setSheet("password")}
             onOpenNotifications={() => setSheet("notifications")}
+            // Inside the installed app there's nothing left to install.
+            onInstallApp={inApp ? undefined : () => setSheet("install")}
             onLogout={() => setSheet("logout")}
           />
         </div>
@@ -364,6 +377,12 @@ export default function MeTab({ subjectId, active }: TabPaneProps) {
       <NotificationPromptSheet
         forceOpen={sheet === "notifications"}
         onClose={closeSheet}
+      />
+      <InstallAppSheet
+        open={sheet === "install"}
+        onClose={closeSheet}
+        subjectId={subjectId}
+        lang={lang}
       />
       <Sheet
         open={sheet === "logout"}
