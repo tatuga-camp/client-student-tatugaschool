@@ -1,6 +1,8 @@
 import { Password as PasswordPrimereact } from "primereact/password";
 import { classNames } from "primereact/utils";
 import { ChangeEventHandler, LegacyRef } from "react";
+import { profileLanguage, subjectDataLanguage } from "../../data/languages";
+import { useGetLanguage } from "../../react-query";
 
 type Props = {
   toggleMask?: boolean;
@@ -26,12 +28,14 @@ const TRANSITIONS = {
   },
 };
 function Password(props: Props) {
+  const language = useGetLanguage();
+  const lang = language.data ?? "en";
   return (
     <PasswordPrimereact
       ref={props.inputRef}
       placeholder={props.placeholder}
       name={props.name}
-      title="Password"
+      title={profileLanguage.password(lang)}
       required={props.required}
       value={props.value}
       feedback={props.feedback}
@@ -76,12 +80,14 @@ function Password(props: Props) {
             ),
           };
         },
+        // Labelled here, not through PrimeReact's global locale.
         showIcon(options) {
           return {
             className: classNames(
               "absolute top-1/2 -mt-2",
               "right-3 text-gray-600 ",
             ),
+            "aria-label": subjectDataLanguage.showPassword(lang),
           };
         },
         hideIcon(options) {
@@ -90,6 +96,7 @@ function Password(props: Props) {
               "absolute top-1/2 -mt-2",
               "right-3 text-gray-600 ",
             ),
+            "aria-label": subjectDataLanguage.hidePassword(lang),
           };
         },
         transition: TRANSITIONS.overlay as any,

@@ -1,9 +1,5 @@
 import React from "react";
-import Swal from "sweetalert2";
 import {
-  UnreadableFileError,
-  UploadNetworkError,
-  errorSwalContent,
   generateBlurHash,
   overallUploadPercent,
   snapshotFileForUpload,
@@ -12,50 +8,54 @@ import {
   getSignedURLStudentService,
   UploadSignURLWithProgressService,
 } from "../../services";
-import { Toast } from "primereact/toast";
-import { classworkDataLanguage } from "../../data/languages";
+import {
+  assignmentPageLanguage,
+  classworkDataLanguage,
+} from "../../data/languages";
 import {
   useCreateFileStudentAssignment,
   useGetLanguage,
 } from "../../react-query";
-import { ProgressBar } from "primereact/progressbar";
-import { FcUpload } from "react-icons/fc";
-import { IoMdClose } from "react-icons/io";
+import {
+  initialUploadProgress,
+  uploadFailure,
+} from "../../utils/assignmentDetail";
+import { workError, workToast } from "../assignment/workFeedback";
 
-type Props = {
-  studentOnAssignmentId: string;
-  toast: React.RefObject<Toast>;
-  schoolId: string;
-  onClose: () => void;
+export type UploadProgress = {
+  percent: number;
+  index: number;
+  count: number;
 };
-function AssignmentUploadFile({
+
+/**
+ * The student upload pipeline: snapshot the picked files, upload each through
+ * a signed URL with overall progress, then record it on the assignment.
+ * `upload` never rejects; failures show a TH/EN alert and `uploading` resets.
+ */
+export function useStudentFileUpload({
   studentOnAssignmentId,
-  toast,
   schoolId,
-  onClose,
-}: Props) {
-  const [loading, setLoading] = React.useState(false);
+}: {
+  studentOnAssignmentId: string;
+  schoolId: string;
+}) {
+  const [uploading, setUploading] = React.useState(false);
+  const [progress, setProgress] = React.useState<UploadProgress | null>(null);
   const language = useGetLanguage();
-  const [progress, setProgress] = React.useState<{
-    percent: number;
-    index: number;
-    count: number;
-  } | null>(null);
+  const lang = language.data ?? "en";
   const createFile = useCreateFileStudentAssignment();
 
-  const handleUploadFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const upload = async (files: File[]): Promise<boolean> => {
+    if (files.length === 0) return false;
     try {
-      const files = e.target.files;
-      if (!files) {
-        return;
-      }
-      setLoading(true);
-      const filesArray = Array.from(files);
+      setUploading(true);
+      setProgress(initialUploadProgress(files.length));
       // Copy the picked files into memory right away: on Android the File
       // handles from the picker can go stale before the upload starts,
       // which aborts the request as a network error.
       const uploads: { name: string; type: string; data: Blob }[] = [];
-      for (const file of filesArray) {
+      for (const file of files) {
         uploads.push({
           name: file.name,
           type: file.type,
@@ -73,7 +73,7 @@ function AssignmentUploadFile({
           fileSize: u.data.size,
         });
 
-        const upload = await UploadSignURLWithProgressService({
+        await UploadSignURLWithProgressService({
           contentType: u.type,
           file: u.data,
           signURL: signURL.signURL,
@@ -107,81 +107,23 @@ function AssignmentUploadFile({
           contentType: "FILE",
         });
       }
-      setProgress(null);
-      setLoading(false);
-      toast.current?.show({
-        severity: "success",
-        summary: "Success",
-        detail: "File uploaded successfully",
-        life: 3000,
-      });
-      onClose();
+      workToast(assignmentPageLanguage.fileUploaded(lang));
+      return true;
     } catch (error) {
+      workError(
+        uploadFailure(error, {
+          network: classworkDataLanguage.uploadNetworkError(lang),
+          unreadable: classworkDataLanguage.uploadFileUnreadable(lang),
+          rejected: assignmentPageLanguage.uploadRejected(lang),
+        }),
+        lang,
+      );
+      return false;
+    } finally {
       setProgress(null);
-      setLoading(false);
-      const displayError =
-        error instanceof UploadNetworkError
-          ? new Error(
-              classworkDataLanguage.uploadNetworkError(language.data ?? "en"),
-            )
-          : error instanceof UnreadableFileError
-            ? new Error(
-                classworkDataLanguage.uploadFileUnreadable(
-                  language.data ?? "en",
-                ),
-              )
-            : error;
-      Swal.fire({
-        ...errorSwalContent(displayError),
-        icon: "error",
-      });
+      setUploading(false);
     }
   };
-  return (
-    <form className="flex h-max w-96 flex-col gap-2 rounded-2xl bg-white p-5">
-      <div className="flex w-full justify-end">
-        <button
-          type="button"
-          disabled={loading}
-          onClick={() => onClose()}
-          className="flex h-6 w-6 items-center justify-center rounded text-lg font-semibold hover:bg-gray-300/50 disabled:opacity-40"
-        >
-          <IoMdClose />
-        </button>
-      </div>
-      <h3 className="flex gap-2">
-        Upload File <FcUpload />{" "}
-      </h3>
-      {loading && progress && (
-        <div className="flex flex-col gap-1">
-          <span className="text-sm text-gray-600">
-            {classworkDataLanguage.uploading(language.data ?? "en")}{" "}
-            {progress.index}/{progress.count} — {Math.round(progress.percent)}%
-          </span>
-          <ProgressBar
-            value={Math.round(progress.percent)}
-            showValue={false}
-            style={{ height: "10px" }}
-          />
-        </div>
-      )}
-      {loading && !progress && (
-        <ProgressBar mode="indeterminate" style={{ height: "6px" }} />
-      )}
-      <label className="main-button cursor-pointer">
-        <div className="flex w-full items-center justify-center">upload</div>
-        <input
-          disabled={loading}
-          onChange={handleUploadFiles}
-          onClick={(e) => {
-            e.currentTarget.value = "";
-          }}
-          type="file"
-          className="hidden"
-          multiple
-        />
-      </label>
-    </form>
-  );
+
+  return { upload, uploading, progress };
 }
-export default AssignmentUploadFile;

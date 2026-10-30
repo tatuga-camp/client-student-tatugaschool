@@ -1,6 +1,8 @@
 import { Editor } from "@tinymce/tinymce-react";
 import React, { memo } from "react";
 import { TinyMCE } from "tinymce";
+import { requestDataLanguage } from "../../data/languages";
+import { useGetLanguage } from "../../react-query";
 import {
   getSignedURLStudentService,
   UploadSignURLService,
@@ -14,22 +16,44 @@ type Props = {
   schoolId: string;
   toolbar?: string | false;
   disabled?: boolean;
+  /** Read-only view: grows with its content, no status bar, no inner scroll. */
+  autoHeight?: boolean;
+  /** Show the status bar (default: only when not autoHeight). */
+  statusbar?: boolean;
+  /** The content as the editor holds it once ready (TinyMCE normalises it,
+   *  e.g. wraps plain text in <p>), before anyone types. */
+  onReady?: (content: string) => void;
+  /** What screen readers call the editing area (TinyMCE's is English). */
+  ariaText?: string;
 };
 function TextEditor({
   value,
   onChange,
   schoolId,
   disabled = false,
+  autoHeight = false,
+  statusbar,
+  onReady,
+  ariaText,
   menubar = true,
   toolbar = "undo redo | formatselect | blocks | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | image | link",
 }: Props) {
   const [isLoaded, setIsLoaded] = React.useState(false);
+  const language = useGetLanguage();
   return (
     <>
-      {!isLoaded && <span className="animate-pulse">Loading...</span>}
+      {!isLoaded && (
+        <span className="animate-pulse">
+          {requestDataLanguage.loading(language.data ?? "en")}
+        </span>
+      )}
       <Editor
-        onInit={() => {
+        onInit={(_event, editor) => {
+          // iframe_aria_text labels the body; outside Firefox TinyMCE titles
+          // the iframe "Rich Text Area" whatever the option says.
+          if (ariaText) editor.iframeElement?.setAttribute("title", ariaText);
           setIsLoaded(true);
+          onReady?.(editor.getContent());
         }}
         tinymceScriptSrc={"/assets/libs/tinymce/tinymce.min.js"}
         value={value}
@@ -40,8 +64,15 @@ function TextEditor({
         init={{
           object_resizing: true,
           link_context_toolbar: true,
-          height: "100%",
+          height: autoHeight ? undefined : "100%",
           width: "100%",
+          statusbar: statusbar ?? !autoHeight,
+          ...(ariaText && { iframe_aria_text: ariaText }),
+          ...(autoHeight && {
+            resize: false,
+            min_height: 40,
+            autoresize_bottom_margin: 0,
+          }),
           menubar: menubar,
           toolbar: toolbar,
 
@@ -95,6 +126,7 @@ function TextEditor({
             "help",
             "image",
             "wordcount",
+            ...(autoHeight ? ["autoresize"] : []),
           ],
           contextmenu:
             "paste | link  inserttable | cell row column deletetable",

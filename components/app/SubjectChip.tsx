@@ -1,0 +1,38 @@
+import React, { useState } from "react";
+import { LuBookOpen, LuChevronDown } from "react-icons/lu";
+import { homeLanguage } from "../../data/languages";
+import { useGetLanguage, useGetSubjectById } from "../../react-query";
+import { SubjectSwitcherSheet } from "./SubjectSwitcherSheet";
+
+/** The open subject as a chunky chip; tapping it opens the quick switcher. */
+export function SubjectChip({ subjectId }: { subjectId: string }) {
+  const subject = useGetSubjectById({ id: subjectId });
+  const language = useGetLanguage();
+  const lang = language.data ?? "en";
+  const [open, setOpen] = useState(false);
+  const title = subject.data?.title ?? "";
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        aria-haspopup="dialog"
+        aria-label={`${homeLanguage.switchSubject(lang)}: ${title}`}
+        className="relative flex h-[30px] min-w-0 items-center gap-1 rounded-[12px] border-2 border-b-4 border-[#E3E8F0] bg-white px-2 font-Anuphan text-[12px] font-bold text-icon-color [-webkit-tap-highlight-color:transparent] after:absolute after:-inset-x-2 after:-top-3.5 after:bottom-0 after:content-[''] active:translate-y-px active:border-b-2"
+      >
+        <LuBookOpen
+          aria-hidden
+          size={14}
+          className="shrink-0 text-primary-color"
+        />
+        <span className="max-w-[150px] truncate">{title || "…"}</span>
+        <LuChevronDown aria-hidden size={14} className="shrink-0" />
+      </button>
+      <SubjectSwitcherSheet
+        open={open}
+        onClose={() => setOpen(false)}
+        subjectId={subjectId}
+      />
+    </>
+  );
+}

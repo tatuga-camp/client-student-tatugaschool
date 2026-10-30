@@ -1,5 +1,4 @@
 export * from "./announcement";
-export * from "./footer";
 export * from "./subject";
 export * from "./subjects";
 export * from "./navbar";
@@ -18,3 +17,5 @@ export * from "./profile";
 export * from "./quiz";
 export * from "./subjectHome";
 export * from "./rate-limit";
+export * from "./home";
+export * from "./frame";

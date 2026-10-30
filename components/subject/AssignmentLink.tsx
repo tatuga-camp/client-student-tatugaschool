@@ -1,80 +1,69 @@
 import React from "react";
-import { useCreateFileStudentAssignment } from "../../react-query";
-import { errorSwalContent } from "../../utils";
-import Swal from "sweetalert2";
-import { ProgressSpinner } from "primereact/progressspinner";
-import { Toast } from "primereact/toast";
-import { IoMdClose } from "react-icons/io";
+import { LuLoader } from "react-icons/lu";
+import { assignmentPageLanguage } from "../../data/languages";
+import {
+  useCreateFileStudentAssignment,
+  useGetLanguage,
+} from "../../react-query";
+import { workError, workToast } from "../assignment/workFeedback";
 
 type Props = {
   studentOnAssignmentId: string;
-  toast: React.RefObject<Toast>;
   onClose: () => void;
 };
-function AssignmentLink({ studentOnAssignmentId, toast, onClose }: Props) {
+
+/** The add-link form (rendered inside LinkSheet). */
+function AssignmentLink({ studentOnAssignmentId, onClose }: Props) {
+  const language = useGetLanguage();
+  const lang = language.data ?? "en";
   const createFile = useCreateFileStudentAssignment();
   const [link, setLink] = React.useState("");
-  const handleSumit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const url = link.trim();
+    if (!url) return;
     try {
-      e.preventDefault();
       await createFile.mutateAsync({
         studentOnAssignmentId: studentOnAssignmentId,
         // type stays "link-url" so older teacher-app builds still show a link.
         type: "link-url",
-        name: link,
-        body: link,
+        name: url,
+        body: url,
         contentType: "LINK",
         size: 0,
       });
       setLink("");
-      toast.current?.show({
-        severity: "success",
-        summary: "Success",
-        detail: "Link added successfully",
-        life: 3000,
-      });
+      workToast(assignmentPageLanguage.linkAdded(lang));
       onClose();
     } catch (error) {
-      Swal.fire({
-        ...errorSwalContent(error),
-        icon: "error",
-      });
+      workError(error, lang);
     }
   };
   return (
-    <form
-      onSubmit={handleSumit}
-      className="flex h-max w-96 flex-col gap-2 rounded-2xl bg-white p-5"
-    >
-      <div className="flex w-full justify-end">
-        <button
-          type="button"
-          onClick={() => onClose()}
-          className="flex h-6 w-6 items-center justify-center rounded text-lg font-semibold hover:bg-gray-300/50"
-        >
-          <IoMdClose />
-        </button>
-      </div>
-      <h3>Add Link</h3>
+    <form onSubmit={handleSubmit} className="flex flex-col gap-3 pb-2">
+      <h3 className="text-base font-bold text-icon-color">
+        {assignmentPageLanguage.addLink(lang)}
+      </h3>
       <input
+        autoFocus
+        required
         value={link}
         onChange={(e) => setLink(e.target.value)}
-        className="main-input h-10 w-full"
         type="url"
+        inputMode="url"
+        placeholder={assignmentPageLanguage.linkPlaceholder(lang)}
+        aria-label={assignmentPageLanguage.addLink(lang)}
+        className="h-11 w-full rounded-xl border-2 border-[#E3E8F0] px-3 text-base text-icon-color outline-none focus:border-primary-color"
       />
       <button
+        type="submit"
         disabled={createFile.isPending}
-        className="main-button flex items-center justify-center"
+        className="chunky-btn w-full disabled:opacity-60"
       >
         {createFile.isPending ? (
-          <ProgressSpinner
-            animationDuration="1s"
-            style={{ width: "20px" }}
-            className="h-5 w-5"
-            strokeWidth="8"
-          />
+          <LuLoader aria-hidden className="animate-spin" />
         ) : (
-          "Add"
+          assignmentPageLanguage.add(lang)
         )}
       </button>
     </form>

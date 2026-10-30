@@ -16,6 +16,14 @@ export const subjectHomeLanguage = {
   filterSubmitted: t("Submitted", "ส่งแล้ว"),
   filterGraded: t("Graded", "ตรวจแล้ว"),
 
+  // Group headings
+  groupDueSoon: t("Due soon", "ใกล้ถึงกำหนด"),
+  groupTodo: t("To do", "ต้องทำ"),
+  groupSubmitted: t("Submitted", "ส่งแล้ว"),
+  groupGraded: t("Graded", "ตรวจแล้ว"),
+  groupMaterial: t("Materials", "เอกสาร"),
+  groupOrdered: t("In your teacher's order", "ตามลำดับที่คุณครูกำหนด"),
+
   // Card type labels
   typeAssignment: t("Assignment", "งาน"),
   typeQuiz: t("Quiz", "แบบทดสอบ"),
@@ -44,6 +52,15 @@ export const subjectHomeLanguage = {
   emptyFilter: t("Nothing here yet", "ยังไม่มีงานในหมวดนี้"),
   emptyClasswork: t("No classwork yet", "ยังไม่มีงานในวิชานี้"),
   emptyAnnouncements: t("No announcements yet", "ยังไม่มีประกาศ"),
+  notTurnedIn: t("Not turned in", "ยังไม่ส่ง"),
+  commentSendFailed: t(
+    "Couldn't send your comment. Try again.",
+    "ส่งความคิดเห็นไม่สำเร็จ ลองใหม่อีกครั้ง",
+  ),
+  commentDeleteFailed: t(
+    "Couldn't delete the comment. Try again.",
+    "ลบความคิดเห็นไม่สำเร็จ ลองใหม่อีกครั้ง",
+  ),
 
   // Attendance
   attendanceTitle: t("My attendance", "การเข้าเรียนของฉัน"),

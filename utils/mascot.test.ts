@@ -1,0 +1,252 @@
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import {
+  createPlaySlots,
+  MAX_IDLE_PLAYING,
+  PLAY_WAIT_MS,
+  MASCOT_HASH_KEYS,
+  mascotForPhoto,
+  mascotForStudent,
+  mascotForStudentOnSubject,
+  mascotHash,
+  mascotKeyForStudent,
+  mascotVideoFormat,
+  moodForPoints,
+  realPhoto,
+  onMascotReact,
+  pickIdleToPlay,
+  reactMascot,
+} from "./mascot";
+
+const ids = (n: number) => Array.from({ length: n }, (_, i) => `s${i}`);
+
+test("mascotForPhoto maps cartoon avatars only", () => {
+  assert.ok(mascotForPhoto("https://storage.tatugaschool.com/AVATAR/16.png"));
+  assert.equal(
+    mascotForPhoto("https://storage.tatugaschool.com/students/photo.jpg"),
+    null,
+  );
+  assert.equal(mascotForPhoto(undefined), null);
+});
+
+test("pickIdleToPlay caps concurrent plays at 20% of cards", () => {
+  const noMax = Infinity;
+  assert.equal(pickIdleToPlay(ids(40), 0, 40, Math.random, 0.2, noMax).length, 8);
+  assert.equal(pickIdleToPlay(ids(35), 5, 40, Math.random, 0.2, noMax).length, 3);
+  assert.deepEqual(pickIdleToPlay(ids(32), 8, 40, Math.random, 0.2, noMax), []);
+});
+
+test("pickIdleToPlay never idles more than MAX_IDLE_PLAYING in a big class", () => {
+  assert.equal(pickIdleToPlay(ids(40), 0, 40).length, MAX_IDLE_PLAYING);
+  assert.equal(pickIdleToPlay(ids(39), 1, 40).length, MAX_IDLE_PLAYING - 1);
+  assert.deepEqual(pickIdleToPlay(ids(38), MAX_IDLE_PLAYING, 40), []);
+});
+
+test("createPlaySlots caps concurrent plays and hands freed slots to the queue", () => {
+  const slots = createPlaySlots(2);
+  const started: string[] = [];
+  const dropped: string[] = [];
+  const play = (name: string) =>
+    slots.acquire(
+      () => started.push(name),
+      () => dropped.push(name),
+    );
+  play("a");
+  play("b");
+  play("c");
+  const cancelD = play("d");
+  assert.deepEqual(started, ["a", "b"]);
+  assert.equal(slots.tryAcquire(), false);
+  cancelD();
+  slots.release();
+  assert.deepEqual(started, ["a", "b", "c"]);
+  assert.equal(slots.playing, 2);
+  slots.release();
+  assert.equal(slots.playing, 1);
+  assert.deepEqual(dropped, []);
+});
+
+test("createPlaySlots: idle limit is lower than the full budget", () => {
+  const slots = createPlaySlots(3);
+  assert.equal(slots.tryAcquire(2), true);
+  assert.equal(slots.tryAcquire(2), true);
+  assert.equal(slots.tryAcquire(2), false);
+  assert.equal(slots.tryAcquire(), true);
+});
+
+test("createPlaySlots drops queued plays that waited too long", () => {
+  let time = 0;
+  const slots = createPlaySlots(1, () => time);
+  const started: string[] = [];
+  const dropped: string[] = [];
+  const play = (name: string) =>
+    slots.acquire(
+      () => started.push(name),
+      () => dropped.push(name),
+    );
+  play("a");
+  play("late");
+  time = PLAY_WAIT_MS / 2;
+  play("fresh");
+  time = PLAY_WAIT_MS + 1;
+  slots.release();
+  assert.deepEqual(started, ["a", "fresh"]);
+  assert.deepEqual(dropped, ["late"]);
+});
+
+test("pickIdleToPlay lets at least one card play in a small class", () => {
+  assert.equal(pickIdleToPlay(ids(3), 0, 3).length, 1);
+  assert.deepEqual(pickIdleToPlay(ids(2), 1, 3), []);
+  assert.deepEqual(pickIdleToPlay([], 0, 0), []);
+});
+
+test("pickIdleToPlay never picks the same card twice", () => {
+  const picked = pickIdleToPlay(ids(10), 0, 50, () => 0, 0.2, Infinity);
+  assert.deepEqual(picked, ["s0", "s1", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9"]);
+});
+
+test("mascotVideoFormat serves HEVC to WebKit-only browsers, WebM elsewhere", () => {
+  const chrome =
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36";
+  const macChrome =
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36";
+  const edge =
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 Edg/130.0.0.0";
+  const safari =
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15";
+  const iosChrome =
+    "Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/130.0 Mobile/15E148 Safari/604.1";
+  const firefox =
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:131.0) Gecko/20100101 Firefox/131.0";
+  // Chromium on a Mac can decode HEVC but drops its alpha: still WebM.
+  assert.equal(mascotVideoFormat(chrome, false), "webm");
+  assert.equal(mascotVideoFormat(macChrome, true), "webm");
+  assert.equal(mascotVideoFormat(edge, true), "webm");
+  assert.equal(mascotVideoFormat(firefox, false), "webm");
+  assert.equal(mascotVideoFormat(safari, true), "hevc");
+  assert.equal(mascotVideoFormat(iosChrome, true), "hevc");
+  // Old WebKit without HEVC keeps the still picture.
+  assert.equal(mascotVideoFormat(safari, false), null);
+});
+
+test("mascot clips point at both formats with encoded names", () => {
+  const clips = mascotForPhoto("https://storage.tatugaschool.com/AVATAR/16.png");
+  assert.deepEqual(clips?.happy[0], {
+    webm: "https://storage.tatugaschool.com/AVATAR/animation/mascot_16/Jumps%20for%20joy.webm",
+    hevc: "https://storage.tatugaschool.com/AVATAR/animation/mascot_16/Jumps%20for%20joy.mov",
+  });
+  assert.deepEqual(clips?.sad, [
+    {
+      webm: "https://storage.tatugaschool.com/AVATAR/animation/mascot_16/Thumbs%20down%20gesture.webm",
+      hevc: "https://storage.tatugaschool.com/AVATAR/animation/mascot_16/Thumbs%20down%20gesture.mov",
+    },
+  ]);
+});
+
+test("moodForPoints: happy for points, sad for deductions, none for zero", () => {
+  assert.equal(moodForPoints(2), "happy");
+  assert.equal(moodForPoints(-1), "sad");
+  assert.equal(moodForPoints(0), null);
+});
+
+test("reactMascot reaches subscribers until they unsubscribe", () => {
+  const heard: string[] = [];
+  const off = onMascotReact((id, mood) => heard.push(`${id}:${mood}`));
+  reactMascot("a", "happy");
+  reactMascot("b", "sad");
+  off();
+  reactMascot("c", "happy");
+  assert.deepEqual(heard, ["a:happy", "b:sad"]);
+});
+
+test("mascotHash is 32-bit FNV-1a", () => {
+  assert.equal(mascotHash("a"), 0xe40c292c);
+  assert.equal(mascotHash("foobar"), 0xbf9cf968);
+});
+test("mascotKeyForStudent keeps a cartoon avatar's own mascot", () => {
+  assert.equal(mascotKeyForStudent({ id: "x", photo: "https://storage.tatugaschool.com/AVATAR/16.png" }), "https://storage.tatugaschool.com/AVATAR/16.png");
+});
+test("mascotKeyForStudent picks a stable mascot for a real photo", () => {
+  const s = { id: "6650f1c2a1b2c3d4e5f60718", photo: "https://storage.tatugaschool.com/photos/me.jpg" };
+  assert.equal(mascotKeyForStudent(s), MASCOT_HASH_KEYS[mascotHash(s.id) % MASCOT_HASH_KEYS.length]);
+  assert.equal(mascotKeyForStudent(s), mascotKeyForStudent({ ...s }));
+  assert.equal(mascotForStudent(s), mascotForPhoto(mascotKeyForStudent(s)));
+});
+
+const AVATAR = (n: number) => `https://storage.tatugaschool.com/AVATAR/${n}.png`;
+
+// Real ids from the dev subject fe5235 (StudentOnSubject and Student ids of
+// students without a cartoon photo), with the mascot each one has today.
+const PINNED_PICKS: [id: string, avatar: number][] = [
+  ["6909b2b28b5bfdd6c4a3396d", 20],
+  ["6909b27e8b5bfdd6c4a33945", 2],
+  ["6909b2b28b5bfdd6c4a3396f", 18],
+  ["6909b27f8b5bfdd6c4a33947", 13],
+  ["6909b2b28b5bfdd6c4a33970", 19],
+  ["6909b2b28b5bfdd6c4a33971", 18],
+  ["6909b2b28b5bfdd6c4a33973", 20],
+  ["6650f1c2a1b2c3d4e5f60718", 6],
+];
+
+test("every existing student keeps the mascot they have today", () => {
+  for (const [id, avatar] of PINNED_PICKS) {
+    const photo = "https://development-storage.tatugaschool.com/photo.jpg";
+    assert.equal(mascotKeyForStudent({ id, photo }), AVATAR(avatar), id);
+    assert.equal(mascotKeyForStudent({ id, photo: null }), AVATAR(avatar), id);
+  }
+});
+
+test("MASCOT_HASH_KEYS is today's mascots in today's order, frozen", () => {
+  const today = [16, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20];
+  assert.deepEqual(MASCOT_HASH_KEYS, today.map(AVATAR));
+  assert.ok(Object.isFrozen(MASCOT_HASH_KEYS));
+  for (const key of MASCOT_HASH_KEYS) assert.ok(mascotForPhoto(key), key);
+});
+
+// With the list pinned above, this is what keeps a mascot added to MASCOTS
+// from moving anyone: the pick reads only the frozen list.
+test("mascotKeyForStudent hashes over MASCOT_HASH_KEYS", () => {
+  for (const id of [...ids(50), ...PINNED_PICKS.map(([id]) => id)]) {
+    assert.equal(
+      mascotKeyForStudent({ id, photo: null }),
+      MASCOT_HASH_KEYS[mascotHash(id) % MASCOT_HASH_KEYS.length],
+    );
+  }
+});
+
+test("a class-list entry shows its student's mascot, not its own id's", () => {
+  // Michael (No. 3) and John (No. 1): enrolment id, Student id, real photo.
+  const photo = "https://development-storage.tatugaschool.com/photo.jpg";
+  const michael = { id: "6909b2b28b5bfdd6c4a3396f", studentId: "6909b27f8b5bfdd6c4a33947", photo };
+  const john = { id: "6909b2b28b5bfdd6c4a3396d", studentId: "6909b27e8b5bfdd6c4a33945", photo };
+  for (const sos of [michael, john]) {
+    const signedIn = mascotForStudent({ id: sos.studentId, photo: sos.photo });
+    assert.equal(mascotForStudentOnSubject(sos), signedIn, sos.id);
+    assert.notEqual(mascotForStudentOnSubject(sos), mascotForStudent(sos), sos.id);
+  }
+  assert.equal(mascotForStudentOnSubject(michael), mascotForPhoto(AVATAR(13)));
+  assert.equal(mascotForStudentOnSubject(john), mascotForPhoto(AVATAR(2)));
+  // A cartoon photo is still that cartoon's mascot.
+  assert.equal(
+    mascotForStudentOnSubject({ ...john, photo: AVATAR(4) }),
+    mascotForPhoto(AVATAR(4)),
+  );
+});
+
+test("a photo named like an Object member falls back to the hash pick", () => {
+  const id = "6909b2b28b5bfdd6c4a3396f";
+  for (const photo of ["constructor", "toString", "__proto__", "hasOwnProperty"]) {
+    assert.equal(mascotKeyForStudent({ id, photo }), AVATAR(18), photo);
+    assert.ok(mascotForStudent({ id, photo }).poster, photo);
+    assert.equal(mascotForPhoto(photo), null, photo);
+  }
+});
+
+test("realPhoto keeps an uploaded photo and drops a mascot picked as the photo", () => {
+  const upload = "https://storage.tatugaschool.com/student/abc.jpg";
+  assert.equal(realPhoto(upload), upload);
+  assert.equal(realPhoto(MASCOT_HASH_KEYS[0]), null);
+  assert.equal(realPhoto(""), null);
+  assert.equal(realPhoto(null), null);
+  assert.equal(realPhoto(undefined), null);
+});

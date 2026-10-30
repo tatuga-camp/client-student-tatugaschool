@@ -8,6 +8,11 @@ import {
   ResponseGetSubjectByCodeService,
 } from "../services";
 
+export const subjectByCodeQuery = (code: string) => ({
+  queryKey: ["subject", code] as const,
+  queryFn: () => GetSubjectByCodeService({ code }),
+});
+
 export function useGetSubjectByCode(
   code: string,
   option?: {
@@ -16,8 +21,7 @@ export function useGetSubjectByCode(
   },
 ) {
   return useQuery({
-    queryKey: ["subject", code],
-    queryFn: () => GetSubjectByCodeService({ code }),
+    ...subjectByCodeQuery(code),
     initialData: option?.initialData,
     enabled: option?.enable,
   });
@@ -30,6 +34,7 @@ export function useGetSubjectById({ id }: { id: string }) {
       GetSubjectByIdService({
         subjectId: id,
       }),
+    enabled: !!id,
   });
 }
 
@@ -39,5 +44,7 @@ export function useGetSubjectByStudent(
   return useQuery({
     queryKey: ["subjects", request],
     queryFn: () => GetSubjectFromStudentService(request),
+    // The Subjects tab mounts before the student and the year are known.
+    enabled: !!request.studentId && !!request.educationYear,
   });
 }

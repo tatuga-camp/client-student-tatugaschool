@@ -1,5 +1,8 @@
 import { Language } from "../../interfaces";
 
+const t = (en: string, th: string) => (language: Language) =>
+  language === "th" ? th : en;
+
 export const progressLanguage = {
   pageTitle: (language: Language) =>
     language === "th" ? "ความคืบหน้าของห้องเรียน" : "Class progress",
@@ -65,4 +68,14 @@ export const progressLanguage = {
       : "No work has been assigned yet.",
   noMatch: (language: Language) =>
     language === "th" ? "ไม่พบนักเรียน" : "No students match",
+
+  // Progress tab
+  tabGrades: t("Grades", "คะแนน"),
+  tabAttendance: t("Attendance", "เข้าเรียน"),
+  notShared: t(
+    "Your teacher hasn't shared this yet",
+    "คุณครูยังไม่ได้เปิดให้ดู",
+  ),
+  prevMonth: t("Previous month", "เดือนก่อนหน้า"),
+  nextMonth: t("Next month", "เดือนถัดไป"),
 };

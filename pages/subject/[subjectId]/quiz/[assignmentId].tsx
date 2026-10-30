@@ -1,6 +1,6 @@
 import Head from "next/head";
 import React from "react";
-import Swal from "sweetalert2";
+import Swal from "../../../../utils/appSwal";
 // Keep the react-query barrel above the quiz components: it loads services/auth before
 // services/apiService. Entering apiService first (via services/quiz) hits the
 // auth <-> apiService cycle and throws a TDZ ReferenceError at build time.

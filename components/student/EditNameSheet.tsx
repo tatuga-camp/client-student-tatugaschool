@@ -1,10 +1,8 @@
 import React, { useState } from "react";
-import Swal from "sweetalert2";
-import BottomSheet from "../common/BottomSheet";
+import { Sheet } from "../app/Sheet";
 import { profileLanguage, studentDataLanguage } from "../../data/languages";
 import { Language, Student } from "../../interfaces";
 import { useUpdateStudent } from "../../react-query";
-import { errorSwalContent } from "../../utils/errorSwal";
 import { nameEditError } from "../../utils/profileEdit";
 
 type Props = {
@@ -42,13 +40,7 @@ function EditNameSheet({ student, language, onClose, onSaved }: Props) {
       onSaved();
     } catch (err) {
       console.error(err);
-      Swal.fire({
-        ...errorSwalContent(
-          err,
-          studentDataLanguage.somethingWentWrong(language),
-        ),
-        icon: "error",
-      });
+      setError(studentDataLanguage.somethingWentWrong(language));
     }
   };
 
@@ -59,11 +51,14 @@ function EditNameSheet({ student, language, onClose, onSaved }: Props) {
   ] as const;
 
   return (
-    <BottomSheet
-      title={profileLanguage.editName(language)}
-      closeLabel={profileLanguage.close(language)}
+    <Sheet
+      open
       onClose={onClose}
+      ariaLabel={profileLanguage.editName(language)}
     >
+      <h2 className="mb-3 text-base font-bold text-[#383767]">
+        {profileLanguage.editName(language)}
+      </h2>
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
         {fields.map((field) => (
           <label key={field.key} className="flex flex-col gap-1">
@@ -92,7 +87,7 @@ function EditNameSheet({ student, language, onClose, onSaved }: Props) {
           {profileLanguage.save(language)}
         </button>
       </form>
-    </BottomSheet>
+    </Sheet>
   );
 }
 

@@ -1,6 +1,17 @@
 import { Language } from "../../interfaces";
 
 export const requestDataLanguage = {
+  /** Short inline "loading" text, e.g. while the text editor starts. */
+  loading: (language: Language) => {
+    switch (language) {
+      case "en":
+        return "Loading...";
+      case "th":
+        return "กำลังโหลด...";
+      default:
+        return "Loading...";
+    }
+  },
   loadingTitle: (language: Language) => {
     switch (language) {
       case "en":

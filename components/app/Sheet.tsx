@@ -1,0 +1,490 @@
+import { animated, useSpring } from "@react-spring/web";
+import { type Handler, useDrag } from "@use-gesture/react";
+import React, {
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
+import { createPortal } from "react-dom";
+import { LuX } from "react-icons/lu";
+import { profileLanguage } from "../../data/languages";
+import { useGetLanguage } from "../../react-query";
+import { keepTabInside, reclaimFocus } from "../../utils/focusTrap";
+import { OVERLAY_ROOT_ID } from "../../utils/frameRoutes";
+import { keyboardFit } from "../../utils/keyboardFit";
+import { isEditableTarget, sheetDragOutcome } from "../../utils/tabs";
+import { OverlayRootContext } from "./OverlayScope";
+import {
+  allocLayerId,
+  notifyStack,
+  openStack,
+  registerLayerCloser,
+  stackListeners,
+  unregisterLayerCloser,
+} from "./modalLayers";
+
+/**
+ * Where it renders: the nearest OverlayScope's container (each detail panel
+ * provides one, so a sheet opened from a detail page slides and leaves with
+ * that page), else the global #app-overlay-root (tab panes, other pages).
+ * While the on-screen keyboard is up, a modal sheet sits on top of it and
+ * shrinks to the visible area, so its fields stay in view.
+ */
+type SheetProps = {
+  /** The parent must flip this to false in `onClose`, or a dragged-away
+   *  sheet stays stranded at the dragged position. Ignored with `peek`. */
+  open: boolean;
+  onClose: () => void;
+  children: React.ReactNode;
+  size?: "auto" | "full";
+  /** A peek sheet is always shown (it ignores `open`); `children` is the
+   *  expanded content. */
+  peek?: React.ReactNode;
+  expanded?: boolean;
+  onExpandedChange?: (v: boolean) => void;
+  dismissible?: boolean;
+  /** Content with unsaved work: a flick, the backdrop and Esc do nothing. The
+   *  X (and a back press) still call `onClose`, which should confirm. */
+  guardClose?: boolean;
+  /** This sheet handles a browser back itself (the leave-guard sheet). */
+  ownsBack?: boolean;
+  /** Render the ✕ in the handle row (default). Off when the content brings
+   *  its own visible close, so assistive tech doesn't find two. */
+  closeButton?: boolean;
+  /** Drawn on the panel's top edge (a mascot), outside the body scroller so
+   *  it isn't clipped, and never taking a press. Its bottom sits on the edge;
+   *  a negative bottom margin lets it overlap the panel. Mount it together
+   *  with `open`: its height is read when the sheet starts to move. */
+  overlay?: React.ReactNode;
+  ariaLabel: string;
+};
+
+// A sheet is inert (and hidden from assistive tech) while a modal layer is
+// open above it: a collapsed peek under any open modal, or a modal that is
+// not the topmost. Sheets re-evaluate whenever the open stack changes
+// (components/app/modalLayers.ts), so ones that mount later are covered too.
+function setInert(el: HTMLElement, inert: boolean) {
+  if (inert) {
+    el.setAttribute("inert", "");
+    el.setAttribute("aria-hidden", "true");
+  } else {
+    el.removeAttribute("inert");
+    el.removeAttribute("aria-hidden");
+  }
+}
+
+const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
+
+// Where the browser has touch events, the drag listens to them (a body drag
+// can then stop the native scroll), and a mouse, which sends only pointer
+// events (a touch laptop, a hasTouch browser), gets a binding of its own.
+const TOUCH_EVENTS = typeof window !== "undefined" && "ontouchstart" in window;
+
+/** Bottom sheet; see SheetProps for where it renders. */
+export function Sheet({
+  open,
+  onClose,
+  children,
+  size = "auto",
+  peek,
+  expanded = false,
+  onExpandedChange,
+  dismissible = true,
+  guardClose = false,
+  ownsBack = false,
+  closeButton = true,
+  overlay,
+  ariaLabel,
+}: SheetProps) {
+  const scopedRoot = useContext(OverlayRootContext);
+  const [globalRoot, setGlobalRoot] = useState<HTMLElement | null>(null);
+  const root = scopedRoot === undefined ? globalRoot : scopedRoot;
+  const [rendered, setRendered] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
+  const sheetRootRef = useRef<HTMLDivElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const openerRef = useRef<HTMLElement | null>(null);
+  const openerAtOpenRef = useRef<HTMLElement | null>(null);
+  const heightRef = useRef(600);
+  const visibleRef = useRef(false);
+  const enteredRef = useRef(false);
+  const idRef = useRef(0);
+  if (idRef.current === 0) idRef.current = allocLayerId();
+  const language = useGetLanguage();
+  const [{ y }, api] = useSpring(() => ({ y: 600 }));
+  // Set while the keyboard (visual viewport) hides part of the root.
+  const [fit, setFit] = useState<{ lift: number; room: number } | null>(null);
+
+  const isPeek = peek !== undefined;
+  const visible = isPeek ? true : open;
+  // Peek panel collapsed = no backdrop; expanded or normal sheet = backdrop.
+  const modal = isPeek ? expanded : true;
+  visibleRef.current = visible;
+  // Who had focus the moment this sheet was asked to open: render runs before
+  // the children mount, so before an autoFocus field inside takes focus.
+  if (!visible) openerAtOpenRef.current = null;
+  else if (!openerAtOpenRef.current && typeof document !== "undefined")
+    openerAtOpenRef.current = document.activeElement as HTMLElement | null;
+
+  useEffect(() => {
+    if (scopedRoot === undefined) {
+      setGlobalRoot(document.getElementById(OVERLAY_ROOT_ID));
+    }
+  }, [open, scopedRoot]);
+
+  // Mount on show; slide in once measured.
+  useLayoutEffect(() => {
+    if (visible && root) setRendered(true);
+  }, [visible, root]);
+
+  // Keep the measured height fresh (expand/collapse, async content).
+  useLayoutEffect(() => {
+    const el = panelRef.current;
+    if (!rendered || !el) return;
+    const measure = () => {
+      heightRef.current = el.offsetHeight || heightRef.current;
+    };
+    measure();
+    if (typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [rendered]);
+
+  useLayoutEffect(() => {
+    if (!rendered || !panelRef.current) return;
+    heightRef.current = panelRef.current.offsetHeight || heightRef.current;
+    // Off-screen means the overlay too, which stands above the panel.
+    const away = heightRef.current + (overlayRef.current?.offsetHeight ?? 0);
+    if (visible) {
+      if (!isPeek && !enteredRef.current) {
+        api.start({ from: { y: away }, y: 0 });
+      } else api.start({ y: 0 });
+      enteredRef.current = true;
+    } else {
+      api.start({
+        y: away,
+        onRest: (result) => {
+          if (result.finished && !visibleRef.current) {
+            enteredRef.current = false;
+            setRendered(false);
+          }
+        },
+      });
+    }
+  }, [rendered, visible, isPeek, api]);
+
+  // Track the visual viewport: the keyboard shrinks it, not the layout.
+  // A collapsed peek stays put: the keyboard is then for the page's fields.
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!rendered || !root || !vv || !modal) return;
+    const update = () => {
+      const r = root.getBoundingClientRect();
+      const next = keyboardFit({
+        rootTop: r.top,
+        rootBottom: r.bottom,
+        viewTop: vv.offsetTop,
+        viewHeight: vv.height,
+      });
+      const hidden = next.lift > 0 || next.room < Math.round(r.height);
+      setFit((prev) =>
+        !hidden
+          ? null
+          : prev?.lift === next.lift && prev.room === next.room
+            ? prev
+            : next,
+      );
+    };
+    update();
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    return () => {
+      vv.removeEventListener("resize", update);
+      vv.removeEventListener("scroll", update);
+      setFit(null);
+    };
+  }, [rendered, root, modal]);
+
+  // After the sheet shrinks, scroll the focused field back into its body.
+  useEffect(() => {
+    if (!fit) return;
+    const id = requestAnimationFrame(() => {
+      const body = bodyRef.current;
+      const field = document.activeElement;
+      if (!body || !field || !body.contains(field) || !isEditableTarget(field))
+        return;
+      const b = body.getBoundingClientRect();
+      const f = field.getBoundingClientRect();
+      if (f.bottom > b.bottom) body.scrollTop += f.bottom - b.bottom + 12;
+      else if (f.top < b.top) body.scrollTop -= b.top - f.top + 12;
+    });
+    return () => cancelAnimationFrame(id);
+  }, [fit]);
+
+  // Focus in on open, back to the opener on close.
+  useEffect(() => {
+    if (!visible || !rendered || !modal) return;
+    // A peek captures at expand time; a sheet uses the focus from open time.
+    const atOpen = isPeek ? null : openerAtOpenRef.current;
+    openerRef.current =
+      atOpen && atOpen !== document.body
+        ? atOpen
+        : (document.activeElement as HTMLElement | null);
+    panelRef.current?.focus({ preventScroll: true });
+    return () => {
+      const opener = openerRef.current;
+      openerRef.current = null;
+      // Deferred: the openStack effect below (declared later, so cleaned up
+      // later) un-inerts the sheet under us, and the opener may be in it.
+      queueMicrotask(() => {
+        if (opener && document.contains(opener)) opener.focus({ preventScroll: true });
+      });
+    };
+  }, [visible, rendered, modal, isPeek]);
+
+  // A peek that collapses (drag, X, Esc or the parent) must land back at y=0,
+  // not stay where a drag left it.
+  useEffect(() => {
+    if (isPeek && rendered) api.start({ y: 0 });
+  }, [expanded, isPeek, rendered, api]);
+
+  const dismiss = () => {
+    if (isPeek) onExpandedChange?.(false);
+    else onClose();
+  };
+
+  // Latest props for Esc, so re-renders (inline onClose lambdas) don't
+  // re-register: the stack must follow the order sheets opened in.
+  const gestureClosable = dismissible && !guardClose;
+  const escRef = useRef({ dismiss, dismissible: gestureClosable, plain: dismissible });
+  escRef.current = { dismiss, dismissible: gestureClosable, plain: dismissible };
+
+  useEffect(() => {
+    if (!visible || !modal) return;
+    const id = idRef.current;
+    openStack.push(id);
+    registerLayerCloser(id, {
+      // A back press closes this sheet (through onClose, which may confirm).
+      close: () => {
+        if (escRef.current.plain) escRef.current.dismiss();
+      },
+      ownsBack,
+    });
+    notifyStack();
+    const onKey = (e: KeyboardEvent) => {
+      if (openStack[openStack.length - 1] !== id) return;
+      // Tab stays in the topmost sheet: nothing behind it is reachable.
+      if (e.key === "Tab") return keepTabInside(e, panelRef.current);
+      if (e.key !== "Escape") return;
+      // A non-dismissible sheet on top keeps Esc from closing the one below.
+      if (escRef.current.dismissible) escRef.current.dismiss();
+    };
+    // Focus that still lands behind it (out of an editor's iframe) comes back.
+    const onFocusIn = (e: FocusEvent) => {
+      if (openStack[openStack.length - 1] === id)
+        reclaimFocus(e.target, panelRef.current);
+    };
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("focusin", onFocusIn);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("focusin", onFocusIn);
+      const i = openStack.lastIndexOf(id);
+      if (i >= 0) openStack.splice(i, 1);
+      unregisterLayerCloser(id);
+      notifyStack();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible, modal]);
+
+  // Keep this sheet's own inert state in step with the open stack.
+  useEffect(() => {
+    const mine = sheetRootRef.current;
+    if (!rendered || !mine) return;
+    const apply = () => {
+      const i = openStack.indexOf(idRef.current);
+      setInert(mine, i >= 0 ? i < openStack.length - 1 : openStack.length > 0);
+    };
+    apply();
+    stackListeners.add(apply);
+    return () => {
+      stackListeners.delete(apply);
+      setInert(mine, false);
+    };
+  }, [rendered]);
+
+  // Set once a press moves past the tap threshold, so the click it ends with
+  // is dropped. This replaces use-gesture's own click filter, which only
+  // knows the device it listens to: with touch events it ate mouse clicks.
+  const draggedRef = useRef(false);
+  const dragClickProps = {
+    onPointerDownCapture: () => {
+      draggedRef.current = false;
+    },
+    onClickCapture: (e: React.MouseEvent) => {
+      if (!draggedRef.current || e.detail === 0) return;
+      draggedRef.current = false;
+      e.preventDefault();
+      e.stopPropagation();
+    },
+  };
+
+  const usePanelDrag = (fromBody: boolean) => {
+    const onDrag: Handler<"drag"> = ({
+      first,
+      last,
+      tap,
+      movement: [, my],
+      velocity: [, vy],
+      direction: [, dirY],
+      event,
+      cancel,
+    }) => {
+      if (!tap) draggedRef.current = true;
+      const collapsedPeek = isPeek && !expanded;
+      if (!gestureClosable && !collapsedPeek) return cancel();
+      if (first && fromBody && (bodyRef.current?.scrollTop ?? 0) > 0)
+        return cancel();
+      const height = panelRef.current?.offsetHeight || heightRef.current;
+      heightRef.current = height;
+      if (isPeek && !expanded) {
+        // Collapsed peek: dragging up expands.
+        if (last && (my < -40 || (vy > 0.5 && dirY < 0)))
+          onExpandedChange?.(true);
+        return;
+      }
+      if (my > 0 && event.cancelable) event.preventDefault();
+      if (!last) return void api.start({ y: Math.max(0, my), immediate: true });
+      const outcome = sheetDragOutcome({
+        dy: my,
+        vy: dirY > 0 ? vy : 0,
+        height,
+      });
+      if (outcome === "close") dismiss();
+      else api.start({ y: 0, immediate: false });
+    };
+    const options = {
+      axis: "y",
+      filterTaps: true,
+      eventOptions: { passive: false },
+    } as const;
+    const touch = useDrag(onDrag, { ...options, pointer: { touch: true } });
+    const mouse = useDrag(onDrag, {
+      ...options,
+      enabled: TOUCH_EVENTS,
+      pointer: { keys: false },
+    });
+    return () => {
+      if (!TOUCH_EVENTS) return touch();
+      const m = mouse();
+      return {
+        ...touch(),
+        ...m,
+        // A finger also sends pointer events: the touch binding has those.
+        onPointerDown: (e: React.PointerEvent) => {
+          if (e.pointerType === "mouse") m.onPointerDown?.(e);
+        },
+      };
+    };
+  };
+  const bindHandle = usePanelDrag(false);
+  const bindBody = usePanelDrag(true);
+
+  if (!root || !rendered) return null;
+
+  const full = size === "full";
+  return createPortal(
+    <div
+      ref={sheetRootRef}
+      data-sheet-root=""
+      data-no-swipe
+      className="absolute inset-0 z-50"
+      style={{ pointerEvents: modal && visible ? "auto" : "none" }}
+    >
+      {modal && (
+        <animated.div
+          data-testid="sheet-backdrop"
+          onClick={gestureClosable ? dismiss : undefined}
+          className="absolute inset-0"
+          style={{
+            background: "rgba(20,24,48,.45)",
+            opacity: y.to((v) => 1 - clamp01(v / heightRef.current)),
+          }}
+        />
+      )}
+      <animated.div
+        ref={panelRef}
+        role="dialog"
+        aria-modal={modal}
+        aria-label={ariaLabel}
+        tabIndex={-1}
+        className="absolute inset-x-0 bottom-0 flex flex-col bg-white outline-none"
+        style={{
+          y,
+          pointerEvents: visible ? "auto" : "none",
+          bottom: fit ? fit.lift : undefined,
+          height: full && modal ? (fit ? fit.room : "100%") : undefined,
+          // Full screen: keep the handle and ✕ clear of the status bar / notch.
+          paddingTop: full && modal ? "var(--safe-top)" : undefined,
+          maxHeight: fit
+            ? Math.round(fit.room * (full ? 1 : 0.9))
+            : full
+              ? "100%"
+              : "90%",
+          borderRadius: full && modal ? 0 : "20px 20px 0 0",
+          boxShadow: "0 -4px 0 #E3E8F0",
+        }}
+      >
+        <div
+          {...bindHandle()}
+          {...dragClickProps}
+          data-testid="sheet-handle"
+          // The ✕'s row keeps its height while a busy sheet hides the ✕.
+          className={`relative flex shrink-0 cursor-grab justify-center pt-3 ${
+            modal && closeButton ? "min-h-[44px]" : "pb-2"
+          }`}
+          style={{ touchAction: "none" }}
+        >
+          <div className="h-1.5 w-10 rounded-full bg-[#E3E8F0]" />
+        </div>
+        {dismissible && modal && closeButton && (
+          // Outside the handle, so pressing it never starts a drag.
+          <button
+            type="button"
+            aria-label={profileLanguage.close(language.data ?? "en")}
+            onClick={dismiss}
+            className="absolute right-1 flex h-11 w-11 items-center justify-center rounded-full text-[#383767]"
+            style={{ top: full && modal ? "var(--safe-top)" : 0 }}
+          >
+            <LuX size={20} />
+          </button>
+        )}
+        <div
+          ref={bodyRef}
+          {...bindBody()}
+          {...dragClickProps}
+          className="app-scroll min-h-0 flex-1 px-4"
+          style={{
+            // Clear the home indicator, unless it sits on the keyboard.
+            paddingBottom: fit ? 24 : "calc(24px + var(--safe-bottom, 0px))",
+          }}
+        >
+          {isPeek && !expanded ? peek : children}
+        </div>
+        {overlay && (
+          <div
+            ref={overlayRef}
+            className="pointer-events-none absolute inset-x-0 bottom-full"
+          >
+            {overlay}
+          </div>
+        )}
+      </animated.div>
+    </div>,
+    root,
+  );
+}

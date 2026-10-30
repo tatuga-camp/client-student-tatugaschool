@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import Cropper from "react-easy-crop";
-import { IoMdClose } from "react-icons/io";
 import { MdOutlineRotate90DegreesCcw } from "react-icons/md";
+import { profileLanguage } from "../../data/languages";
+import { useGetLanguage } from "../../react-query";
 import { createCroppedPhotoFile } from "../../utils";
 import LoadingBar from "./LoadingBar";
 
@@ -13,10 +14,10 @@ type Props = {
   onSave: (file: File) => Promise<void> | void;
 };
 
-// Modal to crop and rotate a student photo before upload. Renders its own
-// fixed overlay (instead of PopupLayout) so it can stack inside other popups
-// without touching document.body overflow.
+// Crop and rotate a student photo before upload. Renders only the body; the
+// caller hosts it in a Sheet.
 function PhotoEditor({ file, onClose, onSave }: Props) {
+  const lang = useGetLanguage().data ?? "en";
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [quarterTurns, setQuarterTurns] = useState(0);
@@ -52,20 +53,12 @@ function PhotoEditor({ file, onClose, onSave }: Props) {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 top-0 z-50 flex items-center justify-center overflow-y-auto bg-black/80 font-Anuphan">
-      <div className="m-3 flex w-full max-w-md flex-col gap-3 rounded-2xl bg-white p-4">
-        {saving && <LoadingBar />}
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Adjust Photo</h2>
-          <button
-            type="button"
-            disabled={saving}
-            onClick={onClose}
-            className="flex h-6 w-6 items-center justify-center rounded text-lg font-semibold hover:bg-gray-300/50"
-          >
-            <IoMdClose />
-          </button>
-        </div>
+    <div className="flex w-full flex-col gap-3 pb-2 font-Anuphan">
+      {saving && <LoadingBar />}
+      <h2 className="text-base font-bold text-[#383767]">
+        {profileLanguage.adjustPhoto(lang)}
+      </h2>
+      <div className="mx-auto flex w-full max-w-md flex-col gap-3">
         <div className="relative h-72 w-full overflow-hidden rounded-2xl bg-gray-900">
           {imageSrc && (
             <Cropper
@@ -85,7 +78,9 @@ function PhotoEditor({ file, onClose, onSave }: Props) {
           )}
         </div>
         <label className="flex flex-col gap-1">
-          <span className="text-sm text-gray-500">Zoom</span>
+          <span className="text-sm text-gray-500">
+            {profileLanguage.zoom(lang)}
+          </span>
           <input
             type="range"
             min={1}
@@ -98,7 +93,9 @@ function PhotoEditor({ file, onClose, onSave }: Props) {
           />
         </label>
         <label className="flex flex-col gap-1">
-          <span className="text-sm text-gray-500">Straighten</span>
+          <span className="text-sm text-gray-500">
+            {profileLanguage.straighten(lang)}
+          </span>
           <input
             type="range"
             min={-45}
@@ -117,7 +114,7 @@ function PhotoEditor({ file, onClose, onSave }: Props) {
           className="second-button flex w-max items-center justify-center gap-1 border"
         >
           <MdOutlineRotate90DegreesCcw />
-          Rotate 90°
+          {profileLanguage.rotate90(lang)}
         </button>
         <div className="flex justify-end gap-3 border-t pt-3">
           <button
@@ -126,7 +123,7 @@ function PhotoEditor({ file, onClose, onSave }: Props) {
             onClick={onClose}
             className="second-button flex items-center justify-center gap-1 border"
           >
-            Cancel
+            {profileLanguage.cancel(lang)}
           </button>
           <button
             type="button"
@@ -134,7 +131,7 @@ function PhotoEditor({ file, onClose, onSave }: Props) {
             onClick={handleSave}
             className="main-button flex items-center justify-center gap-1"
           >
-            Save Photo
+            {profileLanguage.savePhoto(lang)}
           </button>
         </div>
       </div>
