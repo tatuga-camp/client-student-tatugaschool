@@ -79,7 +79,6 @@ function ShellBody({ route }: { route: ShellRoute }) {
           visibility: depth.to((d) => (d >= 1 ? "hidden" : "visible")),
         }}
       >
-        {subject.data?.isAchieved && <ArchivedBanner lang={lang} />}
         <div className="relative min-h-0 flex-1">
           {/* A new subject starts fresh on Home. */}
           <TabPager
@@ -90,6 +89,10 @@ function ShellBody({ route }: { route: ShellRoute }) {
             onTabChange={nav.goTab}
           />
         </div>
+        {/* Below the tabs: up top it sits under the framed status bar. */}
+        {subject.data?.isAchieved && (
+          <ArchivedBanner lang={lang} className="mb-2" />
+        )}
         <TabBar
           tab={tab}
           student={student.data}

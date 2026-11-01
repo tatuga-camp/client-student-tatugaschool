@@ -142,6 +142,7 @@ export default function AssignmentDetail({
     ? unsentVideo({
         status: assignment.studentOnAssignment.status,
         total: assignment.questions?.length ?? 0,
+        archived: !!subject.data?.isAchieved,
         ...videoProgress,
       })
     : null;
