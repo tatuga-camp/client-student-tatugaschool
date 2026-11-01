@@ -26,6 +26,7 @@ import {
   turnInSummary,
   yourWorkMode,
 } from "../../utils/assignmentDetail";
+import ArchivedBanner from "../subject/ArchivedBanner";
 import CommentsChat from "./CommentsChat";
 import ReviewedCard from "./ReviewedCard";
 import TurnedInCelebration from "./TurnedInCelebration";
@@ -141,6 +142,7 @@ export default function AssignmentDetail({
     ? unsentVideo({
         status: assignment.studentOnAssignment.status,
         total: assignment.questions?.length ?? 0,
+        archived: !!subject.data?.isAchieved,
         ...videoProgress,
       })
     : null;
@@ -195,6 +197,7 @@ export default function AssignmentDetail({
         lang={lang}
         onBack={nav.back}
       />
+      {subject.data?.isAchieved && <ArchivedBanner lang={lang} />}
       <div
         className={`${TAB_BODY_CLASS} hideScrollBar`}
         style={{ paddingBottom: "var(--safe-bottom)" }}
@@ -221,6 +224,7 @@ export default function AssignmentDetail({
                   onNext={next ? () => nav.openAssignment(next.id) : undefined}
                   onStateChange={setVideoState}
                   onProgress={setVideoProgress}
+                  readOnly={!!subject.data?.isAchieved}
                 />
               )}
               {reviewed && subject.data && student.data && (
@@ -264,6 +268,7 @@ export default function AssignmentDetail({
               <CommentsChat
                 studentOnAssignmentId={assignment.studentOnAssignment.id}
                 lang={lang}
+                readOnly={!!subject.data?.isAchieved}
               />
               {reviewed && next && (
                 <button

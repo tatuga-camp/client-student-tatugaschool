@@ -1,4 +1,5 @@
 import Head from "next/head";
+import Link from "next/link";
 import React from "react";
 import Swal from "../../../../utils/appSwal";
 // Keep the react-query barrel above the quiz components: it loads services/auth before
@@ -19,7 +20,8 @@ import QuizResultScreen from "../../../../components/quiz/QuizResultScreen";
 import QuizStartScreen from "../../../../components/quiz/QuizStartScreen";
 import QuizTakeScreen from "../../../../components/quiz/QuizTakeScreen";
 import TestModeShell from "../../../../components/quiz/TestModeShell";
-import { quizLanguage } from "../../../../data/languages";
+import ArchivedBanner from "../../../../components/subject/ArchivedBanner";
+import { quizLanguage, subjectHomeLanguage } from "../../../../data/languages";
 import { ErrorMessages, Language } from "../../../../interfaces";
 import { errorSwalContent } from "../../../../utils/errorSwal";
 import { canStudentViewScoreOnceLoaded } from "../../../../utils/scoreVisibility";
@@ -109,11 +111,25 @@ function StudentQuizPage({
   }
   // Wait for a fetch made after this mount: a cached view can hold stale answers and an old
   // serverNow, which would seed the take screen with lost answers and a wrong clock.
-  if (!soaId || !view || !quiz.isFetchedAfterMount) {
+  // Also wait for the subject, so an archived one never flashes the take screen
+  // (which would start autosaving).
+  if (!soaId || !view || !quiz.isFetchedAfterMount || subject.isLoading) {
     return (
       <div className="flex min-h-dvh items-center justify-center bg-background-color font-Anuphan text-icon-color/60">
         …
       </div>
+    );
+  }
+
+  // The subject never loaded, so archived is unknown: don't offer Start or Take (they would
+  // autosave into a server that rejects it). Submitted results stay viewable.
+  if (subject.isError && !subject.data && !view.attempt?.submittedAt) {
+    return (
+      <QuizPageMessage
+        text={`${quizLanguage.loadFailed(lang)} ${errorSwalContent(subject.error).text}`}
+        language={lang}
+        onRetry={() => void subject.refetch()}
+      />
     );
   }
 
@@ -156,7 +172,8 @@ function StudentQuizPage({
     subject.data,
     { allowStudentViewScore: view.assignment.allowStudentViewScore },
   );
-  const taking = !!view.attempt && !view.attempt.submittedAt;
+  const archived = !!subject.data?.isAchieved;
+  const taking = !archived && !!view.attempt && !view.attempt.submittedAt;
 
   return (
     <>
@@ -164,7 +181,21 @@ function StudentQuizPage({
         <title>{view.assignment.title}</title>
       </Head>
       <div className="min-h-dvh bg-background-color">
-        {!view.attempt && (
+        {archived && <ArchivedBanner lang={lang} />}
+        {archived && !view.attempt?.submittedAt && (
+          <div className="flex flex-col items-center gap-4 px-4 py-8 text-center font-Anuphan">
+            <p className="text-icon-color/70">
+              {subjectHomeLanguage.archivedQuiz(lang)}
+            </p>
+            <Link
+              href={`/subject/${subjectId}`}
+              className="rounded-2xl border border-gray-200 px-5 py-2.5 font-medium text-icon-color"
+            >
+              {quizLanguage.backToClass(lang)}
+            </Link>
+          </div>
+        )}
+        {!archived && !view.attempt && (
           <QuizStartScreen
             view={view}
             language={lang}

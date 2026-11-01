@@ -42,8 +42,11 @@ export function unsentVideo(input: {
   correct: number;
   total: number;
   score: number;
+  /** An archived subject takes no writes, so nothing is ever unsent. */
+  archived?: boolean;
 }): UnsentVideo | null {
-  if (input.status === "REVIEWD" || input.answered === 0) return null;
+  if (input.archived || input.status === "REVIEWD" || input.answered === 0)
+    return null;
   return { correct: input.correct, total: input.total, score: input.score };
 }
 

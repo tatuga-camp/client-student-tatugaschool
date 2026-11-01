@@ -24,6 +24,7 @@ import {
   setLocalStorage,
 } from "../../../utils";
 import { wordCloudLanguage } from "../../../data/languages";
+import { isClosed } from "../../../utils/wordCloud";
 import ButtonProfile from "../../../components/ButtonProfile";
 import RouteParamsGate, {
   queryString,
@@ -170,7 +171,7 @@ function Index({ id }: { id: string }) {
 
   const needProfile =
     !!data &&
-    data.status !== "CLOSED" &&
+    !isClosed(data) &&
     data.accessMode === "STUDENTS_ONLY" &&
     !signedIn;
 
@@ -208,7 +209,9 @@ function Index({ id }: { id: string }) {
 
         {data && !current && (
           <p className="text-center text-lg">
-            {wordCloudLanguage.waitingForTeacher(lang)}
+            {isClosed(data)
+              ? wordCloudLanguage.closed(lang)
+              : wordCloudLanguage.waitingForTeacher(lang)}
           </p>
         )}
 
@@ -251,7 +254,7 @@ function Index({ id }: { id: string }) {
               {current.question}
             </h1>
 
-            {data.status === "CLOSED" ? (
+            {isClosed(data) ? (
               <p className="text-center text-error-color">
                 {wordCloudLanguage.closed(lang)}
               </p>

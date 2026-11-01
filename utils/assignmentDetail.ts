@@ -74,8 +74,10 @@ export function workItemMenu(input: {
   allowStudentDeleteWork: boolean;
   /** Reviewed work is locked: the items can only be opened. */
   reviewed?: boolean;
+  /** Archived subjects are read-only: the items can only be opened. */
+  archived?: boolean;
 }): ("open" | "rename" | "delete")[] {
-  if (input.reviewed) return ["open"];
+  if (input.reviewed || input.archived) return ["open"];
   const menu: ("open" | "rename" | "delete")[] =
     input.contentType === "TEXT" ? ["open"] : ["open", "rename"];
   if (input.allowStudentDeleteWork) menu.push("delete");
@@ -94,8 +96,10 @@ export function initialUploadProgress(count: number): {
 export function yourWorkMode(
   type: AssignmentType,
   status: StudentAssignmentStatus | undefined,
-): "none" | "open" | "turnedIn" | "reviewed" {
+  archived?: boolean,
+): "none" | "open" | "turnedIn" | "reviewed" | "archived" {
   if (type === "Material" || type === "Quiz") return "none";
+  if (archived) return "archived";
   if (status === "REVIEWD") return "reviewed";
   if (status === "SUBMITTED") return "turnedIn";
   return "open";

@@ -78,7 +78,12 @@ export default function YourWorkSheet({
   const language = useGetLanguage();
   const lang = language.data ?? "en";
   const soa = assignment.studentOnAssignment;
-  const mode = yourWorkMode(assignment.type, soa.status);
+  const archived = subject?.isAchieved ?? false;
+  const mode = yourWorkMode(assignment.type, soa.status, archived);
+  // Archived work keeps the label it would have had; only the controls go.
+  // `mode` drives every control (Add, Done, Undo, the read-only note, item menus);
+  // `shown` drives only the labels and pills. Never use `shown` for a control.
+  const shown = archived ? yourWorkMode(assignment.type, soa.status) : mode;
   const files = useGetFileStudentAssignment({ studentOnAssignmentId: soa.id });
   const items = files.data ?? [];
   const updateWork = useUpdateStudentOnAssignment();
@@ -186,7 +191,8 @@ export default function YourWorkSheet({
   // A page on its way out (after Leave anyway) must not guard anything.
   const active = useDetailActive();
   const unsent = unconfirmed || uploading || !!video;
-  const guardEnabled = active && unsent && !justSubmitted && !marking;
+  const guardEnabled =
+    active && unsent && !justSubmitted && !marking && !archived;
   // Nothing left to protect (e.g. the upload failed before any item landed)
   // while the question is open: the student asked to leave, so let them.
   useEffect(() => {
@@ -322,11 +328,11 @@ export default function YourWorkSheet({
       >
         <span className="flex items-center justify-between text-[13px] font-bold text-icon-color">
           <span>
-            {mode === "reviewed"
+            {shown === "reviewed"
               ? assignmentPageLanguage.reviewedByTeacher(lang)
               : assignmentPageLanguage.yourWork(lang)}
           </span>
-          {mode === "turnedIn" ? (
+          {shown === "turnedIn" ? (
             <span className={`${pillBase} bg-emerald-100 text-emerald-700`}>
               <LuCheck aria-hidden />
               {assignmentPageLanguage.turnedIn(lang)}
@@ -335,7 +341,7 @@ export default function YourWorkSheet({
             countPill
           )}
         </span>
-        {mode === "turnedIn" && doneAt && (
+        {shown === "turnedIn" && doneAt && (
           <span className="mt-1 block text-xs font-semibold text-emerald-600">
             {assignmentPageLanguage.markedDoneAt(lang)} {doneAt}
           </span>
@@ -367,12 +373,12 @@ export default function YourWorkSheet({
           <div className="pb-2">
             <div className="mb-2 flex items-center justify-between gap-2 text-[15px] font-bold text-icon-color">
               <span>
-                {mode === "reviewed"
+                {shown === "reviewed"
                   ? assignmentPageLanguage.reviewedByTeacher(lang)
                   : assignmentPageLanguage.yourWork(lang)}
               </span>
               <span className="flex items-center gap-1">
-                {mode === "turnedIn" ? (
+                {shown === "turnedIn" ? (
                   <>
                     <span
                       className={`${pillBase} bg-emerald-100 text-emerald-700`}
@@ -380,19 +386,23 @@ export default function YourWorkSheet({
                       <LuCheck aria-hidden />
                       {assignmentPageLanguage.turnedIn(lang)}
                     </span>
-                    <ActionMenu
-                      ariaLabel={assignmentPageLanguage.moreActions(lang)}
-                      disabled={busy}
-                      items={[
-                        {
-                          key: "undo",
-                          label:
-                            classworkDataLanguage.menuSummitLists.notdone(lang),
-                          icon: <LuUndo2 aria-hidden />,
-                          onSelect: () => void setStatus("PENDDING"),
-                        },
-                      ]}
-                    />
+                    {mode === "turnedIn" && (
+                      <ActionMenu
+                        ariaLabel={assignmentPageLanguage.moreActions(lang)}
+                        disabled={busy}
+                        items={[
+                          {
+                            key: "undo",
+                            label:
+                              classworkDataLanguage.menuSummitLists.notdone(
+                                lang,
+                              ),
+                            icon: <LuUndo2 aria-hidden />,
+                            onSelect: () => void setStatus("PENDDING"),
+                          },
+                        ]}
+                      />
+                    )}
                   </>
                 ) : (
                   countPill
@@ -400,7 +410,7 @@ export default function YourWorkSheet({
               </span>
             </div>
 
-            {mode === "turnedIn" && doneAt && (
+            {shown === "turnedIn" && doneAt && (
               <p className="mb-2 text-xs font-semibold text-emerald-600">
                 {assignmentPageLanguage.markedDoneAt(lang)} {doneAt}
               </p>
@@ -426,6 +436,7 @@ export default function YourWorkSheet({
                     subject?.allowStudentDeleteWork ?? false
                   }
                   reviewed={mode === "reviewed"}
+                  archived={archived}
                   onOpenNote={openNote}
                 />
               ))}

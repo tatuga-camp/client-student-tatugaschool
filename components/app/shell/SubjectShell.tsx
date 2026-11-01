@@ -9,6 +9,7 @@ import {
   useGetSubjectById,
 } from "../../../react-query";
 import { safeSet } from "../../../utils/safeStorage";
+import ArchivedBanner from "../../subject/ArchivedBanner";
 import LoadingSpinner from "../../common/LoadingSpinner";
 import DetailStack from "./DetailStack";
 import TabBar from "./TabBar";
@@ -88,6 +89,10 @@ function ShellBody({ route }: { route: ShellRoute }) {
             onTabChange={nav.goTab}
           />
         </div>
+        {/* Below the tabs: up top it sits under the framed status bar. */}
+        {subject.data?.isAchieved && (
+          <ArchivedBanner lang={lang} className="mb-6" />
+        )}
         <TabBar
           tab={tab}
           student={student.data}

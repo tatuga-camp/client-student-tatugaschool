@@ -77,6 +77,20 @@ test("answers given and not turned in are unsent, until reviewed", () => {
   );
 });
 
+test("nothing is unsent in an archived subject", () => {
+  assert.equal(
+    unsentVideo({
+      status: "PENDDING",
+      answered: 2,
+      correct: 1,
+      total: 5,
+      score: 2,
+      archived: true,
+    }),
+    null,
+  );
+});
+
 test("turning in a video quiz with answers sends its score, not SUBMITTED", () => {
   const video = { correct: 1, total: 5, score: 2 };
   assert.deepEqual(turnInBody("SUBMITTED", video), {

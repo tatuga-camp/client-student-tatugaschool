@@ -9,6 +9,7 @@ export interface WordCloudPublic {
   status: WordCloudStatus;
   accessMode: WordCloudAccess;
   subjectId: string;
+  subjectIsAchieved?: boolean;
   allowMultiple: boolean;
   students: StudentOnSubject[]; // subject roster, only populated for STUDENTS_ONLY
 }
@@ -26,6 +27,7 @@ export interface WordCloudSetPublic {
   accessMode: WordCloudAccess;
   allowMultiple: boolean;
   subjectId: string;
+  subjectIsAchieved?: boolean;
   activeWordCloudId: string | null;
   questions: PublicSetQuestion[];
   students: StudentOnSubject[];

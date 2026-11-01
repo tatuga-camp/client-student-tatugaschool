@@ -9,6 +9,7 @@ import LanguageSelect from "../../components/LanguageSelect";
 import PopupLayout from "../../components/layouts/PopupLayout";
 import SignInStudentForm from "../../components/student/SignInStudentForm";
 import ListStudent from "../../components/student/ListStudent";
+import { isClosed } from "../../utils/wordCloud";
 import { ErrorMessages } from "../../interfaces";
 import {
   useGetLanguage,
@@ -154,7 +155,7 @@ function Index({ id }: { id: string }) {
   const data = wordCloud.data;
   const needProfile =
     !!data &&
-    data.status !== "CLOSED" &&
+    !isClosed(data) &&
     data.accessMode === "STUDENTS_ONLY" &&
     !signedIn;
 
@@ -197,7 +198,7 @@ function Index({ id }: { id: string }) {
           <div className="flex w-full max-w-md flex-col items-center gap-5 rounded-2xl bg-white/95 p-6 text-icon-color shadow-xl">
             <h1 className="text-center text-xl font-bold">{data.question}</h1>
 
-            {data.status === "CLOSED" ? (
+            {isClosed(data) ? (
               <p className="text-center text-error-color">
                 {wordCloudLanguage.closed(lang)}
               </p>

@@ -14,6 +14,8 @@ type Props = {
   lang: Language;
   /** Flashes a primary outline (deep link arrival). */
   flash: boolean;
+  /** Archived subject: reactions show but can't be changed. */
+  readOnly?: boolean;
   onOpenComments: (announcementId: string) => void;
 };
 
@@ -23,6 +25,7 @@ export default function AnnouncementCard({
   studentId,
   lang,
   flash,
+  readOnly = false,
   onOpenComments,
 }: Props) {
   const toggleReaction = useToggleAnnouncementReaction({ subjectId });
@@ -114,7 +117,7 @@ export default function AnnouncementCard({
               type="button"
               aria-pressed={isMine}
               aria-label={`${announcementDataLanguage.react(lang)} ${emoji}`}
-              disabled={toggleReaction.isPending}
+              disabled={readOnly || toggleReaction.isPending}
               onClick={() =>
                 toggleReaction.mutate({
                   announcementId: announcement.id,

@@ -9,6 +9,8 @@ type Props = {
   total: number;
   /** A reviewed quiz can't be submitted again. */
   reviewed: boolean;
+  /** Archived subject: no submit button. */
+  readOnly?: boolean;
   /** Where "Next video" goes, if there is a next assignment. */
   onNext?: () => void;
   onRetry: () => void;
@@ -24,6 +26,7 @@ export default function VideoEndScreen({
   correct,
   total,
   reviewed,
+  readOnly = false,
   onNext,
   onRetry,
   onSubmit,
@@ -78,7 +81,7 @@ export default function VideoEndScreen({
             <LuRotateCcw aria-hidden />
             {t.retry(lang)}
           </button>
-          {reviewed ? (
+          {reviewed || readOnly ? (
             onNext && (
               <button type="button" onClick={onNext} className={secondary}>
                 <LuArrowRight aria-hidden />
