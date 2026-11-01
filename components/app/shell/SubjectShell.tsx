@@ -9,6 +9,7 @@ import {
   useGetSubjectById,
 } from "../../../react-query";
 import { safeSet } from "../../../utils/safeStorage";
+import ArchivedBanner from "../../subject/ArchivedBanner";
 import LoadingSpinner from "../../common/LoadingSpinner";
 import DetailStack from "./DetailStack";
 import TabBar from "./TabBar";
@@ -78,6 +79,7 @@ function ShellBody({ route }: { route: ShellRoute }) {
           visibility: depth.to((d) => (d >= 1 ? "hidden" : "visible")),
         }}
       >
+        {subject.data?.isAchieved && <ArchivedBanner lang={lang} />}
         <div className="relative min-h-0 flex-1">
           {/* A new subject starts fresh on Home. */}
           <TabPager

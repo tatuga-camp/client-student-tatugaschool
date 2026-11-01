@@ -30,6 +30,8 @@ type Props = {
   allowStudentDeleteWork: boolean;
   /** Reviewed work can only be opened. */
   reviewed?: boolean;
+  /** Archived subjects are read-only: the item can only be opened. */
+  archived?: boolean;
   /** TEXT items open in the note sheet. */
   onOpenNote: (file: FileOnStudentOnAssignment) => void;
 };
@@ -46,6 +48,7 @@ export default function WorkItemRow({
   lang,
   allowStudentDeleteWork,
   reviewed = false,
+  archived = false,
   onOpenNote,
 }: Props) {
   const updateFile = useUpdateFileStudentAssignment();
@@ -159,6 +162,7 @@ export default function WorkItemRow({
     contentType: file.contentType,
     allowStudentDeleteWork,
     reviewed,
+    archived,
   }).map((key) => actions[key]);
 
   const tile =

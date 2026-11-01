@@ -26,6 +26,7 @@ import {
   turnInSummary,
   yourWorkMode,
 } from "../../utils/assignmentDetail";
+import ArchivedBanner from "../subject/ArchivedBanner";
 import CommentsChat from "./CommentsChat";
 import ReviewedCard from "./ReviewedCard";
 import TurnedInCelebration from "./TurnedInCelebration";
@@ -195,6 +196,7 @@ export default function AssignmentDetail({
         lang={lang}
         onBack={nav.back}
       />
+      {subject.data?.isAchieved && <ArchivedBanner lang={lang} />}
       <div
         className={`${TAB_BODY_CLASS} hideScrollBar`}
         style={{ paddingBottom: "var(--safe-bottom)" }}

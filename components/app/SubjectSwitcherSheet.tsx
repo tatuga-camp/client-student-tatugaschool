@@ -6,7 +6,7 @@ import {
   LuChevronRight,
   LuLayoutGrid,
 } from "react-icons/lu";
-import { homeLanguage } from "../../data/languages";
+import { homeLanguage, subjectHomeLanguage } from "../../data/languages";
 import { Language } from "../../interfaces";
 import {
   useGetLanguage,
@@ -106,6 +106,11 @@ function SwitcherList({
                     <span className="flex items-center gap-1 text-xs font-bold text-primary-color">
                       <LuCheck aria-hidden size={13} />
                       {homeLanguage.currentSubject(lang)}
+                    </span>
+                  )}
+                  {s.isAchieved && (
+                    <span className="text-xs font-bold text-[#7A80A0]">
+                      {subjectHomeLanguage.archived(lang)}
                     </span>
                   )}
                 </span>
