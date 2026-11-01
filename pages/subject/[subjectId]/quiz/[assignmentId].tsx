@@ -19,7 +19,8 @@ import QuizResultScreen from "../../../../components/quiz/QuizResultScreen";
 import QuizStartScreen from "../../../../components/quiz/QuizStartScreen";
 import QuizTakeScreen from "../../../../components/quiz/QuizTakeScreen";
 import TestModeShell from "../../../../components/quiz/TestModeShell";
-import { quizLanguage } from "../../../../data/languages";
+import ArchivedBanner from "../../../../components/subject/ArchivedBanner";
+import { quizLanguage, subjectHomeLanguage } from "../../../../data/languages";
 import { ErrorMessages, Language } from "../../../../interfaces";
 import { errorSwalContent } from "../../../../utils/errorSwal";
 import { canStudentViewScoreOnceLoaded } from "../../../../utils/scoreVisibility";
@@ -109,7 +110,9 @@ function StudentQuizPage({
   }
   // Wait for a fetch made after this mount: a cached view can hold stale answers and an old
   // serverNow, which would seed the take screen with lost answers and a wrong clock.
-  if (!soaId || !view || !quiz.isFetchedAfterMount) {
+  // Also wait for the subject, so an archived one never flashes the take screen
+  // (which would start autosaving).
+  if (!soaId || !view || !quiz.isFetchedAfterMount || subject.isLoading) {
     return (
       <div className="flex min-h-dvh items-center justify-center bg-background-color font-Anuphan text-icon-color/60">
         …
@@ -156,7 +159,8 @@ function StudentQuizPage({
     subject.data,
     { allowStudentViewScore: view.assignment.allowStudentViewScore },
   );
-  const taking = !!view.attempt && !view.attempt.submittedAt;
+  const archived = !!subject.data?.isAchieved;
+  const taking = !archived && !!view.attempt && !view.attempt.submittedAt;
 
   return (
     <>
@@ -164,7 +168,13 @@ function StudentQuizPage({
         <title>{view.assignment.title}</title>
       </Head>
       <div className="min-h-dvh bg-background-color">
-        {!view.attempt && (
+        {archived && <ArchivedBanner lang={lang} />}
+        {archived && !view.attempt?.submittedAt && (
+          <p className="px-4 py-8 text-center font-Anuphan text-icon-color/70">
+            {subjectHomeLanguage.archivedQuiz(lang)}
+          </p>
+        )}
+        {!archived && !view.attempt && (
           <QuizStartScreen
             view={view}
             language={lang}

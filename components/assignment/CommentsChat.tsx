@@ -21,6 +21,8 @@ import { workError } from "./workFeedback";
 type Props = {
   studentOnAssignmentId: string;
   lang: Language;
+  /** Archived subject: the thread shows, but no composer or delete. */
+  readOnly?: boolean;
 };
 
 /** Poll the thread only while the page is open (the query unmounts with it). */
@@ -56,10 +58,12 @@ function Bubble({
   comment,
   lang,
   onDelete,
+  readOnly,
 }: {
   comment: CommentOnAssignment;
   lang: Language;
   onDelete: (comment: CommentOnAssignment) => void;
+  readOnly?: boolean;
 }) {
   const mine = !!comment.studentId;
   const name = [comment.title, comment.firstName, comment.lastName]
@@ -98,7 +102,7 @@ function Bubble({
             {ago}
           </span>
         </div>
-        {mine && (
+        {mine && !readOnly && (
           <ActionMenu
             ariaLabel={assignmentPageLanguage.moreActions(lang)}
             items={[
@@ -122,7 +126,11 @@ function Bubble({
  * the student's on the right (⋯ to delete), and a plain-text composer that
  * grows to four lines. A failed send keeps the typed text.
  */
-export default function CommentsChat({ studentOnAssignmentId, lang }: Props) {
+export default function CommentsChat({
+  studentOnAssignmentId,
+  lang,
+  readOnly = false,
+}: Props) {
   // Only the live (topmost) detail page polls; one on its way out stops.
   const active = useDetailActive();
   const comments = useGetComments({
@@ -194,34 +202,37 @@ export default function CommentsChat({ studentOnAssignmentId, lang }: Props) {
             comment={comment}
             lang={lang}
             onDelete={remove}
+            readOnly={readOnly}
           />
         ))}
         <li ref={endRef} aria-hidden />
       </ul>
-      <form
-        onSubmit={send}
-        className="chunky mt-3 flex items-end gap-2 p-2"
-        style={{ borderRadius: 16 }}
-      >
-        <textarea
-          ref={areaRef}
-          rows={1}
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          placeholder={assignmentPageLanguage.addComment(lang)}
-          aria-label={assignmentPageLanguage.addComment(lang)}
-          className="min-h-[40px] w-full resize-none overflow-y-auto rounded-[14px] bg-[#F2F4F8] px-3 py-2 text-[16px] leading-6 text-icon-color outline-none"
-        />
-        <button
-          type="submit"
-          disabled={create.isPending || commentDraftIsEmpty(draft)}
-          aria-label={assignmentPageLanguage.sendComment(lang)}
-          className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary-color text-lg text-white disabled:opacity-50"
-          style={{ boxShadow: "0 3px 0 #275d96" }}
+      {!readOnly && (
+        <form
+          onSubmit={send}
+          className="chunky mt-3 flex items-end gap-2 p-2"
+          style={{ borderRadius: 16 }}
         >
-          <LuSend aria-hidden />
-        </button>
-      </form>
+          <textarea
+            ref={areaRef}
+            rows={1}
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            placeholder={assignmentPageLanguage.addComment(lang)}
+            aria-label={assignmentPageLanguage.addComment(lang)}
+            className="min-h-[40px] w-full resize-none overflow-y-auto rounded-[14px] bg-[#F2F4F8] px-3 py-2 text-[16px] leading-6 text-icon-color outline-none"
+          />
+          <button
+            type="submit"
+            disabled={create.isPending || commentDraftIsEmpty(draft)}
+            aria-label={assignmentPageLanguage.sendComment(lang)}
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary-color text-lg text-white disabled:opacity-50"
+            style={{ boxShadow: "0 3px 0 #275d96" }}
+          >
+            <LuSend aria-hidden />
+          </button>
+        </form>
+      )}
     </section>
   );
 }

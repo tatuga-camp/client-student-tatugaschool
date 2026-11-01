@@ -21,6 +21,8 @@ type Props = {
   studentId: string;
   lang: Language;
   title: string;
+  /** Archived subject: no composer, no delete. */
+  readOnly?: boolean;
   onClose: () => void;
 };
 
@@ -29,6 +31,7 @@ export default function AnnouncementCommentsSheet({
   studentId,
   lang,
   title,
+  readOnly = false,
   onClose,
 }: Props) {
   return (
@@ -43,6 +46,7 @@ export default function AnnouncementCommentsSheet({
           announcementId={announcementId}
           studentId={studentId}
           lang={lang}
+          readOnly={readOnly}
         />
       )}
     </Sheet>
@@ -53,10 +57,12 @@ function Thread({
   announcementId,
   studentId,
   lang,
+  readOnly,
 }: {
   announcementId: string;
   studentId: string;
   lang: Language;
+  readOnly: boolean;
 }) {
   const comments = useGetAnnouncementComments({ announcementId });
   const createComment = useCreateAnnouncementComment();
@@ -143,7 +149,7 @@ function Thread({
               <p className="mt-0.5 whitespace-pre-wrap break-words text-sm text-gray-700">
                 {comment.content}
               </p>
-              {comment.studentId === studentId && (
+              {!readOnly && comment.studentId === studentId && (
                 <div data-comment-menu className="absolute right-0.5 top-0.5">
                   <button
                     type="button"
@@ -181,27 +187,29 @@ function Thread({
           {failure}
         </p>
       )}
-      <form
-        onSubmit={submit}
-        className="sticky bottom-0 mt-3 flex items-center gap-2 bg-white pt-2"
-      >
-        <input
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          placeholder={announcementDataLanguage.writeComment(lang)}
-          aria-label={announcementDataLanguage.writeComment(lang)}
-          className="min-h-11 min-w-0 flex-1 rounded-full border-2 border-[#E3E8F0] px-4 text-base outline-none focus:border-primary-color"
-        />
-        <button
-          type="submit"
-          aria-label={announcementDataLanguage.send(lang)}
-          disabled={createComment.isPending || !content.trim()}
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary-color text-xl text-white disabled:opacity-50"
-          style={{ boxShadow: "0 4px 0 #275d96" }}
+      {!readOnly && (
+        <form
+          onSubmit={submit}
+          className="sticky bottom-0 mt-3 flex items-center gap-2 bg-white pt-2"
         >
-          <LuSend aria-hidden />
-        </button>
-      </form>
+          <input
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder={announcementDataLanguage.writeComment(lang)}
+            aria-label={announcementDataLanguage.writeComment(lang)}
+            className="min-h-11 min-w-0 flex-1 rounded-full border-2 border-[#E3E8F0] px-4 text-base outline-none focus:border-primary-color"
+          />
+          <button
+            type="submit"
+            aria-label={announcementDataLanguage.send(lang)}
+            disabled={createComment.isPending || !content.trim()}
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary-color text-xl text-white disabled:opacity-50"
+            style={{ boxShadow: "0 4px 0 #275d96" }}
+          >
+            <LuSend aria-hidden />
+          </button>
+        </form>
+      )}
     </div>
   );
 }

@@ -1,7 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { subjectHomeLanguage } from "../../data/languages";
 import { Language } from "../../interfaces";
-import { useGetAnnouncements, useGetStudent } from "../../react-query";
+import {
+  useGetAnnouncements,
+  useGetStudent,
+  useGetSubjectById,
+} from "../../react-query";
 import LoadingBar from "../common/LoadingBar";
 import SubjectEmptyState from "../subject/SubjectEmptyState";
 import { InlineError } from "../app/InlineError";
@@ -26,6 +30,7 @@ export default function AnnouncementsView({
 }: Props) {
   const announcements = useGetAnnouncements({ subjectId });
   const student = useGetStudent();
+  const readOnly = !!useGetSubjectById({ id: subjectId }).data?.isAchieved;
   const [commentsFor, setCommentsFor] = useState<string | null>(null);
   const [flashId, setFlashId] = useState<string | null>(null);
   const doneLink = useRef<object | null>(null);
@@ -98,6 +103,7 @@ export default function AnnouncementsView({
                 studentId={student.data.id}
                 lang={lang}
                 flash={flashId === announcement.id}
+                readOnly={readOnly}
                 onOpenComments={setCommentsFor}
               />
             ))}
@@ -110,6 +116,7 @@ export default function AnnouncementsView({
           studentId={student.data.id}
           lang={lang}
           title={sheetTitle}
+          readOnly={readOnly}
           onClose={() => setCommentsFor(null)}
         />
       )}

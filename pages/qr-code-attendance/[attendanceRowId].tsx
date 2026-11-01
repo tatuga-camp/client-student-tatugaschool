@@ -17,6 +17,7 @@ import SignInStudentForm from "../../components/student/SignInStudentForm";
 import { defaultBlurHash, defaultCanvas } from "../../data";
 import {
   qrcodeAttendanceLanguage,
+  subjectHomeLanguage,
   qrcodeMenuBarLanguage,
   subjectDataLanguage,
 } from "../../data/languages";
@@ -345,6 +346,26 @@ function Index({ id }: { id: string }) {
         <main className="flex min-h-dvh w-full flex-col items-center justify-center bg-background-color font-Anuphan text-gray-600">
           <LoadingSpinner />
           <p className="mt-3 text-sm">loading...</p>
+        </main>
+      </>
+    );
+  }
+
+  if (qrCode.data?.subject.isAchieved) {
+    return (
+      <>
+        <Head>
+          <title>{qrcodeAttendanceLanguage.title(language.data ?? "en")}</title>
+        </Head>
+        <main className="flex min-h-dvh w-full flex-col items-center bg-background-color px-3 py-6 font-Anuphan sm:px-4">
+          <div className="mx-auto flex w-full max-w-md flex-col gap-4 overflow-x-hidden">
+            <SessionHeader />
+            <section className="rounded-2xl border border-gray-100 bg-white p-5 text-center shadow-sm">
+              <p role="status" className="text-sm font-semibold text-gray-700">
+                {subjectHomeLanguage.archivedCheckIn(language.data ?? "en")}
+              </p>
+            </section>
+          </div>
         </main>
       </>
     );

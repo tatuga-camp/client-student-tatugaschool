@@ -22,6 +22,9 @@ type Props = {
   questions: QuestionOnVideo[];
   preventFastForward: boolean;
   reviewed: boolean;
+  /** Archived subject: watch and answer, but no submit. Separate from
+   *  `reviewed`, which also lifts the no-fast-forward rule. */
+  readOnly?: boolean;
   maxScore: number;
   /** Resolves true once the server has the score. */
   onSubmit: (score: number) => Promise<boolean>;
@@ -52,6 +55,7 @@ export default function VideoQuizPlayer({
   questions,
   preventFastForward,
   reviewed,
+  readOnly = false,
   maxScore,
   onSubmit,
   onNext,
@@ -308,6 +312,7 @@ export default function VideoQuizPlayer({
             correct={quiz.correct}
             total={questions.length}
             reviewed={reviewed}
+            readOnly={readOnly}
             onNext={onNext}
             onRetry={quiz.retry}
             onSubmit={quiz.submit}

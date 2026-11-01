@@ -223,6 +223,7 @@ export default function AssignmentDetail({
                   onNext={next ? () => nav.openAssignment(next.id) : undefined}
                   onStateChange={setVideoState}
                   onProgress={setVideoProgress}
+                  readOnly={!!subject.data?.isAchieved}
                 />
               )}
               {reviewed && subject.data && student.data && (
@@ -266,6 +267,7 @@ export default function AssignmentDetail({
               <CommentsChat
                 studentOnAssignmentId={assignment.studentOnAssignment.id}
                 lang={lang}
+                readOnly={!!subject.data?.isAchieved}
               />
               {reviewed && next && (
                 <button

@@ -31,6 +31,11 @@ import RouteParamsGate, {
 
 const MAX_ANSWER_LENGTH = 999;
 
+/** An archived subject closes its word clouds, even for a signed-out visitor. */
+function isClosed(data: { status: string; subjectIsAchieved?: boolean }) {
+  return data.status === "CLOSED" || data.subjectIsAchieved === true;
+}
+
 function getBrowserToken(): string {
   let token = getLocalStorage("word_cloud_browser_token");
   if (!token) {
@@ -170,7 +175,7 @@ function Index({ id }: { id: string }) {
 
   const needProfile =
     !!data &&
-    data.status !== "CLOSED" &&
+    !isClosed(data) &&
     data.accessMode === "STUDENTS_ONLY" &&
     !signedIn;
 
@@ -251,7 +256,7 @@ function Index({ id }: { id: string }) {
               {current.question}
             </h1>
 
-            {data.status === "CLOSED" ? (
+            {isClosed(data) ? (
               <p className="text-center text-error-color">
                 {wordCloudLanguage.closed(lang)}
               </p>
