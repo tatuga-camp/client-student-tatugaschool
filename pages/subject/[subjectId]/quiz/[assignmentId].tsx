@@ -1,4 +1,5 @@
 import Head from "next/head";
+import Link from "next/link";
 import React from "react";
 import Swal from "../../../../utils/appSwal";
 // Keep the react-query barrel above the quiz components: it loads services/auth before
@@ -120,6 +121,18 @@ function StudentQuizPage({
     );
   }
 
+  // The subject never loaded, so archived is unknown: don't offer Start or Take (they would
+  // autosave into a server that rejects it). Submitted results stay viewable.
+  if (subject.isError && !subject.data && !view.attempt?.submittedAt) {
+    return (
+      <QuizPageMessage
+        text={`${quizLanguage.loadFailed(lang)} ${errorSwalContent(subject.error).text}`}
+        language={lang}
+        onRetry={() => void subject.refetch()}
+      />
+    );
+  }
+
   const onStart = async () => {
     if (view.assignment.quizSettings.testMode) requestFullscreenIfSupported();
     try {
@@ -170,9 +183,17 @@ function StudentQuizPage({
       <div className="min-h-dvh bg-background-color">
         {archived && <ArchivedBanner lang={lang} />}
         {archived && !view.attempt?.submittedAt && (
-          <p className="px-4 py-8 text-center font-Anuphan text-icon-color/70">
-            {subjectHomeLanguage.archivedQuiz(lang)}
-          </p>
+          <div className="flex flex-col items-center gap-4 px-4 py-8 text-center font-Anuphan">
+            <p className="text-icon-color/70">
+              {subjectHomeLanguage.archivedQuiz(lang)}
+            </p>
+            <Link
+              href={`/subject/${subjectId}`}
+              className="rounded-2xl border border-gray-200 px-5 py-2.5 font-medium text-icon-color"
+            >
+              {quizLanguage.backToClass(lang)}
+            </Link>
+          </div>
         )}
         {!archived && !view.attempt && (
           <QuizStartScreen

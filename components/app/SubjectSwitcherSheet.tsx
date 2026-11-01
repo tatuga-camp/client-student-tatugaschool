@@ -1,6 +1,7 @@
 import { InlineError } from "./InlineError";
 import React from "react";
 import {
+  LuArchive,
   LuBookOpen,
   LuCheck,
   LuChevronRight,
@@ -109,8 +110,11 @@ function SwitcherList({
                     </span>
                   )}
                   {s.isAchieved && (
-                    <span className="text-xs font-bold text-[#7A80A0]">
-                      {subjectHomeLanguage.archived(lang)}
+                    <span className="mt-0.5 flex">
+                      <span className="inline-flex items-center gap-0.5 rounded-[7px] bg-[#EEF1F6] px-1.5 py-px text-[10px] font-bold text-[#7A80A0]">
+                        <LuArchive aria-hidden size={10} />
+                        {subjectHomeLanguage.archived(lang)}
+                      </span>
                     </span>
                   )}
                 </span>

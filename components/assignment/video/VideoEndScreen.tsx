@@ -81,14 +81,14 @@ export default function VideoEndScreen({
             <LuRotateCcw aria-hidden />
             {t.retry(lang)}
           </button>
-          {reviewed ? (
+          {reviewed || readOnly ? (
             onNext && (
               <button type="button" onClick={onNext} className={secondary}>
                 <LuArrowRight aria-hidden />
                 {t.nextVideo(lang)}
               </button>
             )
-          ) : readOnly ? null : (
+          ) : (
             <button
               type="button"
               onClick={onSubmit}

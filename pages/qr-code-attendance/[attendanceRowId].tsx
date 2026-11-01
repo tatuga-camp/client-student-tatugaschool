@@ -17,9 +17,9 @@ import SignInStudentForm from "../../components/student/SignInStudentForm";
 import { defaultBlurHash, defaultCanvas } from "../../data";
 import {
   qrcodeAttendanceLanguage,
-  subjectHomeLanguage,
   qrcodeMenuBarLanguage,
   subjectDataLanguage,
+  subjectHomeLanguage,
 } from "../../data/languages";
 import {
   Attendance,

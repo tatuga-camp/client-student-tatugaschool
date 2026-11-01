@@ -9,6 +9,7 @@ import LanguageSelect from "../../components/LanguageSelect";
 import PopupLayout from "../../components/layouts/PopupLayout";
 import SignInStudentForm from "../../components/student/SignInStudentForm";
 import ListStudent from "../../components/student/ListStudent";
+import { isClosed } from "../../utils/wordCloud";
 import { ErrorMessages } from "../../interfaces";
 import {
   useGetLanguage,
@@ -26,11 +27,6 @@ import RouteParamsGate, {
 } from "../../components/common/RouteParamsGate";
 
 const MAX_ANSWER_LENGTH = 999;
-
-/** An archived subject closes its word clouds, even for a signed-out visitor. */
-function isClosed(data: { status: string; subjectIsAchieved?: boolean }) {
-  return data.status === "CLOSED" || data.subjectIsAchieved === true;
-}
 
 function getBrowserToken(): string {
   let token = getLocalStorage("word_cloud_browser_token");

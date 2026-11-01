@@ -91,7 +91,7 @@ function ShellBody({ route }: { route: ShellRoute }) {
         </div>
         {/* Below the tabs: up top it sits under the framed status bar. */}
         {subject.data?.isAchieved && (
-          <ArchivedBanner lang={lang} className="mb-2" />
+          <ArchivedBanner lang={lang} className="mb-6" />
         )}
         <TabBar
           tab={tab}

@@ -337,17 +337,35 @@ test("doneAtLabel shows the day of a turn-in, and nothing without one", () => {
   assert.match(doneAtLabel("2026-05-03T07:05:00Z") ?? "", /\b[34]\b/);
 });
 
-test("yourWorkMode is archived for every status of a work type, none stays none", () => {
+test("yourWorkMode is archived for a pending Assignment", () => {
   assert.equal(yourWorkMode("Assignment", "PENDDING", true), "archived");
+});
+
+test("yourWorkMode is archived for a submitted Assignment", () => {
   assert.equal(yourWorkMode("Assignment", "SUBMITTED", true), "archived");
+});
+
+test("yourWorkMode is archived for a reviewed Assignment", () => {
   assert.equal(yourWorkMode("Assignment", "REVIEWD", true), "archived");
+});
+
+test("yourWorkMode stays none for a Material, even archived", () => {
   assert.equal(yourWorkMode("Material", "PENDDING", true), "none");
+});
+
+test("yourWorkMode stays none for a Quiz, even archived", () => {
   assert.equal(yourWorkMode("Quiz", "SUBMITTED", true), "none");
+});
+
+test("yourWorkMode is open when archived is omitted", () => {
   assert.equal(yourWorkMode("Assignment", "PENDDING"), "open");
+});
+
+test("yourWorkMode is open when archived is false", () => {
   assert.equal(yourWorkMode("Assignment", "PENDDING", false), "open");
 });
 
-test("workItemMenu only opens in an archived subject", () => {
+test("workItemMenu only opens a FILE in an archived subject", () => {
   assert.deepEqual(
     workItemMenu({
       contentType: "FILE",
@@ -355,5 +373,27 @@ test("workItemMenu only opens in an archived subject", () => {
       archived: true,
     }),
     ["open"],
+  );
+});
+
+test("workItemMenu only opens a TEXT item in an archived subject", () => {
+  assert.deepEqual(
+    workItemMenu({
+      contentType: "TEXT",
+      allowStudentDeleteWork: true,
+      archived: true,
+    }),
+    ["open"],
+  );
+});
+
+test("workItemMenu keeps rename and delete for a FILE when archived is false", () => {
+  assert.deepEqual(
+    workItemMenu({
+      contentType: "FILE",
+      allowStudentDeleteWork: true,
+      archived: false,
+    }),
+    ["open", "rename", "delete"],
   );
 });

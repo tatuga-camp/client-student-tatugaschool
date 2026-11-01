@@ -81,6 +81,8 @@ export default function YourWorkSheet({
   const archived = subject?.isAchieved ?? false;
   const mode = yourWorkMode(assignment.type, soa.status, archived);
   // Archived work keeps the label it would have had; only the controls go.
+  // `mode` drives every control (Add, Done, Undo, the read-only note, item menus);
+  // `shown` drives only the labels and pills. Never use `shown` for a control.
   const shown = archived ? yourWorkMode(assignment.type, soa.status) : mode;
   const files = useGetFileStudentAssignment({ studentOnAssignmentId: soa.id });
   const items = files.data ?? [];
