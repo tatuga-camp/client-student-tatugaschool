@@ -4,6 +4,21 @@ const t = (en: string, th: string) => (language: Language) =>
   language === "th" ? th : en;
 
 export const subjectHomeLanguage = {
+  // Archived subject
+  archived: t("Archived", "เก็บถาวร"),
+  archivedBanner: t(
+    "This subject is archived — you can look, but not change anything.",
+    "รายวิชานี้ถูกเก็บถาวร — ดูได้ แต่แก้ไขไม่ได้",
+  ),
+  archivedQuiz: t(
+    "This subject is archived, so the quiz can't be taken.",
+    "รายวิชานี้ถูกเก็บถาวร จึงทำแบบทดสอบไม่ได้",
+  ),
+  archivedCheckIn: t(
+    "This subject is archived, so attendance can't be checked.",
+    "รายวิชานี้ถูกเก็บถาวร จึงเช็กชื่อไม่ได้",
+  ),
+
   // Classwork switch
   tabAssignments: t("Assignments", "งาน"),
   tabAnnouncements: t("Announcements", "ประกาศ"),

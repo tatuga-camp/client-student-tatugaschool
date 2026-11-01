@@ -336,3 +336,24 @@ test("doneAtLabel shows the day of a turn-in, and nothing without one", () => {
   assert.equal(doneAtLabel(null), null);
   assert.match(doneAtLabel("2026-05-03T07:05:00Z") ?? "", /\b[34]\b/);
 });
+
+test("yourWorkMode is archived for every status of a work type, none stays none", () => {
+  assert.equal(yourWorkMode("Assignment", "PENDDING", true), "archived");
+  assert.equal(yourWorkMode("Assignment", "SUBMITTED", true), "archived");
+  assert.equal(yourWorkMode("Assignment", "REVIEWD", true), "archived");
+  assert.equal(yourWorkMode("Material", "PENDDING", true), "none");
+  assert.equal(yourWorkMode("Quiz", "SUBMITTED", true), "none");
+  assert.equal(yourWorkMode("Assignment", "PENDDING"), "open");
+  assert.equal(yourWorkMode("Assignment", "PENDDING", false), "open");
+});
+
+test("workItemMenu only opens in an archived subject", () => {
+  assert.deepEqual(
+    workItemMenu({
+      contentType: "FILE",
+      allowStudentDeleteWork: true,
+      archived: true,
+    }),
+    ["open"],
+  );
+});
