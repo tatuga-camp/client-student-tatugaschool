@@ -1,10 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
-  LuAlertTriangle,
   LuCheck,
   LuLoader,
   LuPlus,
-  LuUndo2,
 } from "react-icons/lu";
 import {
   assignmentPageLanguage,
@@ -33,13 +32,12 @@ import { turnInBody, type UnsentVideo } from "../../utils/videoQuiz";
 import { useDetailActive } from "../app/shell/DetailActive";
 import { Sheet } from "../app/Sheet";
 import { useStudentFileUpload } from "../subject/AssignmentUploadFile";
-import ActionMenu from "./ActionMenu";
-import AddWorkOptions from "./AddWorkOptions";
+
 import LeaveGuardSheet from "./LeaveGuardSheet";
 import LinkSheet from "./LinkSheet";
 import NoteSheet from "./NoteSheet";
 import type { AssignmentItem } from "./types";
-import WorkItemRow from "./WorkItemRow";
+import YourWorkBody, { pillBase } from "./YourWorkBody";
 import { workError, workToast } from "./workFeedback";
 
 type Props = {
@@ -53,6 +51,10 @@ type Props = {
   /** Video quiz answers not turned in: Mark as done (or Submit in the leave
    *  guard, which then has no Leave anyway) sends their score as final. */
   video?: UnsentVideo | null;
+  /** Where the always-open desktop card renders (the assignment page's right
+   *  column). Null: the bottom sheet. This component stays mounted in one
+   *  place either way, so switching keeps uploads and the leave guard. */
+  cardSlot?: HTMLElement | null;
 };
 
 /** How long the guard's "Mark as done" waits for an upload before giving up. */
@@ -60,13 +62,11 @@ const UPLOAD_WAIT_MS = 60_000;
 /** How long it waits for the mark-done request itself. */
 const SUBMIT_WAIT_MS = 30_000;
 
-const pillBase =
-  "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold";
-
 /**
  * The "Your work" bottom sheet: a peek with the count and the two main
  * buttons, expanding to the items and the four ways to add work. Turned-in
  * and reviewed work get a read-mostly version; Material and Quiz get none.
+ * With a `cardSlot` it is an always-open card there instead.
  */
 export default function YourWorkSheet({
   assignment,
@@ -74,6 +74,7 @@ export default function YourWorkSheet({
   onTurnedIn,
   hidden = false,
   video = null,
+  cardSlot = null,
 }: Props) {
   const language = useGetLanguage();
   const lang = language.data ?? "en";
@@ -349,6 +350,28 @@ export default function YourWorkSheet({
       </button>
     );
 
+  const body = (
+    <YourWorkBody
+      lang={lang}
+      mode={mode}
+      shown={shown}
+      busy={busy}
+      countPill={countPill}
+      doneAt={doneAt}
+      unconfirmed={unconfirmed}
+      items={items}
+      allowStudentDeleteWork={subject?.allowStudentDeleteWork ?? false}
+      archived={archived}
+      progress={progress}
+      doneButton={doneButton}
+      onUndo={() => void setStatus("PENDDING")}
+      onOpenNote={openNote}
+      onCamera={() => cameraRef.current?.click()}
+      onFiles={() => filesRef.current?.click()}
+      onLink={() => setLinkOpen(true)}
+    />
+  );
+
   return (
     <>
       <input
@@ -361,127 +384,29 @@ export default function YourWorkSheet({
       />
       <input ref={filesRef} type="file" multiple hidden onChange={pickFiles} />
 
-      {!hidden && (
-        <Sheet
-          open
-          onClose={() => setExpanded(false)}
-          peek={peek}
-          expanded={expanded}
-          onExpandedChange={setExpanded}
-          ariaLabel={assignmentPageLanguage.yourWork(lang)}
-        >
-          <div className="pb-2">
-            <div className="mb-2 flex items-center justify-between gap-2 text-[15px] font-bold text-icon-color">
-              <span>
-                {shown === "reviewed"
-                  ? assignmentPageLanguage.reviewedByTeacher(lang)
-                  : assignmentPageLanguage.yourWork(lang)}
-              </span>
-              <span className="flex items-center gap-1">
-                {shown === "turnedIn" ? (
-                  <>
-                    <span
-                      className={`${pillBase} bg-emerald-100 text-emerald-700`}
-                    >
-                      <LuCheck aria-hidden />
-                      {assignmentPageLanguage.turnedIn(lang)}
-                    </span>
-                    {mode === "turnedIn" && (
-                      <ActionMenu
-                        ariaLabel={assignmentPageLanguage.moreActions(lang)}
-                        disabled={busy}
-                        items={[
-                          {
-                            key: "undo",
-                            label:
-                              classworkDataLanguage.menuSummitLists.notdone(
-                                lang,
-                              ),
-                            icon: <LuUndo2 aria-hidden />,
-                            onSelect: () => void setStatus("PENDDING"),
-                          },
-                        ]}
-                      />
-                    )}
-                  </>
-                ) : (
-                  countPill
-                )}
-              </span>
-            </div>
-
-            {shown === "turnedIn" && doneAt && (
-              <p className="mb-2 text-xs font-semibold text-emerald-600">
-                {assignmentPageLanguage.markedDoneAt(lang)} {doneAt}
-              </p>
-            )}
-
-            {mode === "open" && unconfirmed && (
-              <div className="mb-2 flex items-start gap-2 rounded-xl bg-[#FFF6D6] p-2 text-[12px] font-bold text-[#8A5E00]">
-                <LuAlertTriangle
-                  aria-hidden
-                  className="mt-0.5 shrink-0 text-base"
-                />
-                {assignmentPageLanguage.unsubmittedWarning(lang)}
-              </div>
-            )}
-
-            <ul className="list-none">
-              {items.map((file) => (
-                <WorkItemRow
-                  key={file.id}
-                  file={file}
-                  lang={lang}
-                  allowStudentDeleteWork={
-                    subject?.allowStudentDeleteWork ?? false
-                  }
-                  reviewed={mode === "reviewed"}
-                  archived={archived}
-                  onOpenNote={openNote}
-                />
-              ))}
-            </ul>
-
-            {progress && (
-              <div className="flex min-h-[52px] flex-col justify-center gap-1 border-t-[1.5px] border-[#EEF1F6] py-1.5">
-                <span className="text-xs font-bold text-icon-color">
-                  {assignmentPageLanguage.uploadingProgress(
-                    lang,
-                    progress.index,
-                    progress.count,
-                    Math.round(progress.percent),
-                  )}
-                </span>
-                <div
-                  role="progressbar"
-                  aria-valuemin={0}
-                  aria-valuemax={100}
-                  aria-valuenow={Math.round(progress.percent)}
-                  className="h-1.5 w-full overflow-hidden rounded-full bg-[#EEF1F6]"
-                >
-                  <div
-                    className="h-full rounded-full bg-primary-color"
-                    style={{ width: `${Math.round(progress.percent)}%` }}
-                  />
-                </div>
-              </div>
-            )}
-            {mode === "open" && (
-              <>
-                <AddWorkOptions
-                  lang={lang}
-                  disabled={busy}
-                  onCamera={() => cameraRef.current?.click()}
-                  onFiles={() => filesRef.current?.click()}
-                  onNote={() => openNote()}
-                  onLink={() => setLinkOpen(true)}
-                />
-                {doneButton}
-              </>
-            )}
-          </div>
-        </Sheet>
-      )}
+      {cardSlot
+        ? // Desktop: always open, in the right column; nothing to hide.
+          createPortal(
+            <section
+              aria-label={assignmentPageLanguage.yourWork(lang)}
+              className="chunky p-3 font-Anuphan"
+            >
+              {body}
+            </section>,
+            cardSlot,
+          )
+        : !hidden && (
+            <Sheet
+              open
+              onClose={() => setExpanded(false)}
+              peek={peek}
+              expanded={expanded}
+              onExpandedChange={setExpanded}
+              ariaLabel={assignmentPageLanguage.yourWork(lang)}
+            >
+              {body}
+            </Sheet>
+          )}
 
       <LeaveGuardSheet
         open={guardOpen}

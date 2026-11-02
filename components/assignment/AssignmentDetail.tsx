@@ -13,7 +13,8 @@ import {
   useGetSubjectById,
   useUpdateStudentOnAssignment,
 } from "../../react-query";
-import { TAB_BODY_CLASS } from "../app/TabHeader";
+import { DESK_COL, TAB_BODY_CLASS } from "../app/TabHeader";
+import { useIsWide } from "../app/useLayoutMode";
 import {
   type DetailPaneProps,
   previousEntryPath,
@@ -82,6 +83,9 @@ export default function AssignmentDetail({
   const assignments = useGetAssignments({ subjectId });
   const assignment = assignments.data?.find((item) => item.id === assignmentId);
   const pageRef = useRef<HTMLDivElement>(null);
+  // `wide`: two columns, Your work as a card in the right one (its slot).
+  const wide = useIsWide();
+  const [cardSlot, setCardSlot] = useState<HTMLDivElement | null>(null);
   const backRef = useRef<HTMLButtonElement>(null);
   useDetailFocus(backRef, pageRef);
 
@@ -182,8 +186,89 @@ export default function AssignmentDetail({
     yourWorkMode(assignment.type, assignment.studentOnAssignment.status) !==
       "none";
 
+  // The page's parts. Phones and tablets stack them; `wide` puts Your work and
+  // the comments in a right column that stays in view.
+  const main = assignment && (
+    <>
+      {assignment.type === "VideoQuiz" && assignment.videoURL && (
+        <VideoQuizPlayer
+          src={assignment.videoURL}
+          questions={assignment.questions}
+          preventFastForward={assignment.preventFastForward ?? false}
+          reviewed={assignment.studentOnAssignment.status === "REVIEWD"}
+          maxScore={assignment.maxScore}
+          onSubmit={submitVideoScore}
+          onNext={next ? () => nav.openAssignment(next.id) : undefined}
+          onStateChange={setVideoState}
+          onProgress={setVideoProgress}
+          readOnly={!!subject.data?.isAchieved}
+        />
+      )}
+      {reviewed && subject.data && student.data && (
+        <ReviewedCard
+          assignment={assignment}
+          subject={subject.data}
+          lang={lang}
+          student={student.data}
+        />
+      )}
+      <TitleCard assignment={assignment} lang={lang} now={new Date()} />
+      {(assignment.type === "Assignment" || assignment.type === "Material") &&
+        hasRichContent(assignment.description) && (
+          <section>
+            <h3 className={sectionLabel}>
+              {assignmentPageLanguage.instructions(lang)}
+            </h3>
+            <div className="chunky overflow-hidden p-2">
+              <TextEditor
+                disabled
+                autoHeight
+                schoolId={assignment.schoolId}
+                value={assignment.description}
+                onChange={() => {}}
+                menubar={false}
+                toolbar={false}
+                ariaText={assignmentPageLanguage.instructions(lang)}
+              />
+            </div>
+          </section>
+        )}
+      {assignment.files?.length > 0 && (
+        <section>
+          <h3 className={sectionLabel}>
+            {assignmentPageLanguage.fromTeacher(lang)}
+          </h3>
+          <TeacherFiles files={assignment.files} lang={lang} />
+        </section>
+      )}
+    </>
+  );
+  const comments = assignment && (
+    <CommentsChat
+      studentOnAssignmentId={assignment.studentOnAssignment.id}
+      lang={lang}
+      readOnly={!!subject.data?.isAchieved}
+    />
+  );
+  const nextButton = reviewed && next && (
+    <button
+      type="button"
+      onClick={() => nav.openAssignment(next.id)}
+      className="chunky flex min-h-[52px] w-full items-center justify-between gap-2 px-3 text-left active:translate-y-0.5"
+    >
+      <span className="min-w-0 truncate text-[13px] font-bold text-icon-color">
+        {assignmentPageLanguage.nextAssignment(lang, next.title)}
+      </span>
+      <LuChevronRight aria-hidden className="shrink-0 text-[#9AA3B8]" />
+    </button>
+  );
+  const twoColumns = wide && !loading && !!assignment;
+
   return (
-    <div ref={pageRef} className="flex h-full w-full flex-col font-Anuphan">
+    <div
+      ref={pageRef}
+      className="flex h-full w-full flex-col font-Anuphan wide:[--col:1000px]"
+    >
       {assignment && (
         <Head>
           <title>
@@ -199,102 +284,51 @@ export default function AssignmentDetail({
       />
       {subject.data?.isAchieved && <ArchivedBanner lang={lang} />}
       <div
-        className={`${TAB_BODY_CLASS} hideScrollBar`}
+        className={`${TAB_BODY_CLASS} hideScrollBar ${DESK_COL}`}
         style={{ paddingBottom: "var(--safe-bottom)" }}
       >
-        <div
-          className={`flex flex-col gap-3 px-3 pt-4 ${hasSheet ? "pb-44" : "pb-6"}`}
-        >
-          {loading ? (
-            <DetailSkeleton />
-          ) : !assignment ? (
-            <h2 className="py-10 text-center text-base font-bold text-icon-color">
-              {classworkDataLanguage.notFound(lang)}
-            </h2>
-          ) : (
-            <>
-              {assignment.type === "VideoQuiz" && assignment.videoURL && (
-                <VideoQuizPlayer
-                  src={assignment.videoURL}
-                  questions={assignment.questions}
-                  preventFastForward={assignment.preventFastForward ?? false}
-                  reviewed={assignment.studentOnAssignment.status === "REVIEWD"}
-                  maxScore={assignment.maxScore}
-                  onSubmit={submitVideoScore}
-                  onNext={next ? () => nav.openAssignment(next.id) : undefined}
-                  onStateChange={setVideoState}
-                  onProgress={setVideoProgress}
-                  readOnly={!!subject.data?.isAchieved}
-                />
-              )}
-              {reviewed && subject.data && student.data && (
-                <ReviewedCard
-                  assignment={assignment}
-                  subject={subject.data}
-                  lang={lang}
-                  student={student.data}
-                />
-              )}
-              <TitleCard assignment={assignment} lang={lang} now={new Date()} />
-              {(assignment.type === "Assignment" ||
-                assignment.type === "Material") &&
-                hasRichContent(assignment.description) && (
-                  <section>
-                    <h3 className={sectionLabel}>
-                      {assignmentPageLanguage.instructions(lang)}
-                    </h3>
-                    <div className="chunky overflow-hidden p-2">
-                      <TextEditor
-                        disabled
-                        autoHeight
-                        schoolId={assignment.schoolId}
-                        value={assignment.description}
-                        onChange={() => {}}
-                        menubar={false}
-                        toolbar={false}
-                        ariaText={assignmentPageLanguage.instructions(lang)}
-                      />
-                    </div>
-                  </section>
-                )}
-              {assignment.files?.length > 0 && (
-                <section>
-                  <h3 className={sectionLabel}>
-                    {assignmentPageLanguage.fromTeacher(lang)}
-                  </h3>
-                  <TeacherFiles files={assignment.files} lang={lang} />
-                </section>
-              )}
-              <CommentsChat
-                studentOnAssignmentId={assignment.studentOnAssignment.id}
-                lang={lang}
-                readOnly={!!subject.data?.isAchieved}
-              />
-              {reviewed && next && (
-                <button
-                  type="button"
-                  onClick={() => nav.openAssignment(next.id)}
-                  className="chunky flex min-h-[52px] w-full items-center justify-between gap-2 px-3 text-left active:translate-y-0.5"
-                >
-                  <span className="min-w-0 truncate text-[13px] font-bold text-icon-color">
-                    {assignmentPageLanguage.nextAssignment(lang, next.title)}
-                  </span>
-                  <LuChevronRight
-                    aria-hidden
-                    className="shrink-0 text-[#9AA3B8]"
-                  />
-                </button>
-              )}
-            </>
-          )}
-        </div>
+        {twoColumns ? (
+          <div className="grid grid-cols-[minmax(0,1fr)_320px] items-start gap-[18px] px-3 pb-6 pt-4">
+            <div className="flex min-w-0 flex-col gap-3">
+              {main}
+              {nextButton}
+            </div>
+            <aside className="sticky top-4 flex flex-col gap-3">
+              <div ref={setCardSlot} />
+              {comments}
+            </aside>
+          </div>
+        ) : (
+          <div
+            className={`flex flex-col gap-3 px-3 pt-4 ${hasSheet ? "pb-44" : "pb-6"}`}
+          >
+            {loading ? (
+              <DetailSkeleton />
+            ) : !assignment ? (
+              <h2 className="py-10 text-center text-base font-bold text-icon-color">
+                {classworkDataLanguage.notFound(lang)}
+              </h2>
+            ) : (
+              <>
+                {main}
+                {comments}
+                {nextButton}
+              </>
+            )}
+          </div>
+        )}
       </div>
       {assignment && (
         <YourWorkSheet
           assignment={assignment}
           video={unsent}
+          cardSlot={wide ? cardSlot : null}
           hidden={
-            videoState.playing || videoState.questionOpen || videoState.expanded
+            // On `wide` the card shows once its slot mounts: no sheet first.
+            (wide && !cardSlot) ||
+            videoState.playing ||
+            videoState.questionOpen ||
+            videoState.expanded
           }
           subject={subject.data}
           onTurnedIn={({ itemCount }) =>
