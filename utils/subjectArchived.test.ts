@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   activeSubjects,
+  groupByTerm,
   isSubjectArchived,
   isSubjectArchivedError,
 } from "./subjectArchived";
@@ -54,4 +55,27 @@ test("activeSubjects: drops archived ones and the excluded id, keeps order", () 
     activeSubjects(list, "c").map((s) => s.id),
     ["a", "d"],
   );
+});
+
+test("groupByTerm: newest term first, subjects kept in order", () => {
+  const list = [
+    { id: "a", educationYear: "1/2026" },
+    { id: "b", educationYear: "2/2025" },
+    { id: "c", educationYear: "2/2026" },
+    { id: "d", educationYear: "1/2026" },
+    { id: "e", educationYear: "10/2025" },
+  ];
+  assert.deepEqual(
+    groupByTerm(list).map(([term, items]) => [term, items.map((s) => s.id)]),
+    [
+      ["2/2026", ["c"]],
+      ["1/2026", ["a", "d"]],
+      ["10/2025", ["e"]],
+      ["2/2025", ["b"]],
+    ],
+  );
+});
+
+test("groupByTerm: an empty list has no groups", () => {
+  assert.deepEqual(groupByTerm([]), []);
 });

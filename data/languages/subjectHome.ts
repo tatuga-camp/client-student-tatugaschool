@@ -18,6 +18,28 @@ export const subjectHomeLanguage = {
     "This subject is archived, so attendance can't be checked.",
     "รายวิชานี้ถูกเก็บถาวร จึงเช็กชื่อไม่ได้",
   ),
+  // The screen a student sees instead of an archived subject
+  archivedScreenTitle: t(
+    "This subject is archived",
+    "รายวิชานี้ถูกเก็บถาวรแล้ว",
+  ),
+  archivedScreenBody: t(
+    "You can't enter it anymore. Ask your teacher if you think this is a mistake.",
+    "เข้ารายวิชานี้ไม่ได้แล้ว หากคิดว่าผิดพลาด ให้สอบถามครูผู้สอน",
+  ),
+  archivedOtherSubjects: t("Your other subjects", "รายวิชาอื่นของคุณ"),
+  archivedNoOtherSubjects: t(
+    "You have no other subjects open right now.",
+    "ตอนนี้คุณยังไม่มีรายวิชาอื่นที่เปิดอยู่",
+  ),
+  archivedJoinAnother: t("Join another class", "เข้าร่วมชั้นเรียนอื่น"),
+  archivedSignOut: t("Sign out", "ออกจากระบบ"),
+  // Joining an archived subject with its code or link
+  archivedJoinTitle: t("This subject is archived", "รายวิชานี้ถูกเก็บถาวรแล้ว"),
+  archivedJoinBody: t(
+    "You can't join it. Check the code with your teacher.",
+    "เข้าร่วมรายวิชานี้ไม่ได้ ลองตรวจสอบรหัสกับครูผู้สอน",
+  ),
 
   // Classwork switch
   tabAssignments: t("Assignments", "งาน"),

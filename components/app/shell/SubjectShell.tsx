@@ -10,6 +10,8 @@ import {
 } from "../../../react-query";
 import { safeSet } from "../../../utils/safeStorage";
 import ArchivedBanner from "../../subject/ArchivedBanner";
+import { isSubjectArchived } from "../../../utils/subjectArchived";
+import { ArchivedSubjectScreen } from "../ArchivedSubjectScreen";
 import LoadingSpinner from "../../common/LoadingSpinner";
 import DetailStack from "./DetailStack";
 import SideNav from "./SideNav";
@@ -34,9 +36,12 @@ function ShellBody({ route }: { route: ShellRoute }) {
   const tab = tabRef.current;
   const detailOpen = !!route.detail;
 
+  // An archived subject is closed to students: never remember it as the
+  // subject to reopen (the archived screen also forgets it).
+  const archived = isSubjectArchived(subject.data, subject.error);
   useEffect(() => {
-    safeSet("subject_id", route.subjectId);
-  }, [route.subjectId]);
+    if (!archived) safeSet("subject_id", route.subjectId);
+  }, [route.subjectId, archived]);
 
   if (student.error) {
     return (
@@ -50,6 +55,8 @@ function ShellBody({ route }: { route: ShellRoute }) {
       </div>
     );
   }
+
+  if (archived) return <ArchivedSubjectScreen subjectId={route.subjectId} />;
 
   return (
     // Desktop: the sidebar, then the main area holding the tabs and the

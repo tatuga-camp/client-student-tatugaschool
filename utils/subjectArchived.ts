@@ -28,3 +28,24 @@ export function activeSubjects<T extends { id: string; isAchieved?: boolean }>(
 ): T[] {
   return subjects.filter((s) => s.isAchieved !== true && s.id !== excludeId);
 }
+
+/** "term/year", e.g. "2/2026", as a number that sorts newest first. */
+function termRank(educationYear: string): number {
+  const [term, year] = educationYear.split("/").map((n) => Number(n) || 0);
+  return year * 100 + term;
+}
+
+/** Subjects grouped by education year ("term/year"), newest term first. */
+export function groupByTerm<T extends { educationYear: string }>(
+  subjects: T[],
+): [string, T[]][] {
+  const groups = new Map<string, T[]>();
+  for (const s of subjects) {
+    const list = groups.get(s.educationYear);
+    if (list) list.push(s);
+    else groups.set(s.educationYear, [s]);
+  }
+  return Array.from(groups.entries()).sort(
+    ([a], [b]) => termRank(b) - termRank(a),
+  );
+}
