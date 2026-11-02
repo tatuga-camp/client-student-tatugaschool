@@ -1,9 +1,5 @@
 import { useCallback, useSyncExternalStore } from "react";
-
-/** Tablets and desktops: the app runs inside the phone frame. */
-export const FRAMED_QUERY = "(min-width: 600px) and (min-height: 600px)";
-/** Wide enough that the stage items fit beside the phone column. */
-export const WIDE_STAGE_QUERY = "(min-width: 920px)";
+import { DESK_QUERY, WIDE_QUERY } from "../../utils/layoutQueries";
 
 /** Live match state of a media query; false during SSR. */
 export function useMediaQuery(query: string): boolean {
@@ -24,7 +20,15 @@ export function useMediaQuery(query: string): boolean {
   );
 }
 
-/** True on tablets and desktops, where the app runs inside the phone frame. */
-export function useIsFramed(): boolean {
-  return useMediaQuery(FRAMED_QUERY);
+/**
+ * True on tablets and computers (the desktop layout). For behaviour only:
+ * anything visible on first paint uses the `desk:` Tailwind screen instead.
+ */
+export function useIsDesktop(): boolean {
+  return useMediaQuery(DESK_QUERY);
+}
+
+/** True on laptops and up (full sidebar, two-column assignment page). */
+export function useIsWide(): boolean {
+  return useMediaQuery(WIDE_QUERY);
 }

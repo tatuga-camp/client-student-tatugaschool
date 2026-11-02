@@ -7,7 +7,6 @@ import MeTab from "../../me/MeTab";
 import ProgressTab from "../../progress/ProgressTab";
 import SubjectsTab from "../../subjects/SubjectsTab";
 import { OVERLAY_ROOT_ID } from "../../../utils/frameRoutes";
-import { safeGet } from "../../../utils/safeStorage";
 import {
   canStartShellSwipe,
   isEditableTarget,
@@ -16,7 +15,6 @@ import {
   tabIndex,
   TABS,
 } from "../../../utils/tabs";
-import { HINTS_SEEN_KEY, markFrameHintsSeen } from "../DesktopStage";
 import PaneErrorBoundary from "./PaneErrorBoundary";
 import type { TabPaneProps } from "./useShellRoute";
 
@@ -124,7 +122,6 @@ export default function TabPager({
       const next = Math.min(LAST, Math.max(0, index + step));
       api.start({ pos: next, config: SPRING });
       if (next !== index) {
-        if (safeGet(HINTS_SEEN_KEY) === null) markFrameHintsSeen();
         onTabChange(TABS[next]);
       }
     },

@@ -11,7 +11,6 @@ import {
 } from "../../../utils/fullscreen";
 import { videoQuizScore } from "../../../utils/videoQuiz";
 import YouTubeEmbed from "../../common/YouTubeEmbed";
-import { useIsFramed } from "../../app/useIsFramed";
 import VideoControls from "./VideoControls";
 import VideoEndScreen from "./VideoEndScreen";
 import VideoQuestionSheet from "./VideoQuestionSheet";
@@ -65,9 +64,8 @@ export default function VideoQuizPlayer({
   const language = useGetLanguage();
   const lang = language.data ?? "en";
   const t = assignmentPageLanguage;
-  const framed = useIsFramed();
   const containerRef = useRef<HTMLDivElement>(null);
-  // Expanded by CSS (inside the frame / no element fullscreen), or browser fullscreen.
+  // Expanded by CSS (no element fullscreen), or browser fullscreen.
   const [expanded, setExpanded] = useState(false);
   const [nativeFs, setNativeFs] = useState(false);
   const full = expanded || nativeFs;
@@ -163,7 +161,7 @@ export default function VideoQuizPlayer({
     autoExpandedRef.current = false;
     if (expanded) setExpanded(false);
     else if (getFullscreenElement()) exitFullscreen();
-    else if (framed || !canFullscreenElements()) setExpanded(true);
+    else if (!canFullscreenElements()) setExpanded(true);
     else if (containerRef.current) enterFullscreen(containerRef.current);
   };
 
