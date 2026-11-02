@@ -14,7 +14,7 @@ import {
   useGetSubjectByStudent,
 } from "../../react-query/subject";
 import { Sheet } from "../app/Sheet";
-import { TAB_BODY_CLASS, TabHeader } from "../app/TabHeader";
+import { DESK_COL, TAB_BODY_CLASS, TabHeader } from "../app/TabHeader";
 import { useShellNav, type TabPaneProps } from "../app/shell/useShellRoute";
 import { EducationYearSheet } from "./EducationYearSheet";
 import { SubjectCard } from "./SubjectCard";
@@ -123,7 +123,7 @@ export default function SubjectsTab({ subjectId }: TabPaneProps) {
           ) : null
         }
       />
-      <div className={`${TAB_BODY_CLASS} px-3 pt-3 font-Anuphan`}>
+      <div className={`${TAB_BODY_CLASS} px-3 pt-3 font-Anuphan ${DESK_COL}`}>
         <div className="flex gap-1.5">
           <label className="flex min-w-0 flex-1 items-center gap-1.5 rounded-[13px] border-2 border-[#E3E8F0] bg-white px-2.5 py-1.5 text-[#9AA3B8]">
             <LuSearch aria-hidden size={16} className="shrink-0" />
@@ -159,7 +159,7 @@ export default function SubjectsTab({ subjectId }: TabPaneProps) {
                 type="button"
                 aria-pressed={on}
                 onClick={() => setStatusFilter(s)}
-                className={`relative inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border-2 px-2.5 py-1 text-[12px] font-bold after:absolute after:inset-x-0 after:top-0 after:-bottom-4 after:content-[''] ${
+                className={`relative inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border-2 px-2.5 py-1 text-[12px] font-bold after:absolute after:inset-x-0 after:-bottom-4 after:top-0 after:content-[''] ${
                   on
                     ? "border-primary-color bg-primary-color text-white shadow-[0_3px_0_#275d96]"
                     : "border-[#E3E8F0] bg-white text-[#5B6280]"

@@ -44,7 +44,7 @@ import { getPushStatus, PushStatus } from "../../utils/notifications";
 import { isStandaloneApp } from "../../utils/pwaManifest";
 import { NotificationPromptSheet } from "../app/NotificationPromptSheet";
 import { Sheet } from "../app/Sheet";
-import { TAB_BODY_CLASS } from "../app/TabHeader";
+import { DESK_COL, TAB_BODY_CLASS } from "../app/TabHeader";
 import type { TabPaneProps } from "../app/shell/useShellRoute";
 import LoadingBar from "../common/LoadingBar";
 import ChangePasswordSheet from "../student/ChangePasswordSheet";
@@ -235,7 +235,7 @@ export default function MeTab({ subjectId, active }: TabPaneProps) {
         onEditPhoto={pick}
         onOpenSettings={scrollToSettings}
       />
-      <div className={`${TAB_BODY_CLASS} px-3 pb-10 pt-6`}>
+      <div className={`${TAB_BODY_CLASS} px-3 pb-10 pt-6 ${DESK_COL}`}>
         <div className="flex flex-col gap-3">
           <div className="text-center">
             <h2 className="text-base font-bold text-[#383767]">

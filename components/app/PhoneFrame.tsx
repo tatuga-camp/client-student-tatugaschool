@@ -6,44 +6,54 @@ import {
   Press,
   startPress,
 } from "../../utils/clickSlop";
-import { OVERLAY_ROOT_ID, isFrameExcluded } from "../../utils/frameRoutes";
-import { DesktopStage, PhoneChrome } from "./DesktopStage";
-import { FRAMED_QUERY, useIsFramed } from "./useIsFramed";
+import {
+  OVERLAY_ROOT_ID,
+  isFrameExcluded,
+  frameKind,
+} from "../../utils/frameRoutes";
+import { DESK_QUERY } from "../../utils/layoutQueries";
+import { SchoolyardBackdrop } from "./SchoolyardBackdrop";
+import { useIsDesktop } from "./useLayoutMode";
 
 export { OVERLAY_ROOT_ID, isFrameExcluded };
 
-// The page never scrolls; only the phone's content does. The frame itself is
-// laid out by this CSS, not by JS: the server can't know the screen's width,
-// so its markup must already be framed on a wide screen and full-screen on a
-// phone. `--screen-h` is the screen's height; pages sized with `dvh` get
-// `--app-dvh` instead of the window (styles/globals.css). No quotes,
+// The page never scrolls; only the app's panes do. The layout comes from this
+// CSS, not from JS: the server can't know the screen's width, so its markup
+// must already be right on a phone and on a computer. Phones get the app
+// full-screen. On a computer (DESK_QUERY) the subject shell fills the window
+// and every other page is a card on the full-window schoolyard (frameKind):
+// a phone-width card, a 760px one for pick-your-name, and one that shrinks to
+// its form for sign-in. `--screen-h` is the screen's height; pages sized with
+// `dvh` get `--app-dvh` instead of the window (styles/globals.css). On a
+// computer the screen element must get no `contain` or transform: full-window
+// layers (an expanded video quiz) are `position: fixed` inside it. No quotes,
 // ampersands, < or > in it (so no child combinators): React escapes them in a
 // <style>'s server-rendered text.
 const PAGE_CSS = `
 html, body { height: 100%; overflow: hidden; }
 .app-frame { position: relative; overflow: hidden; height: 100dvh; }
-.app-frame-center, .app-frame-bezel { height: 100%; }
 .phone-screen {
   position: relative; height: 100%;
   --screen-h: 100dvh; --app-dvh: var(--screen-h);
   --safe-top: env(safe-area-inset-top); --safe-bottom: env(safe-area-inset-bottom);
 }
-@media ${FRAMED_QUERY} {
+@media ${DESK_QUERY} {
   .app-frame { position: fixed; inset: 0; height: auto; background: #F7F8FA; }
-  .app-frame-center {
-    position: absolute; inset: 0; z-index: 2; height: auto;
+  .phone-screen { --safe-top: 0px; --safe-bottom: 0px; }
+  .app-frame-card {
     display: flex; align-items: center; justify-content: center;
+    background: #9CCBFA;
   }
-  .app-frame-bezel {
-    height: auto; padding: 12px; border-radius: 54px; background: #111;
-    box-shadow: 0 30px 60px rgba(0,0,0,.35), inset 0 0 0 2px #2a2a2a;
+  .app-frame-card .phone-screen {
+    width: min(480px, 100% - 32px); height: calc(100% - 48px);
+    --screen-h: calc(100dvh - 48px);
+    border-radius: 24px; overflow: hidden; background: #F7F8FA;
+    box-shadow: 0 6px 0 #E3E8F0, 0 24px 60px rgba(20,24,48,.22);
   }
-  .phone-screen {
-    width: 390px; overflow: hidden; border-radius: 44px; background: #F7F8FA;
-    /* dvh: the iPad Safari toolbars eat into 100vh. */
-    --screen-h: min(844px, 100dvh - 48px); height: var(--screen-h);
-    contain: layout paint;
-    --safe-top: 47px; --safe-bottom: 34px;
+  .app-frame-wide .phone-screen { width: min(760px, 100% - 32px); }
+  .app-frame-fit .phone-screen {
+    height: auto; max-height: calc(100% - 48px); overflow: visible;
+    background: transparent; box-shadow: none; border-radius: 0;
   }
 }`;
 
@@ -74,9 +84,11 @@ function useDragClickFilter() {
 }
 
 /**
- * Wraps every page. Phones get the app full-screen; tablets and desktops get
- * it inside an iPhone frame on a schoolyard stage. Both carry the overlay
- * root that sheets, SweetAlert and PrimeReact panels render into.
+ * Wraps every page. Phones get the app full-screen; on a computer the subject
+ * shell fills the window and other pages are cards on the schoolyard
+ * (PAGE_CSS, frameKind).
+ * Both carry the overlay root that sheets, SweetAlert and PrimeReact panels
+ * render into.
  * `scroll` is true for legacy pages (no getLayout): they scroll inside a
  * wrapper padded with the safe areas. Pages with getLayout pass false and
  * handle `var(--safe-top)` / `var(--safe-bottom)` themselves.
@@ -89,9 +101,11 @@ export function PhoneFrame({
   scroll?: boolean;
 }) {
   const router = useRouter();
-  const framed = useIsFramed();
   const scrollRef = useRef<HTMLDivElement>(null);
   const dragClick = useDragClickFilter();
+  // The schoolyard behind the cards is decoration: mounted after hydration,
+  // on a computer only (the cards themselves are laid out by PAGE_CSS).
+  const desktop = useIsDesktop();
   // The scroller persists across pages, so Next's scroll reset no longer
   // reaches it: reset it when the pathname changes.
   useEffect(() => {
@@ -140,22 +154,23 @@ export function PhoneFrame({
     children
   );
 
-  // One tree for both modes: PAGE_CSS lays it out, so resizing across the
-  // breakpoint keeps page state and the overlay root. Only the stage and the
-  // phone's chrome, which are decoration, wait for the client's `framed`.
+  // One tree for both layouts: PAGE_CSS lays it out, so resizing across the
+  // breakpoint keeps page state and the overlay root.
+  const kind = frameKind(router.pathname);
+  const frameClass =
+    kind === "shell"
+      ? "app-frame"
+      : kind === "card"
+        ? "app-frame app-frame-card"
+        : `app-frame app-frame-card app-frame-${kind}`;
   return (
     <>
       <style>{PAGE_CSS}</style>
-      <div className="app-frame">
-        {framed && <DesktopStage />}
-        <div className="app-frame-center">
-          <div className="app-frame-bezel">
-            <div {...dragClick} className="phone-screen">
-              {content}
-              {framed && <PhoneChrome legacy={scroll} />}
-              <div id={OVERLAY_ROOT_ID} />
-            </div>
-          </div>
+      <div className={frameClass}>
+        {desktop && kind !== "shell" && <SchoolyardBackdrop />}
+        <div {...dragClick} className="phone-screen">
+          {content}
+          <div id={OVERLAY_ROOT_ID} />
         </div>
       </div>
     </>

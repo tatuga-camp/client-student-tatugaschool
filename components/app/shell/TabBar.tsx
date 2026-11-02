@@ -8,7 +8,7 @@ import type { TabKey } from "../../../utils/tabs";
 import MascotAvatar from "../../student/MascotAvatar";
 import { PhotoOrFallback } from "../PhotoOrFallback";
 
-const SIDE_TABS: {
+export const TAB_ITEMS: {
   key: Exclude<TabKey, "home">;
   icon: IconType;
   label: (l: Language) => string;
@@ -32,7 +32,7 @@ function SideTab({
   language,
   onSelect,
 }: {
-  item: (typeof SIDE_TABS)[number];
+  item: (typeof TAB_ITEMS)[number];
   active: boolean;
   language: Language;
   onSelect: (tab: TabKey) => void;
@@ -68,13 +68,13 @@ export default function TabBar({ tab, student, language, onSelect }: Props) {
   return (
     <nav
       aria-label={homeLanguage.tabBar(language)}
-      className="relative z-10 flex shrink-0 items-start justify-around border-t-2 border-[#E3E8F0] bg-white px-1.5 pt-1.5 font-Anuphan"
+      className="relative z-10 flex shrink-0 items-start justify-around border-t-2 border-[#E3E8F0] bg-white px-1.5 pt-1.5 font-Anuphan desk:hidden"
       style={{
         height: "calc(72px + var(--safe-bottom))",
         paddingBottom: "var(--safe-bottom)",
       }}
     >
-      {SIDE_TABS.slice(0, 2).map((item) => (
+      {TAB_ITEMS.slice(0, 2).map((item) => (
         <SideTab
           key={item.key}
           item={item}
@@ -120,7 +120,7 @@ export default function TabBar({ tab, student, language, onSelect }: Props) {
           />
         )}
       </button>
-      {SIDE_TABS.slice(2).map((item) => (
+      {TAB_ITEMS.slice(2).map((item) => (
         <SideTab
           key={item.key}
           item={item}

@@ -18,4 +18,3 @@ export * from "./quiz";
 export * from "./subjectHome";
 export * from "./rate-limit";
 export * from "./home";
-export * from "./frame";

@@ -10,7 +10,7 @@ import {
 import { countClassworkBuckets } from "../../utils";
 import { consumeAnnouncementLink } from "../../utils/deepLink";
 import { SubjectChip } from "../app/SubjectChip";
-import { TAB_BODY_CLASS, TabHeader } from "../app/TabHeader";
+import { DESK_COL, TAB_BODY_CLASS, TabHeader } from "../app/TabHeader";
 import { useShellRoute, type TabPaneProps } from "../app/shell/useShellRoute";
 import AnnouncementsView from "./AnnouncementsView";
 import AssignmentsView from "./AssignmentsView";
@@ -68,7 +68,7 @@ export default function ClassworkTab({ subjectId, active }: TabPaneProps) {
         title={homeLanguage.tabClasswork(lang)}
         right={<SubjectChip subjectId={subjectId} />}
       />
-      <div ref={scroller} className={`${TAB_BODY_CLASS} pt-3`}>
+      <div ref={scroller} className={`${TAB_BODY_CLASS} ${DESK_COL} pt-3`}>
         <div
           role="group"
           aria-label={homeLanguage.tabClasswork(lang)}

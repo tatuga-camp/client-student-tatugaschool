@@ -20,6 +20,13 @@ type Props = {
 export const TAB_BODY_CLASS =
   "app-scroll relative z-[1] -mt-4 min-h-0 flex-1 rounded-t-[20px] bg-background-color";
 
+/**
+ * Desktop (`desk`): side padding that centres a `var(--col)`-wide column
+ * (640px unless an ancestor sets `--col`). The header row and the tab bodies
+ * both use it, so the title lines up with the content under it.
+ */
+export const DESK_COL = "desk:px-[max(16px,calc((100%_-_var(--col,640px))/2))]";
+
 // Cloud shapes from the tabs-screens mockup, in its band coordinates.
 const CLOUDS = {
   normal: {
@@ -81,7 +88,9 @@ export function TabHeader({ title, leading, right, tall = false }: Props) {
       >
         {clouds.shapes}
       </svg>
-      <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-3 pb-7 pl-4 pr-3.5">
+      <div
+        className={`absolute inset-x-0 bottom-0 flex items-center justify-between gap-3 pb-7 pl-4 pr-3.5 ${DESK_COL}`}
+      >
         <div className="flex min-w-0 items-center gap-2.5">
           {leading && <div className="shrink-0">{leading}</div>}
           <h1

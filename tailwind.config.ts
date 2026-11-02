@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import { DESK_QUERY, WIDE_QUERY } from "./utils/layoutQueries";
 
 const config: Config = {
   content: [
@@ -9,6 +10,12 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      // The desktop layout (utils/layoutQueries.ts): `desk:` tablets and
+      // computers, `wide:` laptops and up. Phones match neither.
+      screens: {
+        desk: { raw: DESK_QUERY },
+        wide: { raw: WIDE_QUERY },
+      },
       fontFamily: {
         Anuphan: ["Anuphan", "sans-serif"],
       },

@@ -13,7 +13,7 @@ type Props = {
 
 export function StudentGrid({ students, lang, pendingId, onPick }: Props) {
   return (
-    <ul className="grid grid-cols-3 gap-2">
+    <ul className="grid grid-cols-3 gap-2 desk:grid-cols-6">
       {students.map((student) => {
         const off = !student.isActive;
         const pending = pendingId === student.id;

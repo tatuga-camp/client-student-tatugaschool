@@ -1,14 +1,16 @@
 import { animated, to, useSpring } from "@react-spring/web";
 import { useGesture } from "@use-gesture/react";
-import React, { useContext, useEffect, useRef } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { LuX } from "react-icons/lu";
+import { LuMinus, LuPlus, LuX } from "react-icons/lu";
 import { assignmentPageLanguage } from "../../data/languages";
 import { Language } from "../../interfaces";
+import { keepTabInside } from "../../utils/focusTrap";
 import { overlayTarget } from "../../utils/frameRoutes";
-import { anchoredZoom, wheelScaleFactor } from "../../utils/zoomMath";
+import { anchoredZoom, stepZoom, wheelScaleFactor } from "../../utils/zoomMath";
 import { OverlayRootContext } from "../app/OverlayScope";
 import { useModalLayer } from "../app/modalLayers";
+import { useIsDesktop } from "../app/useLayoutMode";
 
 const MIN_SCALE = 1;
 const MAX_SCALE = 5;
@@ -27,10 +29,16 @@ const clamp = (n: number, lo: number, hi: number) =>
 /**
  * Full-screen image viewer: pinch, wheel and double-tap zoom, drag to pan
  * when zoomed. Renders in the page's overlay scope so it moves with the
- * page. `data-no-swipe` keeps the page's edge-back from reading its drags.
+ * page; on a computer it covers the whole window instead, with − / Fit / +
+ * buttons. `data-no-swipe` keeps the page's edge-back from reading its drags.
  */
 export default function ImageViewerSheet({ url, name, lang, onClose }: Props) {
   const scoped = useContext(OverlayRootContext);
+  // Fixed for the viewer's life: a resize or rotation across 768 while it
+  // is open must not move it to another container (a remount).
+  const liveDesktop = useIsDesktop();
+  const [desktop] = useState(liveDesktop);
+  const dialogRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const lastTap = useRef(0);
@@ -46,6 +54,8 @@ export default function ImageViewerSheet({ url, name, lang, onClose }: Props) {
     closeRef.current?.focus({ preventScroll: true });
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onCloseRef.current();
+      // Tab stays in the viewer: the page behind it is out of reach.
+      if (e.key === "Tab") keepTabInside(e, dialogRef.current);
     };
     document.addEventListener("keydown", onKey);
     return () => {
@@ -124,14 +134,29 @@ export default function ImageViewerSheet({ url, name, lang, onClose }: Props) {
       },
     },
   );
+  // The zoom buttons (desktop): zoom around the middle of the picture.
+  const zoomStep = (dir: -1 | 1) => {
+    const rect = viewportRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    zoomTo(
+      stepZoom(scale.get(), dir),
+      rect.left + rect.width / 2,
+      rect.top + rect.height / 2,
+    );
+  };
+  const toolButton =
+    "grid h-10 min-w-10 place-items-center rounded-xl bg-white/15 px-2 text-sm font-bold hover:bg-white/25 active:bg-white/30";
 
   return createPortal(
     <div
+      ref={dialogRef}
       role="dialog"
       aria-modal="true"
       aria-label={name}
       data-no-swipe
-      className="absolute inset-0 z-[60] flex flex-col bg-black font-Anuphan"
+      // Phone: over the page it was opened from (and moves with it).
+      // Computer: the whole window, sidebar included.
+      className={`${desktop ? "fixed" : "absolute"} inset-0 z-[60] flex flex-col bg-black font-Anuphan`}
     >
       <header
         className="flex shrink-0 items-center gap-3 px-4 pb-2 text-white"
@@ -172,13 +197,41 @@ export default function ImageViewerSheet({ url, name, lang, onClose }: Props) {
           />
         </animated.div>
       </div>
-      <p
-        className="shrink-0 pt-2 text-center text-[11px] text-white/60"
-        style={{ paddingBottom: "calc(var(--safe-bottom) + 8px)" }}
-      >
-        {assignmentPageLanguage.zoomHint(lang)}
-      </p>
+      {desktop ? (
+        <div className="flex shrink-0 items-center justify-center gap-2 pb-4 pt-2 text-white">
+          <button
+            type="button"
+            onClick={() => zoomStep(-1)}
+            aria-label={assignmentPageLanguage.zoomOut(lang)}
+            className={toolButton}
+          >
+            <LuMinus aria-hidden />
+          </button>
+          <button
+            type="button"
+            onClick={() => api.start({ x: 0, y: 0, scale: MIN_SCALE })}
+            className={toolButton}
+          >
+            {assignmentPageLanguage.zoomFit(lang)}
+          </button>
+          <button
+            type="button"
+            onClick={() => zoomStep(1)}
+            aria-label={assignmentPageLanguage.zoomIn(lang)}
+            className={toolButton}
+          >
+            <LuPlus aria-hidden />
+          </button>
+        </div>
+      ) : (
+        <p
+          className="shrink-0 pt-2 text-center text-[11px] text-white/60"
+          style={{ paddingBottom: "calc(var(--safe-bottom) + 8px)" }}
+        >
+          {assignmentPageLanguage.zoomHint(lang)}
+        </p>
+      )}
     </div>,
-    scoped ?? overlayTarget(),
+    desktop ? overlayTarget() : (scoped ?? overlayTarget()),
   );
 }

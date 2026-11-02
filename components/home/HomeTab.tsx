@@ -10,6 +10,7 @@ import {
 import { upNext, weekProgress } from "../../utils/classworkGroups";
 import { countClassworkBuckets } from "../../utils/subjectHome";
 import { NotificationPromptSheet } from "../app/NotificationPromptSheet";
+import { DESK_COL } from "../app/TabHeader";
 import {
   type TabPaneProps,
   useShellNav,
@@ -48,14 +49,18 @@ export default function HomeTab({ subjectId, active }: TabPaneProps) {
   const next = left.slice(0, UP_NEXT_MAX);
 
   return (
-    <div className="app-scroll h-full w-full font-Anuphan">
+    // `wide`: the schoolyard banner grows with the window (--banner-h), so
+    // the wide scene keeps its framing instead of cropping to the grass.
+    <div className="app-scroll h-full w-full font-Anuphan wide:[--banner-h:clamp(400px,30vw,520px)]">
       <div className="relative min-h-full pb-6">
         <HomeScene
           subjectId={subjectId}
           student={student.data}
           active={active}
         />
-        <div className="pointer-events-none relative z-[3] px-3 pt-[300px]">
+        <div
+          className={`pointer-events-none relative z-[3] px-3 pt-[300px] wide:pt-[calc(var(--banner-h)_-_30px)] ${DESK_COL}`}
+        >
           {/* The padding covers the scene; only the content takes taps. */}
           <div className="pointer-events-auto">
             {assignments.isSuccess ? (

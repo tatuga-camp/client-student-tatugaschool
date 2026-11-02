@@ -9,9 +9,9 @@ import {
   exitFullscreen,
   getFullscreenElement,
 } from "../../../utils/fullscreen";
+import { keepTabInside } from "../../../utils/focusTrap";
 import { videoQuizScore } from "../../../utils/videoQuiz";
 import YouTubeEmbed from "../../common/YouTubeEmbed";
-import { useIsFramed } from "../../app/useIsFramed";
 import VideoControls from "./VideoControls";
 import VideoEndScreen from "./VideoEndScreen";
 import VideoQuestionSheet from "./VideoQuestionSheet";
@@ -65,9 +65,8 @@ export default function VideoQuizPlayer({
   const language = useGetLanguage();
   const lang = language.data ?? "en";
   const t = assignmentPageLanguage;
-  const framed = useIsFramed();
   const containerRef = useRef<HTMLDivElement>(null);
-  // Expanded by CSS (inside the frame / no element fullscreen), or browser fullscreen.
+  // Expanded by CSS (no element fullscreen), or browser fullscreen.
   const [expanded, setExpanded] = useState(false);
   const [nativeFs, setNativeFs] = useState(false);
   const full = expanded || nativeFs;
@@ -148,11 +147,14 @@ export default function VideoQuizPlayer({
     }
   }, [questionOpen]);
 
-  // Esc collapses the expanded player (but never skips an open question).
+  // Esc collapses the expanded player (but never skips an open question),
+  // and Tab stays inside it: it covers the page (and on a computer the
+  // sidebar), so nothing behind it is reachable mid-question.
   useEffect(() => {
     if (!expanded) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape" && quiz.question === null) setExpanded(false);
+      if (e.key === "Tab") keepTabInside(e, containerRef.current);
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
@@ -163,7 +165,7 @@ export default function VideoQuizPlayer({
     autoExpandedRef.current = false;
     if (expanded) setExpanded(false);
     else if (getFullscreenElement()) exitFullscreen();
-    else if (framed || !canFullscreenElements()) setExpanded(true);
+    else if (!canFullscreenElements()) setExpanded(true);
     else if (containerRef.current) enterFullscreen(containerRef.current);
   };
 

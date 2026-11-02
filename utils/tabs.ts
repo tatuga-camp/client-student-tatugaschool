@@ -24,6 +24,29 @@ export function tabIndex(tab: TabKey): number {
   return TABS.indexOf(tab);
 }
 
+/** The desktop sidebar's order: Home first, then the tab bar's left-to-right. */
+export const SIDEBAR_TABS: readonly TabKey[] = [
+  "home",
+  "classwork",
+  "progress",
+  "subjects",
+  "me",
+];
+
+/** A tab's URL as a router target; Home omits `tab`. */
+export function tabHref(
+  subjectId: string,
+  tab: TabKey,
+): {
+  pathname: "/subject/[subjectId]";
+  query: { subjectId: string; tab?: TabKey };
+} {
+  return {
+    pathname: "/subject/[subjectId]",
+    query: tab === "home" ? { subjectId } : { subjectId, tab },
+  };
+}
+
 /** Decide a released horizontal tab swipe: +1 = next tab (dragged left), -1 = previous, 0 = snap back. */
 export function swipeOutcome(input: { dx: number; vx: number; width: number }): -1 | 0 | 1 {
   const { dx, vx, width } = input;

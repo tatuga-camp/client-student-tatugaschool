@@ -14,7 +14,7 @@ const TRIO = [
 /** Three mascots standing on the grass, bobbing out of step. */
 export function WelcomeMascots() {
   return (
-    <div className="absolute inset-x-0 top-[168px] z-[2] flex items-end justify-center">
+    <div className="absolute inset-x-0 top-[168px] z-[2] flex items-end justify-center desk:top-[-100px] desk:z-[4]">
       {TRIO.map(({ photo, size, delay }, i) => {
         const clips = mascotForPhoto(photo);
         if (!clips) return null;

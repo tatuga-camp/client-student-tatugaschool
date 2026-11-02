@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { anchoredZoom, wheelScaleFactor } from "./zoomMath";
+import { anchoredZoom, stepZoom, wheelScaleFactor } from "./zoomMath";
 
 test("anchoredZoom keeps the anchor point visually fixed", () => {
   const next = anchoredZoom({ x: 0, y: 0, scale: 1 }, 2, 100, 50);
@@ -39,4 +39,20 @@ test("wheelScaleFactor: scrolling down (positive deltaY) zooms out (<1)", () => 
 
 test("wheelScaleFactor: no movement is identity", () => {
   assert.equal(wheelScaleFactor(0), 1);
+});
+
+test("stepZoom zooms in by 1.5x", () => {
+  assert.equal(stepZoom(1, 1), 1.5);
+});
+
+test("stepZoom never goes below fit (1x)", () => {
+  assert.equal(stepZoom(1, -1), 1);
+});
+
+test("stepZoom never goes above 5x", () => {
+  assert.equal(stepZoom(4, 1), 5);
+});
+
+test("stepZoom zooms out by 1.5x", () => {
+  assert.equal(stepZoom(3, -1), 2);
 });

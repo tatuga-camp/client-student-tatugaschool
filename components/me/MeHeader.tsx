@@ -42,7 +42,7 @@ export default function MeHeader({
         type="button"
         onClick={onOpenSettings}
         aria-label={profileLanguage.settings(lang)}
-        className="absolute right-1.5 z-[4] flex h-11 w-11 items-center justify-center"
+        className="absolute right-1.5 z-[4] flex h-11 w-11 items-center justify-center desk:right-[max(6px,calc((100%_-_640px)/2))]"
         style={{
           color: palette.statusText === "dark" ? "#383767" : "#FFFFFF",
           top: "max(32px, calc(var(--safe-top) + 4px))",

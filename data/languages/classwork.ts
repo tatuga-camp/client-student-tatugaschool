@@ -351,6 +351,9 @@ export const assignmentPageLanguage = {
   fileKindFile: t("File", "ไฟล์"),
   closeViewer: t("Close", "ปิด"),
   zoomHint: t("Pinch or double-tap to zoom", "บีบหรือแตะสองครั้งเพื่อซูม"),
+  zoomIn: t("Zoom in", "ขยาย"),
+  zoomOut: t("Zoom out", "ย่อ"),
+  zoomFit: t("Fit", "พอดีจอ"),
   markedDoneAt: t("Marked as done at", "ทำเครื่องหมายว่าเสร็จเมื่อ"),
   reviewedVideoNotice: t(
     "You can watch the video, but you cannot submit anymore as it has been reviewed.",

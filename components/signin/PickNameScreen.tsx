@@ -53,7 +53,7 @@ function GridSkeleton({ label }: { label: string }) {
     <ul
       role="status"
       aria-label={label}
-      className="grid animate-pulse grid-cols-3 gap-2"
+      className="grid animate-pulse grid-cols-3 gap-2 desk:grid-cols-6"
     >
       {Array.from({ length: 9 }).map((_, i) => (
         <li key={i} className="h-[104px] rounded-2xl bg-[#E9EEF5]" />

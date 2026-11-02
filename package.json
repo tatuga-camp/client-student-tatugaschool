@@ -9,6 +9,7 @@
     "build": "next build",
     "start": "next start -p 8282",
     "lint": "next lint",
+    "typecheck": "bun check",
     "test": "tsx --test \"utils/**/*.test.ts\" \"components/**/*.test.ts\""
   },
   "dependencies": {
@@ -24,7 +25,6 @@
     "nookies": "^2.5.2",
     "pdfjs-dist": "5.3.93",
     "primereact": "~10.8.5",
-    "qrcode.react": "4.2.0",
     "react": "^18",
     "react-countdown": "^2.3.6",
     "react-dom": "^18",
