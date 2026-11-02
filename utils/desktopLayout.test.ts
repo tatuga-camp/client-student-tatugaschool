@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { isShellRoute } from "./frameRoutes";
+import { frameKind, isShellRoute } from "./frameRoutes";
 import { DESK_QUERY, WIDE_QUERY } from "./layoutQueries";
 import { SIDEBAR_TABS, TABS, tabHref } from "./tabs";
 
@@ -49,4 +49,28 @@ test("tabHref carries the tab for the other tabs", () => {
 test("layout queries match the spec's breakpoints", () => {
   assert.equal(DESK_QUERY, "(min-width: 768px) and (min-height: 500px)");
   assert.equal(WIDE_QUERY, "(min-width: 1024px) and (min-height: 500px)");
+});
+
+test("frameKind: the subject shell fills the window", () => {
+  assert.equal(frameKind("/subject/[subjectId]"), "shell");
+  assert.equal(
+    frameKind("/subject/[subjectId]/assignment/[assignmentId]"),
+    "shell",
+  );
+});
+
+test("frameKind: sign-in gets a content-sized card, pick-your-name a wide one", () => {
+  assert.equal(frameKind("/welcome"), "fit");
+  assert.equal(frameKind("/"), "wide");
+});
+
+test("frameKind: other phone pages get the standard card", () => {
+  for (const p of [
+    "/word-cloud/[wordCloudId]",
+    "/word-cloud/set/[setId]",
+    "/qr-code-attendance/[attendanceRowId]",
+    "/student/[studentId]",
+  ]) {
+    assert.equal(frameKind(p), "card", p);
+  }
 });
