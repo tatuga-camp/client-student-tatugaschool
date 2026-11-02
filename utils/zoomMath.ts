@@ -26,3 +26,13 @@ const WHEEL_SENSITIVITY = 0.0015;
 export function wheelScaleFactor(deltaY: number): number {
   return Math.exp(-deltaY * WHEEL_SENSITIVITY);
 }
+
+const ZOOM_STEP = 1.5;
+const MIN_ZOOM = 1;
+const MAX_ZOOM = 5;
+
+/** One press of a zoom button: ×/÷ 1.5, kept between fit (1) and 5×. */
+export function stepZoom(scale: number, dir: -1 | 1): number {
+  const next = dir > 0 ? scale * ZOOM_STEP : scale / ZOOM_STEP;
+  return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, next));
+}
