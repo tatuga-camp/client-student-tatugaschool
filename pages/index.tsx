@@ -3,6 +3,7 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { PickNameScreen } from "../components/signin/PickNameScreen";
 import { SubjectLoadError } from "../components/signin/SubjectLoadError";
+import { SubjectArchivedJoin } from "../components/signin/SubjectArchivedJoin";
 import { SubjectNotFound } from "../components/signin/SubjectNotFound";
 import { SubjectQuery } from "../interfaces";
 import { useGetSubjectByCode } from "../react-query";
@@ -11,12 +12,16 @@ import {
   ResponseGetSubjectByCodeService,
 } from "../services";
 import { joinCodeFromQuery } from "../utils/joinCode";
+import {
+  errorPropsFromLookup,
+  SubjectLookupErrorProps,
+} from "../utils/subjectLookupError";
 
 type IndexProps = {
   subjectData: ResponseGetSubjectByCodeService;
   code: string;
   announcementId?: string;
-  error?: { statusCode: number | null; message: string | null };
+  error?: SubjectLookupErrorProps;
 };
 
 function Index({ subjectData, code, announcementId, error }: IndexProps) {
@@ -25,6 +30,8 @@ function Index({ subjectData, code, announcementId, error }: IndexProps) {
     enable: !!code,
   });
   const router = useRouter();
+  // An archived subject is closed to students: nobody joins it.
+  if (error?.code === "SUBJECT_ARCHIVED") return <SubjectArchivedJoin />;
   if (error?.statusCode === 404) return <SubjectNotFound />;
   if (error) {
     return (
@@ -93,21 +100,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     };
   } catch (error: any) {
     console.error("Error fetching subject", error);
-    // The server answers a malformed code with 400: no such class either.
-    if (error?.statusCode === 400) return { props: { error: NOT_FOUND } };
-    return {
-      props: {
-        error: {
-          statusCode:
-            typeof error?.statusCode === "number" ? error.statusCode : null,
-          // Only a real HTTP answer carries a message worth showing.
-          message:
-            typeof error?.statusCode === "number" &&
-            typeof error?.message === "string"
-              ? error.message
-              : null,
-        },
-      },
-    };
+    // A malformed code (400) is no such class; an archived one keeps its code.
+    return { props: { error: errorPropsFromLookup(error) } };
   }
 };

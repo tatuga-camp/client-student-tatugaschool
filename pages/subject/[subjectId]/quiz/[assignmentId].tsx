@@ -25,6 +25,11 @@ import { quizLanguage, subjectHomeLanguage } from "../../../../data/languages";
 import { ErrorMessages, Language } from "../../../../interfaces";
 import { errorSwalContent } from "../../../../utils/errorSwal";
 import { canStudentViewScoreOnceLoaded } from "../../../../utils/scoreVisibility";
+import {
+  isSubjectArchived,
+  isSubjectArchivedError,
+} from "../../../../utils/subjectArchived";
+import { ArchivedSubjectScreen } from "../../../../components/app/ArchivedSubjectScreen";
 
 function requestFullscreenIfSupported() {
   const el = document.documentElement;
@@ -83,6 +88,20 @@ function StudentQuizPage({
     Swal.fire({ ...errorSwalContent(error), icon: "error" });
 
   const view = quiz.data;
+  // An archived subject is closed to students: the server refuses its reads
+  // (or, on an older server, the subject says it is archived).
+  if (
+    isSubjectArchived(subject.data, subject.error) ||
+    isSubjectArchivedError(assignments.error) ||
+    isSubjectArchivedError(quiz.error)
+  ) {
+    return (
+      <ArchivedSubjectScreen
+        subjectId={subjectId}
+        educationYear={subject.data?.educationYear}
+      />
+    );
+  }
   // Error screens only when there is nothing to render. TanStack keeps `data` on a failed
   // background refetch, and replacing a running take screen would lose unsaved answers.
   if (!soaId && (assignments.isError || assignments.isSuccess)) {
