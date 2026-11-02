@@ -10,7 +10,7 @@ import { mascotForStudent } from "../../utils/mascot";
 import { progressPanes } from "../../utils/tabs";
 import { InlineError } from "../app/InlineError";
 import { SubjectChip } from "../app/SubjectChip";
-import { TAB_BODY_CLASS, TabHeader } from "../app/TabHeader";
+import { DESK_COL, TAB_BODY_CLASS, TabHeader } from "../app/TabHeader";
 import type { TabPaneProps } from "../app/shell/useShellRoute";
 import MascotAvatar from "../student/MascotAvatar";
 import AttendancePane from "./AttendancePane";
@@ -51,7 +51,10 @@ export default function ProgressTab({ subjectId, active }: TabPaneProps) {
         title={homeLanguage.tabProgress(lang)}
         right={<SubjectChip subjectId={subjectId} />}
       />
-      <div ref={scroller} className={`${TAB_BODY_CLASS} px-3 pb-10 pt-3`}>
+      <div
+        ref={scroller}
+        className={`${TAB_BODY_CLASS} px-3 pb-10 pt-3 ${DESK_COL}`}
+      >
         {subject.isError && !subject.data && (
           <InlineError onRetry={() => subject.refetch()} />
         )}

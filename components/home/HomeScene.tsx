@@ -8,6 +8,8 @@ import { mascotForStudent } from "../../utils/mascot";
 import { NotificationButton } from "../app/NotificationButton";
 import { SchoolyardScene } from "../app/scene/SchoolyardScene";
 import { SubjectChip } from "../app/SubjectChip";
+import { DESK_COL } from "../app/TabHeader";
+import { useIsDesktop } from "../app/useLayoutMode";
 import MascotAvatar from "../student/MascotAvatar";
 
 /** Turns true the first time `active` is, and stays true. */
@@ -36,6 +38,8 @@ export function HomeScene({
   const language = useGetLanguage();
   const lang = language.data ?? "en";
   const tod = useTimeOfDay();
+  // A wide banner on a computer: the phone scene would show only its grass.
+  const desktop = useIsDesktop();
   const shown = useEverActive(active);
 
   const drop = useSpring({
@@ -58,13 +62,13 @@ export function HomeScene({
       : "";
 
   return (
-    <div className="absolute inset-x-0 top-0 h-[330px]">
+    <div className="absolute inset-x-0 top-0 h-[330px] wide:h-[var(--banner-h)]">
       <SchoolyardScene
-        variant="phone"
+        variant={desktop ? "desktop" : "phone"}
         className="absolute left-0 top-0 h-full w-full"
       />
       <div
-        className="absolute inset-x-3.5 z-[3] flex items-start justify-between gap-3"
+        className={`absolute inset-x-3.5 z-[3] flex items-start justify-between gap-3 desk:inset-x-0 ${DESK_COL}`}
         style={{ top: "calc(var(--safe-top) + 4px)" }}
       >
         <SubjectChip subjectId={subjectId} />
@@ -73,7 +77,7 @@ export function HomeScene({
       {greeting && (
         <animated.div
           role="status"
-          className="absolute inset-x-0 top-[108px] z-[3] mx-auto w-max max-w-[88%] rounded-[14px] bg-white px-3 py-1.5 text-center text-[13px] font-bold text-icon-color shadow-[0_3px_0_rgba(0,0,0,.12)]"
+          className="absolute inset-x-0 top-[108px] z-[3] mx-auto w-max max-w-[88%] rounded-[14px] bg-white px-3 py-1.5 text-center text-[13px] font-bold text-icon-color shadow-[0_3px_0_rgba(0,0,0,.12)] wide:top-[calc(var(--banner-h)_-_222px)]"
           style={pop}
         >
           {greeting}
@@ -83,9 +87,9 @@ export function HomeScene({
           />
         </animated.div>
       )}
-      <div className="absolute inset-x-0 top-[280px] z-[1] mx-auto h-3.5 w-[104px] rounded-[50%] bg-black/[.18]" />
+      <div className="absolute inset-x-0 top-[280px] z-[1] mx-auto h-3.5 w-[104px] rounded-[50%] bg-black/[.18] wide:top-[calc(var(--banner-h)_-_50px)]" />
       <animated.div
-        className="absolute inset-x-0 top-[140px] z-[2] mx-auto h-[150px] w-[150px]"
+        className="absolute inset-x-0 top-[140px] z-[2] mx-auto h-[150px] w-[150px] wide:top-[calc(var(--banner-h)_-_190px)]"
         style={{
           opacity: drop.opacity,
           transform: to(
@@ -95,7 +99,7 @@ export function HomeScene({
         }}
       >
         <div
-          className={`relative h-full w-full drop-shadow-[0_8px_10px_rgba(0,0,0,.2)]${active ? " home-bob" : ""}`}
+          className={`relative h-full w-full drop-shadow-[0_8px_10px_rgba(0,0,0,.2)]${active ? "home-bob" : ""}`}
         >
           {shown && student && (
             <MascotAvatar
