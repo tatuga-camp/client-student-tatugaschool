@@ -17,6 +17,7 @@ import {
   teacherFileOpenMode,
   turnInSummary,
   uploadFailure,
+  workErrorContent,
   workItemMenu,
   yourWorkMode,
 } from "./assignmentDetail";
@@ -329,6 +330,56 @@ test("the other known upload failures map to their TH/EN lines", () => {
 test("a server reply passes through unchanged (workError makes it TH/EN)", () => {
   const reply = { message: "Forbidden", error: "Forbidden", statusCode: 403 };
   assert.equal(uploadFailure(reply, uploadText), reply);
+});
+
+test("workErrorContent keeps our own TH/EN message, with its code", () => {
+  const rejected = Object.assign(new Error("rejected TH/EN"), {
+    statusCode: 403,
+  });
+  assert.deepEqual(workErrorContent(rejected, "en"), {
+    title: "Something went wrong",
+    text: "rejected TH/EN",
+    detail: "Error code: 403",
+  });
+});
+
+test("workErrorContent gives a server reply a TH/EN line, its text as detail", () => {
+  const reply = { message: "Forbidden", error: "Forbidden", statusCode: 403 };
+  assert.deepEqual(
+    workErrorContent(reply, "th", { title: "ยกเลิกการส่งงานไม่สำเร็จ" }),
+    {
+      title: "ยกเลิกการส่งงานไม่สำเร็จ",
+      text: "กรุณาลองอีกครั้ง",
+      detail: "รหัสข้อผิดพลาด: 403 · Forbidden",
+    },
+  );
+});
+
+test("workErrorContent treats a crash in the request code as English", () => {
+  const crash = new TypeError("Cannot read properties of undefined");
+  assert.deepEqual(workErrorContent(crash, "en"), {
+    title: "Something went wrong",
+    text: "Please try again.",
+    detail: "Cannot read properties of undefined",
+  });
+});
+
+test("workErrorContent adds no made-up detail when there is nothing to say", () => {
+  assert.equal(workErrorContent(undefined, "en").detail, "");
+});
+
+test("workErrorContent with a generic text keeps our message as detail", () => {
+  assert.deepEqual(
+    workErrorContent(new Error("timeout TH/EN"), "en", {
+      title: "Couldn't update your work",
+      text: "Please try again.",
+    }),
+    {
+      title: "Couldn't update your work",
+      text: "Please try again.",
+      detail: "timeout TH/EN",
+    },
+  );
 });
 
 test("doneAtLabel shows the day of a turn-in, and nothing without one", () => {

@@ -300,6 +300,13 @@ export const assignmentPageLanguage = {
   ),
   updateFailedTitle: t("Couldn't update your work", "อัปเดตงานของคุณไม่สำเร็จ"),
   updateFailedText: t("Please try again.", "กรุณาลองอีกครั้ง"),
+  markingNotDone: t("Marking as not done…", "กำลังยกเลิกการส่งงาน…"),
+  deleting: t("Deleting…", "กำลังลบ…"),
+  markDoneFailed: t("Couldn't mark as done", "ทำเครื่องหมายว่าเสร็จไม่สำเร็จ"),
+  markNotDoneFailed: t("Couldn't mark as not done", "ยกเลิกการส่งงานไม่สำเร็จ"),
+  renameFailed: t("Couldn't rename this item", "เปลี่ยนชื่อรายการนี้ไม่สำเร็จ"),
+  deleteFailed: t("Couldn't delete this item", "ลบรายการนี้ไม่สำเร็จ"),
+  dismiss: t("Dismiss", "ปิด"),
   // Video quiz
   videoCompleted: t("Video completed!", "ดูวิดีโอจบแล้ว!"),
   youScored: t("You scored", "คุณได้"),
