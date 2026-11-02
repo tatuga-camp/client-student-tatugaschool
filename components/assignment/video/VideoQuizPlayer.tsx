@@ -9,6 +9,7 @@ import {
   exitFullscreen,
   getFullscreenElement,
 } from "../../../utils/fullscreen";
+import { keepTabInside } from "../../../utils/focusTrap";
 import { videoQuizScore } from "../../../utils/videoQuiz";
 import YouTubeEmbed from "../../common/YouTubeEmbed";
 import VideoControls from "./VideoControls";
@@ -146,11 +147,14 @@ export default function VideoQuizPlayer({
     }
   }, [questionOpen]);
 
-  // Esc collapses the expanded player (but never skips an open question).
+  // Esc collapses the expanded player (but never skips an open question),
+  // and Tab stays inside it: it covers the page (and on a computer the
+  // sidebar), so nothing behind it is reachable mid-question.
   useEffect(() => {
     if (!expanded) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape" && quiz.question === null) setExpanded(false);
+      if (e.key === "Tab") keepTabInside(e, containerRef.current);
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);

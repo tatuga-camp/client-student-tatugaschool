@@ -1,10 +1,11 @@
 import { animated, to, useSpring } from "@react-spring/web";
 import { useGesture } from "@use-gesture/react";
-import React, { useContext, useEffect, useRef } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { LuMinus, LuPlus, LuX } from "react-icons/lu";
 import { assignmentPageLanguage } from "../../data/languages";
 import { Language } from "../../interfaces";
+import { keepTabInside } from "../../utils/focusTrap";
 import { overlayTarget } from "../../utils/frameRoutes";
 import { anchoredZoom, stepZoom, wheelScaleFactor } from "../../utils/zoomMath";
 import { OverlayRootContext } from "../app/OverlayScope";
@@ -33,7 +34,11 @@ const clamp = (n: number, lo: number, hi: number) =>
  */
 export default function ImageViewerSheet({ url, name, lang, onClose }: Props) {
   const scoped = useContext(OverlayRootContext);
-  const desktop = useIsDesktop();
+  // Fixed for the viewer's life: a resize or rotation across 768 while it
+  // is open must not move it to another container (a remount).
+  const liveDesktop = useIsDesktop();
+  const [desktop] = useState(liveDesktop);
+  const dialogRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const lastTap = useRef(0);
@@ -49,6 +54,8 @@ export default function ImageViewerSheet({ url, name, lang, onClose }: Props) {
     closeRef.current?.focus({ preventScroll: true });
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onCloseRef.current();
+      // Tab stays in the viewer: the page behind it is out of reach.
+      if (e.key === "Tab") keepTabInside(e, dialogRef.current);
     };
     document.addEventListener("keydown", onKey);
     return () => {
@@ -142,6 +149,7 @@ export default function ImageViewerSheet({ url, name, lang, onClose }: Props) {
 
   return createPortal(
     <div
+      ref={dialogRef}
       role="dialog"
       aria-modal="true"
       aria-label={name}

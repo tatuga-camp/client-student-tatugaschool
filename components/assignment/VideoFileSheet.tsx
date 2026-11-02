@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Language } from "../../interfaces";
+import { keepTabInside } from "../../utils/focusTrap";
 import { overlayTarget } from "../../utils/frameRoutes";
 import { useModalLayer } from "../app/modalLayers";
 import { Sheet } from "../app/Sheet";
@@ -25,8 +26,17 @@ type Props = {
  * and closing it unmounts it, which stops the video.
  */
 export default function VideoFileSheet(props: Props) {
-  const desktop = useIsDesktop();
-  return desktop ? <WindowVideo {...props} /> : <SheetVideo {...props} />;
+  const liveDesktop = useIsDesktop();
+  // Picked when the video opens and kept until it closes: a snapped window
+  // going fullscreen, or an iPad rotating, crosses 768 and would otherwise
+  // swap the player out (a remount restarts the video and drops fullscreen).
+  const desktop = useRef(liveDesktop);
+  if (!props.open) desktop.current = liveDesktop;
+  return desktop.current ? (
+    <WindowVideo {...props} />
+  ) : (
+    <SheetVideo {...props} />
+  );
 }
 
 function SheetVideo({
@@ -76,6 +86,8 @@ function WindowVideo({
     dialogRef.current?.focus({ preventScroll: true });
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onCloseRef.current();
+      // Tab stays in the player: the page behind it is out of reach.
+      if (e.key === "Tab") keepTabInside(e, dialogRef.current);
     };
     document.addEventListener("keydown", onKey);
     return () => {

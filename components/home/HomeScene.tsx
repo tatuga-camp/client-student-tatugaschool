@@ -99,7 +99,7 @@ export function HomeScene({
         }}
       >
         <div
-          className={`relative h-full w-full drop-shadow-[0_8px_10px_rgba(0,0,0,.2)]${active ? "home-bob" : ""}`}
+          className={`relative h-full w-full drop-shadow-[0_8px_10px_rgba(0,0,0,.2)] ${active ? "home-bob" : ""}`}
         >
           {shown && student && (
             <MascotAvatar

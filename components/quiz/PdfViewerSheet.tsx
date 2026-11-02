@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { keepTabInside } from "../../utils/focusTrap";
 import { overlayTarget } from "../../utils/frameRoutes";
 import { useModalLayer } from "../app/modalLayers";
 import { MdAdd, MdClose, MdRemove } from "react-icons/md";
@@ -23,7 +24,12 @@ type Props = {
 };
 
 /** Full-screen in-page PDF reader: never navigates, so quiz test mode records nothing. */
-export default function PdfViewerSheet({ url, name, language, onClose }: Props) {
+export default function PdfViewerSheet({
+  url,
+  name,
+  language,
+  onClose,
+}: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
   const [numPages, setNumPages] = useState(0);
@@ -53,6 +59,8 @@ export default function PdfViewerSheet({ url, name, language, onClose }: Props) 
     document.body.style.overflow = "hidden";
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
+      // Tab stays in the reader: the page behind it is out of reach.
+      if (e.key === "Tab") keepTabInside(e, dialogRef.current);
     };
     window.addEventListener("keydown", onKey);
     return () => {
@@ -80,7 +88,8 @@ export default function PdfViewerSheet({ url, name, language, onClose }: Props) 
         setVisible((prev) => {
           const next = new Set(prev);
           for (const e of entries) {
-            if (e.isIntersecting) next.add(Number((e.target as HTMLElement).dataset.page));
+            if (e.isIntersecting)
+              next.add(Number((e.target as HTMLElement).dataset.page));
           }
           return next;
         });
@@ -100,9 +109,14 @@ export default function PdfViewerSheet({ url, name, language, onClose }: Props) 
     const update = () => {
       frame = 0;
       const rootTop = root.getBoundingClientRect().top;
-      const pages = Array.from(root.querySelectorAll<HTMLElement>("[data-page]")).map((el) => {
+      const pages = Array.from(
+        root.querySelectorAll<HTMLElement>("[data-page]"),
+      ).map((el) => {
         const rect = el.getBoundingClientRect();
-        return { top: rect.top - rootTop + root.scrollTop, height: rect.height };
+        return {
+          top: rect.top - rootTop + root.scrollTop,
+          height: rect.height,
+        };
       });
       setCurrent(
         pdfPageAtScroll({
@@ -134,13 +148,15 @@ export default function PdfViewerSheet({ url, name, language, onClose }: Props) 
       role="dialog"
       aria-modal="true"
       aria-label={name}
-      className="fixed inset-0 z-[1000] outline-none flex flex-col bg-icon-color/95 font-Anuphan"
+      className="fixed inset-0 z-[1000] flex flex-col bg-icon-color/95 font-Anuphan outline-none"
       // The reader has no pinch of its own: a pinch must not zoom the whole
       // app (its buttons would leave their hit points). + / − zoom the page.
       style={{ touchAction: "pan-x pan-y" }}
     >
       <header className="flex items-center gap-3 bg-white px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
-        <h2 className="min-w-0 flex-1 truncate font-semibold text-icon-color">{name}</h2>
+        <h2 className="min-w-0 flex-1 truncate font-semibold text-icon-color">
+          {name}
+        </h2>
         <button
           type="button"
           onClick={onClose}
@@ -158,7 +174,9 @@ export default function PdfViewerSheet({ url, name, language, onClose }: Props) 
       >
         {error ? (
           <div className="mx-auto mt-16 flex max-w-xs flex-col items-center gap-3 rounded-2xl bg-white p-6 text-center">
-            <p className="text-icon-color">{quizLanguage.pdfLoadError(language)}</p>
+            <p className="text-icon-color">
+              {quizLanguage.pdfLoadError(language)}
+            </p>
             <button
               type="button"
               onClick={() => {
@@ -188,7 +206,10 @@ export default function PdfViewerSheet({ url, name, language, onClose }: Props) 
               <div
                 key={n}
                 data-page={n}
-                style={{ width: pageWidth, minHeight: visible.has(n) ? undefined : pageWidth * 1.3 }}
+                style={{
+                  width: pageWidth,
+                  minHeight: visible.has(n) ? undefined : pageWidth * 1.3,
+                }}
                 className="bg-white shadow-lg"
               >
                 {visible.has(n) && (
@@ -216,7 +237,10 @@ export default function PdfViewerSheet({ url, name, language, onClose }: Props) 
           >
             <MdRemove />
           </button>
-          <span className="min-w-28 text-center text-sm text-icon-color" aria-live="polite">
+          <span
+            className="min-w-28 text-center text-sm text-icon-color"
+            aria-live="polite"
+          >
             {quizLanguage.pdfPage(language, current, numPages)}
           </span>
           <button

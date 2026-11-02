@@ -13,7 +13,7 @@ import { useGetLanguage } from "../../react-query";
 import { keepTabInside, reclaimFocus } from "../../utils/focusTrap";
 import { OVERLAY_ROOT_ID } from "../../utils/frameRoutes";
 import { keyboardFit } from "../../utils/keyboardFit";
-import { dialogMotion, sheetMode } from "../../utils/sheetMode";
+import { dialogBox, dialogMotion, sheetMode } from "../../utils/sheetMode";
 import { isEditableTarget } from "../../utils/tabs";
 import { OverlayRootContext } from "./OverlayScope";
 import { useIsDesktop } from "./useLayoutMode";
@@ -364,8 +364,10 @@ export function Sheet({
 
   const full = size === "full";
   const progress = (v: number) => clamp01(v / heightRef.current);
-  // A desktop dialog: centred (inset 0 + auto margins), fading and shrinking
-  // a little with the same spring a bottom sheet slides on.
+  // A desktop dialog: centred by its flex root (utils/sheetMode dialogBox),
+  // fading and shrinking a little with the same spring a bottom sheet
+  // slides on.
+  const box = dialogBox({ full, fit });
   const panelStyle = dialog
     ? {
         opacity: y.to((v) => dialogMotion(progress(v)).opacity),
@@ -374,8 +376,8 @@ export function Sheet({
         width: full
           ? "min(720px, calc(100% - 32px))"
           : "min(480px, calc(100% - 32px))",
-        height: full ? "85%" : "fit-content",
-        maxHeight: "85%",
+        height: box.height,
+        maxHeight: box.maxHeight,
         borderRadius: 22,
         boxShadow: "0 20px 50px rgba(20,24,48,.3)",
       }
@@ -403,8 +405,12 @@ export function Sheet({
       ref={sheetRootRef}
       data-sheet-root=""
       data-no-swipe
-      className="absolute inset-0 z-50"
-      style={{ pointerEvents: modal && visible ? "auto" : "none" }}
+      className={`absolute inset-0 z-50 ${dialog ? "flex items-center justify-center" : ""}`}
+      style={{
+        pointerEvents: modal && visible ? "auto" : "none",
+        // A dialog centres in the part of the root the keyboard leaves.
+        paddingBottom: dialog ? box.padBottom : undefined,
+      }}
     >
       {modal && (
         <animated.div
@@ -423,8 +429,8 @@ export function Sheet({
         aria-modal={modal}
         aria-label={ariaLabel}
         tabIndex={-1}
-        className={`absolute flex flex-col bg-white outline-none ${
-          dialog ? "inset-0 m-auto" : "inset-x-0 bottom-0"
+        className={`flex flex-col bg-white outline-none ${
+          dialog ? "relative" : "absolute inset-x-0 bottom-0"
         }`}
         style={panelStyle}
       >

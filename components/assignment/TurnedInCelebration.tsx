@@ -188,7 +188,7 @@ export default function TurnedInCelebration({
         </p>
       </div>
 
-      <div className="mt-5 flex w-full gap-2 px-4">
+      <div className="mt-5 flex w-full gap-2 px-4 desk:max-w-[480px]">
         {tiles.map((tile) => (
           <div
             key={tile.key}
@@ -212,7 +212,7 @@ export default function TurnedInCelebration({
         ))}
       </div>
 
-      <div className="mb-auto mt-10 flex w-full flex-col gap-2 px-4">
+      <div className="mb-auto mt-10 flex w-full flex-col gap-2 px-4 desk:max-w-[480px]">
         {next && (
           <button
             ref={primaryRef}

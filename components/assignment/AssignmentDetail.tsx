@@ -287,20 +287,20 @@ export default function AssignmentDetail({
         className={`${TAB_BODY_CLASS} hideScrollBar ${DESK_COL}`}
         style={{ paddingBottom: "var(--safe-bottom)" }}
       >
-        {twoColumns ? (
-          <div className="grid grid-cols-[minmax(0,1fr)_320px] items-start gap-[18px] px-3 pb-6 pt-4">
-            <div className="flex min-w-0 flex-col gap-3">
-              {main}
-              {nextButton}
-            </div>
-            <aside className="sticky top-4 flex flex-col gap-3">
-              <div ref={setCardSlot} />
-              {comments}
-            </aside>
-          </div>
-        ) : (
+        {/* One tree for both layouts, only the classes change: crossing 1024
+            (an iPad rotating, a snapped window going fullscreen) must not
+            remount the video quiz, an open viewer or the comments. Below
+            `wide` both columns are `display: contents`, so the page is the
+            phone's single flex column. */}
+        <div
+          className={
+            twoColumns
+              ? "grid grid-cols-[minmax(0,1fr)_320px] items-start gap-[18px] px-3 pb-6 pt-4"
+              : `flex flex-col gap-3 px-3 pt-4 ${hasSheet ? "pb-44" : "pb-6"}`
+          }
+        >
           <div
-            className={`flex flex-col gap-3 px-3 pt-4 ${hasSheet ? "pb-44" : "pb-6"}`}
+            className={twoColumns ? "flex min-w-0 flex-col gap-3" : "contents"}
           >
             {loading ? (
               <DetailSkeleton />
@@ -311,12 +311,20 @@ export default function AssignmentDetail({
             ) : (
               <>
                 {main}
-                {comments}
-                {nextButton}
+                {twoColumns && nextButton}
               </>
             )}
           </div>
-        )}
+          <div
+            className={
+              twoColumns ? "sticky top-4 flex flex-col gap-3" : "contents"
+            }
+          >
+            {twoColumns && <div ref={setCardSlot} />}
+            {comments}
+            {!twoColumns && nextButton}
+          </div>
+        </div>
       </div>
       {assignment && (
         <YourWorkSheet
