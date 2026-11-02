@@ -221,7 +221,6 @@ export default function AssignmentDetail({
             </h3>
             <div className="chunky overflow-hidden p-2">
               <TextEditor
-                disabled
                 autoHeight
                 schoolId={assignment.schoolId}
                 value={assignment.description}
