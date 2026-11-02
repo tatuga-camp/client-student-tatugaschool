@@ -1,8 +1,11 @@
+import { assignmentPageLanguage } from "../data/languages/classwork";
 import type {
   AssignmentType,
+  Language,
   StudentAssignmentContentType,
   StudentAssignmentStatus,
 } from "../interfaces";
+import { errorSwalContent } from "./errorSwal";
 import {
   UnreadableFileError,
   UploadHttpError,
@@ -205,4 +208,42 @@ export function uploadFailure(
     });
   }
   return error;
+}
+
+/** A failed work request in TH/EN: a dialog's or an inline notice's lines. */
+export type WorkErrorContent = { title: string; text: string; detail: string };
+
+/**
+ * What a failed work request says. A plain Error is made on this side and
+ * already carries a TH/EN message. Anything else (a server reply, or a
+ * TypeError from a dropped request) is English: it gets a TH/EN line and
+ * keeps its own text only as a small detail, after the error code.
+ */
+export function workErrorContent(
+  error: unknown,
+  lang: Language,
+  /** A TH/EN title (and text) to show instead. */
+  generic?: { title: string; text?: string },
+): WorkErrorContent {
+  const fallback = assignmentPageLanguage.somethingWentWrong(lang);
+  const content = errorSwalContent(error, fallback);
+  // errorSwalContent's footer is English ("Code Error: 403"): say it again.
+  const code = content.footer.match(/\d+/)?.[0];
+  const codeLine = code ? assignmentPageLanguage.errorCode(lang, code) : "";
+  const ours = error instanceof Error && error.name === "Error";
+  const text =
+    generic?.text ??
+    (ours ? content.text : assignmentPageLanguage.updateFailedText(lang));
+  // errorSwalContent makes up an English line when there is none: drop it.
+  const ownText =
+    typeof error === "string" ||
+    (typeof error === "object" &&
+      error !== null &&
+      !!(error as { message?: unknown }).message);
+  const extra = ownText && content.text !== text ? content.text : "";
+  return {
+    title: generic?.title ?? fallback,
+    text,
+    detail: [codeLine, extra].filter(Boolean).join(" · "),
+  };
 }

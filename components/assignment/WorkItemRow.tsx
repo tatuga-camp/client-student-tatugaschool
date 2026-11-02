@@ -18,11 +18,16 @@ import {
   useDeleteFileStudentAssignment,
   useUpdateFileStudentAssignment,
 } from "../../react-query";
-import { fileSizeLabel, workItemMenu } from "../../utils/assignmentDetail";
+import {
+  fileSizeLabel,
+  workErrorContent,
+  type WorkErrorContent,
+  workItemMenu,
+} from "../../utils/assignmentDetail";
 import { withTimeout } from "../../utils/withTimeout";
 import ActionMenu, { ActionMenuItem } from "./ActionMenu";
 import Swal from "../../utils/appSwal";
-import { workError } from "./workFeedback";
+import WorkErrorNotice from "./WorkErrorNotice";
 
 type Props = {
   file: FileOnStudentOnAssignment;
@@ -42,7 +47,11 @@ const WRITE_TIMEOUT_MS = 30_000;
 const TILE =
   "flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-[10px] text-base";
 
-/** One added item: open it, rename it inline, or delete it from the ⋯ menu. */
+/**
+ * One added item: open it, rename it inline, or delete it from the ⋯ menu.
+ * A rename or delete in flight shows in the row; a failed one shows under it
+ * with Try again.
+ */
 export default function WorkItemRow({
   file,
   lang,
@@ -57,6 +66,14 @@ export default function WorkItemRow({
   const [draft, setDraft] = useState("");
   const cancelRef = useRef(false);
   const savingRef = useRef(false);
+  const [failure, setFailure] = useState<{
+    content: WorkErrorContent;
+    retry: () => void;
+  } | null>(null);
+  const fail = (error: unknown, title: string, retry: () => void) => {
+    console.error(error);
+    setFailure({ content: workErrorContent(error, lang, { title }), retry });
+  };
 
   const link = isLinkFile(file);
   const isImage = file.contentType === "FILE" && file.type.includes("image");
@@ -79,6 +96,7 @@ export default function WorkItemRow({
   };
 
   const startRename = () => {
+    setFailure(null);
     cancelRef.current = false;
     setDraft(displayName);
     setEditing(true);
@@ -96,6 +114,14 @@ export default function WorkItemRow({
       setEditing(false);
       return;
     }
+    await saveName(next);
+  };
+
+  const saveName = async (next: string) => {
+    if (savingRef.current) return;
+    const title = assignmentPageLanguage.renameFailed(lang);
+    const retry = () => void saveName(next);
+    setFailure(null);
     savingRef.current = true;
     try {
       const result = await withTimeout(
@@ -107,14 +133,29 @@ export default function WorkItemRow({
       );
       setEditing(false);
       if (!result.ok) {
-        workError(new Error(assignmentPageLanguage.submitTimeout(lang)), lang);
+        fail(
+          new Error(assignmentPageLanguage.submitTimeout(lang)),
+          title,
+          retry,
+        );
       }
     } catch (error) {
       // Back to the original name, out of edit mode: no dead-end edit state.
       setEditing(false);
-      workError(error, lang);
+      fail(error, title, retry);
     } finally {
       savingRef.current = false;
+    }
+  };
+
+  const deleteItem = async () => {
+    setFailure(null);
+    try {
+      await deleteFile.mutateAsync({ fileOnStudentAssignmentId: file.id });
+    } catch (error) {
+      fail(error, assignmentPageLanguage.deleteFailed(lang), () => {
+        void deleteItem();
+      });
     }
   };
 
@@ -130,11 +171,7 @@ export default function WorkItemRow({
       customClass: { popup: "rounded-2xl border border-gray-100 shadow-md" },
     });
     if (!answer.isConfirmed) return;
-    try {
-      await deleteFile.mutateAsync({ fileOnStudentAssignmentId: file.id });
-    } catch (error) {
-      workError(error, lang);
-    }
+    await deleteItem();
   };
 
   const actions: Record<"open" | "rename" | "delete", ActionMenuItem> = {
@@ -188,59 +225,86 @@ export default function WorkItemRow({
       </span>
     );
 
+  const deleting = deleteFile.isPending;
+  const pending = deleting || updateFile.isPending;
+  const meta = deleting
+    ? assignmentPageLanguage.deleting(lang)
+    : updateFile.isPending
+      ? assignmentPageLanguage.submitting(lang)
+      : [kind, size].filter(Boolean).join(" · ");
+
   return (
-    <li className="flex min-h-[52px] items-center gap-2.5 border-b-[1.5px] border-[#EEF1F6] last:border-b-0">
-      {editing ? (
-        <>
-          {tile}
-          <input
-            autoFocus
-            maxLength={255}
-            value={draft}
-            disabled={updateFile.isPending}
-            aria-label={assignmentPageLanguage.fileName(lang)}
-            onChange={(e) => setDraft(e.target.value)}
-            onBlur={commitRename}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") e.currentTarget.blur();
-              if (e.key === "Escape") {
-                e.stopPropagation();
-                cancelRef.current = true;
-                e.currentTarget.blur();
-              }
-            }}
-            className="h-10 min-w-0 flex-1 rounded-xl border-2 border-primary-color px-2 text-[13px] font-bold text-icon-color outline-none"
-          />
-        </>
-      ) : (
-        <button
-          type="button"
-          onClick={open}
-          title={displayName}
-          className="flex min-h-[52px] min-w-0 flex-1 items-center gap-2.5 py-1.5 text-left"
-        >
-          {tile}
-          <span className="min-w-0 flex-1">
-            <span className="block truncate text-[13px] font-bold text-icon-color">
-              {displayName}
+    <li
+      aria-busy={pending}
+      className="border-b-[1.5px] border-[#EEF1F6] last:border-b-0"
+    >
+      <div
+        className={`flex min-h-[52px] items-center gap-2.5 ${deleting ? "opacity-60" : ""}`}
+      >
+        {editing ? (
+          <>
+            {tile}
+            <input
+              autoFocus
+              maxLength={255}
+              value={draft}
+              disabled={updateFile.isPending}
+              aria-label={assignmentPageLanguage.fileName(lang)}
+              onChange={(e) => setDraft(e.target.value)}
+              onBlur={commitRename}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") e.currentTarget.blur();
+                if (e.key === "Escape") {
+                  e.stopPropagation();
+                  cancelRef.current = true;
+                  e.currentTarget.blur();
+                }
+              }}
+              className="h-10 min-w-0 flex-1 rounded-xl border-2 border-primary-color px-2 text-[13px] font-bold text-icon-color outline-none"
+            />
+          </>
+        ) : (
+          <button
+            type="button"
+            onClick={open}
+            disabled={deleting}
+            title={displayName}
+            className="flex min-h-[52px] min-w-0 flex-1 items-center gap-2.5 py-1.5 text-left"
+          >
+            {tile}
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[13px] font-bold text-icon-color">
+                {displayName}
+              </span>
+              <span
+                className={`block text-[11px] font-semibold ${pending ? "text-primary-color" : "text-[#9AA3B8]"}`}
+              >
+                {meta}
+              </span>
             </span>
-            <span className="block text-[11px] font-semibold text-[#9AA3B8]">
-              {[kind, size].filter(Boolean).join(" · ")}
-            </span>
+          </button>
+        )}
+        {pending ? (
+          <span className="grid h-11 w-11 shrink-0 place-items-center text-xl text-primary-color">
+            <LuLoader aria-hidden className="animate-spin" />
           </span>
-        </button>
-      )}
-      {deleteFile.isPending ? (
-        <span className="grid h-11 w-11 place-items-center text-xl text-[#9AA3B8]">
-          <LuLoader aria-hidden className="animate-spin" />
-        </span>
-      ) : (
-        !editing && (
-          <ActionMenu
-            items={items}
-            ariaLabel={assignmentPageLanguage.moreActions(lang)}
-          />
-        )
+        ) : (
+          !editing && (
+            <ActionMenu
+              items={items}
+              ariaLabel={assignmentPageLanguage.moreActions(lang)}
+            />
+          )
+        )}
+      </div>
+      {failure && (
+        <WorkErrorNotice
+          lang={lang}
+          error={failure.content}
+          onRetry={failure.retry}
+          onDismiss={() => setFailure(null)}
+          className="mb-2"
+        />
       )}
     </li>
   );

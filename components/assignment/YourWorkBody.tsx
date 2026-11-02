@@ -1,5 +1,5 @@
 import React from "react";
-import { LuAlertTriangle, LuCheck, LuUndo2 } from "react-icons/lu";
+import { LuAlertTriangle, LuCheck, LuLoader, LuUndo2 } from "react-icons/lu";
 import {
   assignmentPageLanguage,
   classworkDataLanguage,
@@ -23,6 +23,10 @@ type Props = {
   /** Drives only the labels and pills (archived work keeps its label). */
   shown: Mode;
   busy: boolean;
+  /** Mark as not done is saving. */
+  undoing: boolean;
+  /** The failed request's notice (WorkErrorNotice), if any. */
+  failure: React.ReactNode;
   countPill: React.ReactNode;
   doneAt: string | null;
   unconfirmed: boolean;
@@ -41,13 +45,16 @@ type Props = {
 /**
  * Everything "Your work" shows when open: the header and pill, the done-at
  * line, the unsent warning, the items, upload progress, the ways to add work
- * and Mark as done. The phone's expanded sheet and the desktop card share it.
+ * and Mark as done, with what is saving and what failed shown in place. The
+ * phone's expanded sheet and the desktop card share it.
  */
 export default function YourWorkBody({
   lang,
   mode,
   shown,
   busy,
+  undoing,
+  failure,
   countPill,
   doneAt,
   unconfirmed,
@@ -105,6 +112,18 @@ export default function YourWorkBody({
         </p>
       )}
 
+      {undoing && (
+        <p
+          role="status"
+          className="mb-2 flex items-center gap-2 rounded-xl bg-blue-50 p-2 text-[12px] font-bold text-primary-color"
+        >
+          <LuLoader aria-hidden className="shrink-0 animate-spin text-base" />
+          {assignmentPageLanguage.markingNotDone(lang)}
+        </p>
+      )}
+      {/* Open: next to Mark as done instead (below). */}
+      {mode !== "open" && failure && <div className="mb-2">{failure}</div>}
+
       {mode === "open" && unconfirmed && (
         <div className="mb-2 flex items-start gap-2 rounded-xl bg-[#FFF6D6] p-2 text-[12px] font-bold text-[#8A5E00]">
           <LuAlertTriangle aria-hidden className="mt-0.5 shrink-0 text-base" />
@@ -160,6 +179,7 @@ export default function YourWorkBody({
             onNote={() => onOpenNote()}
             onLink={onLink}
           />
+          {failure && <div className="mb-3">{failure}</div>}
           {doneButton}
         </>
       )}

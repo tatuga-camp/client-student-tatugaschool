@@ -1,6 +1,6 @@
 import { assignmentPageLanguage } from "../../data/languages";
 import { Language } from "../../interfaces";
-import { errorSwalContent } from "../../utils";
+import { workErrorContent } from "../../utils/assignmentDetail";
 import Swal from "../../utils/appSwal";
 
 /** A short success toast inside the phone screen. */
@@ -28,31 +28,11 @@ export function workError(
   generic?: { title: string; text: string },
 ): void {
   console.error(error);
-  const content = errorSwalContent(
-    error,
-    assignmentPageLanguage.somethingWentWrong(lang),
-  );
-  // errorSwalContent's footer is English ("Code Error: 403"): say it again.
-  const code = content.footer.match(/\d+/)?.[0];
-  const codeLine = code ? assignmentPageLanguage.errorCode(lang, code) : "";
-  // An Error made on the client already carries a TH/EN message. Anything
-  // else (a server reply) is English: show a TH/EN message and keep the
-  // server's own text only as a small detail.
-  const message =
-    generic ??
-    (error instanceof Error
-      ? undefined
-      : {
-          title: assignmentPageLanguage.somethingWentWrong(lang),
-          text: assignmentPageLanguage.updateFailedText(lang),
-        });
-  const detail = message
-    ? [codeLine, content.text].filter(Boolean).join(" · ")
-    : codeLine;
+  const content = workErrorContent(error, lang, generic);
   void Swal.fire({
-    ...content,
-    ...(message ?? {}),
-    footer: detail,
+    title: content.title,
+    text: content.text,
+    footer: content.detail,
     confirmButtonText: assignmentPageLanguage.ok(lang),
     icon: "error",
   });

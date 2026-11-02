@@ -1,10 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import {
-  LuCheck,
-  LuLoader,
-  LuPlus,
-} from "react-icons/lu";
+import { LuCheck, LuLoader, LuPlus } from "react-icons/lu";
 import {
   assignmentPageLanguage,
   classworkDataLanguage,
@@ -21,11 +17,12 @@ import {
   useUpdateStudentOnAssignment,
 } from "../../react-query";
 import { hasUnconfirmedWork } from "../../utils";
-import Swal from "../../utils/appSwal";
 import { withTimeout } from "../../utils/withTimeout";
 import {
   doneAtLabel,
   shouldSubmitAfterUpload,
+  workErrorContent,
+  type WorkErrorContent,
   yourWorkMode,
 } from "../../utils/assignmentDetail";
 import { turnInBody, type UnsentVideo } from "../../utils/videoQuiz";
@@ -37,6 +34,7 @@ import LeaveGuardSheet from "./LeaveGuardSheet";
 import LinkSheet from "./LinkSheet";
 import NoteSheet from "./NoteSheet";
 import type { AssignmentItem } from "./types";
+import WorkErrorNotice from "./WorkErrorNotice";
 import YourWorkBody, { pillBase } from "./YourWorkBody";
 import { workError, workToast } from "./workFeedback";
 
@@ -88,9 +86,23 @@ export default function YourWorkSheet({
   const files = useGetFileStudentAssignment({ studentOnAssignmentId: soa.id });
   const items = files.data ?? [];
   const updateWork = useUpdateStudentOnAssignment();
+  // The last Mark as done, Mark as not done or upload that failed, shown in
+  // the card until it is dismissed or the next try starts.
+  const [failure, setFailure] = useState<{
+    content: WorkErrorContent;
+    retry?: () => void;
+  } | null>(null);
+  const fail = (error: unknown, title?: string, retry?: () => void) => {
+    console.error(error);
+    setFailure({
+      content: workErrorContent(error, lang, title ? { title } : undefined),
+      retry,
+    });
+  };
   const { upload, uploading, progress } = useStudentFileUpload({
     studentOnAssignmentId: soa.id,
     schoolId: soa.schoolId,
+    onError: (error) => fail(error),
   });
   const [expanded, setExpanded] = useState(false);
   const [noteOpen, setNoteOpen] = useState(false);
@@ -110,23 +122,32 @@ export default function YourWorkSheet({
     if (soa.status === "SUBMITTED" || soa.status === "REVIEWD") {
       setJustSubmitted(false);
     }
+    // A failure from before the status changed (e.g. a timeout whose request
+    // landed after all) no longer applies.
+    setFailure(null);
   }, [soa.status]);
 
+  /** Rejects when the request fails; the caller shows it. */
+  const sendStatus = async (status: StudentAssignmentStatus) => {
+    await updateWork.mutateAsync({
+      query: { studentOnAssignmentId: soa.id },
+      body: turnInBody(status, video),
+    });
+    // The list refetch lags a moment; until it lands, don't ask again.
+    setJustSubmitted(status === "SUBMITTED");
+    setFailure(null);
+    workToast(
+      status === "SUBMITTED"
+        ? assignmentPageLanguage.markedDone(lang)
+        : assignmentPageLanguage.markedNotDone(lang),
+    );
+  };
+  /** The leave guard's submit: a failure there is a dialog, as before. */
   const setStatus = async (
     status: StudentAssignmentStatus,
   ): Promise<boolean> => {
     try {
-      await updateWork.mutateAsync({
-        query: { studentOnAssignmentId: soa.id },
-        body: turnInBody(status, video),
-      });
-      // The list refetch lags a moment; until it lands, don't ask again.
-      setJustSubmitted(status === "SUBMITTED");
-      workToast(
-        status === "SUBMITTED"
-          ? assignmentPageLanguage.markedDone(lang)
-          : assignmentPageLanguage.markedNotDone(lang),
-      );
+      await sendStatus(status);
       return true;
     } catch (error) {
       workError(error, lang, {
@@ -140,18 +161,39 @@ export default function YourWorkSheet({
   // True only while the Mark as done BUTTON is saving; the guard's own
   // submit is tracked by the guard, so a hanging request can't disarm it.
   const [marking, setMarking] = useState(false);
+  const timedOut = () => new Error(assignmentPageLanguage.submitTimeout(lang));
   const markDone = async () => {
+    const title = assignmentPageLanguage.markDoneFailed(lang);
+    setFailure(null);
     setMarking(true);
     try {
-      const result = await withTimeout(setStatus("SUBMITTED"), SUBMIT_WAIT_MS);
+      const result = await withTimeout(sendStatus("SUBMITTED"), SUBMIT_WAIT_MS);
       if (!result.ok) {
-        workError(new Error(assignmentPageLanguage.submitTimeout(lang)), lang);
-      } else if (result.value) {
+        fail(timedOut(), title);
+      } else {
         setExpanded(false);
         onTurnedIn({ itemCount: items.length });
       }
+    } catch (error) {
+      fail(error, title);
     } finally {
       setMarking(false);
+    }
+  };
+
+  // Mark as not done (the Turned in ⋯ menu). Its failure offers Try again.
+  const [undoing, setUndoing] = useState(false);
+  const undo = async () => {
+    const title = assignmentPageLanguage.markNotDoneFailed(lang);
+    setFailure(null);
+    setUndoing(true);
+    try {
+      const result = await withTimeout(sendStatus("PENDDING"), SUBMIT_WAIT_MS);
+      if (!result.ok) fail(timedOut(), title, undo);
+    } catch (error) {
+      fail(error, title, undo);
+    } finally {
+      setUndoing(false);
     }
   };
 
@@ -197,12 +239,7 @@ export default function YourWorkSheet({
   // Nothing left to protect (e.g. the upload failed before any item landed)
   // while the question is open: the student asked to leave, so let them.
   useEffect(() => {
-    if (!guardEnabled && answerRef.current) {
-      choose("leave");
-      // The failure that released them already showed its dialog; don't leave
-      // it over the page they are going to.
-      Swal.close();
-    }
+    if (!guardEnabled && answerRef.current) choose("leave");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [guardEnabled]);
   useConfirmSubmissionGuard({
@@ -225,7 +262,7 @@ export default function YourWorkSheet({
             );
             return false;
           }
-          // A failed upload already showed its own error: stay, don't submit.
+          // A failed upload already shows its own error: stay, don't submit.
           if (
             !shouldSubmitAfterUpload({ results: waited.value, timedOut: false })
           )
@@ -262,6 +299,7 @@ export default function YourWorkSheet({
   const pickFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
     const picked = Array.from(e.target.files ?? []);
     e.target.value = "";
+    if (picked.length > 0) setFailure(null);
     const run = upload(picked);
     uploadsRef.current.add(run);
     void run.finally(() => uploadsRef.current.delete(run));
@@ -283,24 +321,38 @@ export default function YourWorkSheet({
   );
   const doneAt = doneAtLabel(soa.completedAt);
 
+  // Saving stays at full strength (spinner and "Saving…"); only a button
+  // waiting on something else (an upload) is dimmed.
+  const saving = updateWork.isPending;
   const doneButtonFor = (className: string) => (
     <button
       type="button"
       disabled={busy}
+      aria-busy={saving}
       onClick={markDone}
-      className={`chunky-btn w-full whitespace-nowrap disabled:opacity-60 ${className}`}
+      className={`chunky-btn w-full whitespace-nowrap ${saving ? "" : "disabled:opacity-60"} ${className}`}
     >
-      {updateWork.isPending ? (
+      {saving ? (
         <LuLoader aria-hidden className="animate-spin" />
       ) : (
         <LuCheck aria-hidden />
       )}
-      {classworkDataLanguage.menuSummitLists.done(lang)}
+      {saving
+        ? assignmentPageLanguage.submitting(lang)
+        : classworkDataLanguage.menuSummitLists.done(lang)}
     </button>
   );
 
   const doneButton = doneButtonFor("");
   const peekDoneButton = doneButtonFor("gap-1 px-2 text-[13px]");
+  const failureNotice = failure && (
+    <WorkErrorNotice
+      lang={lang}
+      error={failure.content}
+      onRetry={failure.retry}
+      onDismiss={() => setFailure(null)}
+    />
+  );
   const peek =
     mode === "open" ? (
       <div className="pb-2">
@@ -308,6 +360,7 @@ export default function YourWorkSheet({
           <span>{assignmentPageLanguage.yourWork(lang)}</span>
           {countPill}
         </div>
+        {failureNotice && <div className="mb-2">{failureNotice}</div>}
         <div className="flex gap-2">
           <button
             type="button"
@@ -356,6 +409,8 @@ export default function YourWorkSheet({
       mode={mode}
       shown={shown}
       busy={busy}
+      undoing={undoing}
+      failure={failureNotice}
       countPill={countPill}
       doneAt={doneAt}
       unconfirmed={unconfirmed}
@@ -364,7 +419,7 @@ export default function YourWorkSheet({
       archived={archived}
       progress={progress}
       doneButton={doneButton}
-      onUndo={() => void setStatus("PENDDING")}
+      onUndo={() => void undo()}
       onOpenNote={openNote}
       onCamera={() => cameraRef.current?.click()}
       onFiles={() => filesRef.current?.click()}

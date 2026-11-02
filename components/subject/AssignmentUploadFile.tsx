@@ -20,7 +20,7 @@ import {
   initialUploadProgress,
   uploadFailure,
 } from "../../utils/assignmentDetail";
-import { workError, workToast } from "../assignment/workFeedback";
+import { workToast } from "../assignment/workFeedback";
 
 export type UploadProgress = {
   percent: number;
@@ -31,14 +31,18 @@ export type UploadProgress = {
 /**
  * The student upload pipeline: snapshot the picked files, upload each through
  * a signed URL with overall progress, then record it on the assignment.
- * `upload` never rejects; failures show a TH/EN alert and `uploading` resets.
+ * `upload` never rejects; a failure goes to `onError` (TH/EN when it was made
+ * here, see uploadFailure) and `uploading` resets.
  */
 export function useStudentFileUpload({
   studentOnAssignmentId,
   schoolId,
+  onError,
 }: {
   studentOnAssignmentId: string;
   schoolId: string;
+  /** Shows the failure; workErrorContent turns it into TH/EN lines. */
+  onError: (error: unknown) => void;
 }) {
   const [uploading, setUploading] = React.useState(false);
   const [progress, setProgress] = React.useState<UploadProgress | null>(null);
@@ -110,13 +114,13 @@ export function useStudentFileUpload({
       workToast(assignmentPageLanguage.fileUploaded(lang));
       return true;
     } catch (error) {
-      workError(
+      console.error(error);
+      onError(
         uploadFailure(error, {
           network: classworkDataLanguage.uploadNetworkError(lang),
           unreadable: classworkDataLanguage.uploadFileUnreadable(lang),
           rejected: assignmentPageLanguage.uploadRejected(lang),
         }),
-        lang,
       );
       return false;
     } finally {
