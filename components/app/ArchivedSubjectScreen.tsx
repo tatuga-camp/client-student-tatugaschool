@@ -12,7 +12,13 @@ import {
   useGetSubjectByStudent,
 } from "../../react-query";
 import { safeGet, safeRemove } from "../../utils/safeStorage";
-import { activeSubjects, groupByTerm } from "../../utils/subjectArchived";
+import {
+  activeSubjects,
+  groupByTerm,
+  needsTermFallback,
+  otherSubjectsView,
+} from "../../utils/subjectArchived";
+import { InlineError } from "./InlineError";
 import { LanguagePill } from "../signin/LanguagePill";
 import { guideClips } from "../signin/mascotAvatars";
 import MascotAvatar from "../student/MascotAvatar";
@@ -24,27 +30,47 @@ import { SubjectCard } from "../subjects/SubjectCard";
  * term, and, for a student whose subjects are all archived, a way to join
  * another class, sign out or change language (the Me tab lives inside a
  * subject, so it is out of reach here).
+ *
+ * `educationYear` is the archived subject's term when it is known (an older
+ * server still serves the subject): that server refuses a list request with
+ * no term, so the screen falls back to the student's subjects in that term.
  */
-export function ArchivedSubjectScreen({ subjectId }: { subjectId: string }) {
+export function ArchivedSubjectScreen({
+  subjectId,
+  educationYear,
+}: {
+  subjectId: string;
+  educationYear?: string;
+}) {
   const router = useRouter();
   const lang = useGetLanguage().data ?? "en";
   const student = useGetStudent();
-  const subjects = useGetSubjectByStudent({
-    studentId: student.data?.id ?? "",
-    allYears: true,
+  const studentId = student.data?.id ?? "";
+  const allTerms = useGetSubjectByStudent({ studentId, allYears: true });
+  const fallback = needsTermFallback(allTerms.error, educationYear);
+  // Idle unless the fallback is needed (no term means not enabled).
+  const oneTerm = useGetSubjectByStudent({
+    studentId,
+    educationYear: fallback ? educationYear : undefined,
   });
+  const subjects = fallback ? oneTerm : allTerms;
   const logout = useLogout();
   const groups = useMemo(
     () => groupByTerm(activeSubjects(subjects.data ?? [], subjectId)),
     [subjects.data, subjectId],
   );
+  const view = otherSubjectsView({
+    student,
+    list: subjects,
+    count: groups.length,
+  });
 
   // The next launch must not land here again.
   useEffect(() => {
     if (safeGet("subject_id") === subjectId) safeRemove("subject_id");
   }, [subjectId]);
 
-  const loading = !!student.data && subjects.isPending;
+  const loading = view === "loading";
   return (
     <main
       className="app-scroll hideScrollBar flex h-full w-full flex-col bg-[#F7F8FA] px-5 font-Anuphan"
@@ -81,7 +107,14 @@ export function ArchivedSubjectScreen({ subjectId }: { subjectId: string }) {
               <div className="h-[74px] animate-pulse rounded-2xl bg-[#E3E8F0]" />
               <div className="h-[74px] animate-pulse rounded-2xl bg-[#E3E8F0]" />
             </div>
-          ) : groups.length > 0 ? (
+          ) : view === "error" ? (
+            <InlineError
+              className="py-4"
+              onRetry={() =>
+                void (student.isError ? student.refetch() : subjects.refetch())
+              }
+            />
+          ) : view === "list" ? (
             <>
               <h2 className="mb-2 text-sm font-bold text-[#383767]">
                 {t.archivedOtherSubjects(lang)}

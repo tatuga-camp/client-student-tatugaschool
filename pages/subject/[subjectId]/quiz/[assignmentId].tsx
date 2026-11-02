@@ -95,7 +95,12 @@ function StudentQuizPage({
     isSubjectArchivedError(assignments.error) ||
     isSubjectArchivedError(quiz.error)
   ) {
-    return <ArchivedSubjectScreen subjectId={subjectId} />;
+    return (
+      <ArchivedSubjectScreen
+        subjectId={subjectId}
+        educationYear={subject.data?.educationYear}
+      />
+    );
   }
   // Error screens only when there is nothing to render. TanStack keeps `data` on a failed
   // background refetch, and replacing a running take screen would lose unsaved answers.

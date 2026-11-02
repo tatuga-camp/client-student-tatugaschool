@@ -5,6 +5,8 @@ import {
   groupByTerm,
   isSubjectArchived,
   isSubjectArchivedError,
+  needsTermFallback,
+  otherSubjectsView,
 } from "./subjectArchived";
 
 const archived403 = {
@@ -78,4 +80,63 @@ test("groupByTerm: newest term first, subjects kept in order", () => {
 
 test("groupByTerm: an empty list has no groups", () => {
   assert.deepEqual(groupByTerm([]), []);
+});
+
+// Review fix: the archived screen said "no other subjects" while the list
+// was still loading or had failed (and the older server answers 400 to a
+// list request with no term).
+test("needsTermFallback: only a 400 to the all-terms list, with a term known", () => {
+  const badRequest = {
+    statusCode: 400,
+    message: ["educationYear should not be empty"],
+  };
+  assert.equal(needsTermFallback(badRequest, "2/2026"), true);
+  assert.equal(needsTermFallback(badRequest, undefined), false);
+  assert.equal(needsTermFallback(badRequest, ""), false);
+  assert.equal(needsTermFallback({ statusCode: 500 }, "2/2026"), false);
+  assert.equal(needsTermFallback(null, "2/2026"), false);
+});
+
+const idle = { isPending: false, isError: false };
+const pending = { isPending: true, isError: false };
+const failed = { isPending: false, isError: true };
+
+test("otherSubjectsView: loading while the student or the list is pending", () => {
+  assert.equal(
+    otherSubjectsView({ student: pending, list: pending, count: 0 }),
+    "loading",
+  );
+  assert.equal(
+    otherSubjectsView({ student: idle, list: pending, count: 0 }),
+    "loading",
+  );
+});
+
+test('otherSubjectsView: a failed load is an error, never "no other subjects"', () => {
+  assert.equal(
+    otherSubjectsView({ student: idle, list: failed, count: 0 }),
+    "error",
+  );
+  assert.equal(
+    otherSubjectsView({ student: failed, list: pending, count: 0 }),
+    "error",
+  );
+});
+
+test("otherSubjectsView: subjects on hand are shown, even if a refetch failed", () => {
+  assert.equal(
+    otherSubjectsView({ student: idle, list: idle, count: 2 }),
+    "list",
+  );
+  assert.equal(
+    otherSubjectsView({ student: idle, list: failed, count: 2 }),
+    "list",
+  );
+});
+
+test("otherSubjectsView: empty only once the list has loaded with none", () => {
+  assert.equal(
+    otherSubjectsView({ student: idle, list: idle, count: 0 }),
+    "empty",
+  );
 });

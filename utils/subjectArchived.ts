@@ -49,3 +49,39 @@ export function groupByTerm<T extends { educationYear: string }>(
     ([a], [b]) => termRank(b) - termRank(a),
   );
 }
+
+/**
+ * The all-terms list was refused as a bad request: an older server requires a
+ * term. Ask again for the term the student is in, if it is known.
+ */
+export function needsTermFallback(
+  allTermsError: unknown,
+  educationYear?: string,
+): boolean {
+  if (!educationYear || !allTermsError || typeof allTermsError !== "object") {
+    return false;
+  }
+  return (allTermsError as { statusCode?: unknown }).statusCode === 400;
+}
+
+type LoadState = { isPending: boolean; isError: boolean };
+
+/**
+ * What the archived screen shows in place of the student's other subjects.
+ * "empty" (with Join another class) only once the list has truly loaded with
+ * none; a load still running or failed is never mistaken for it.
+ */
+export function otherSubjectsView({
+  student,
+  list,
+  count,
+}: {
+  student: LoadState;
+  list: LoadState;
+  count: number;
+}): "loading" | "error" | "list" | "empty" {
+  if (count > 0) return "list";
+  if (student.isError || list.isError) return "error";
+  if (student.isPending || list.isPending) return "loading";
+  return "empty";
+}

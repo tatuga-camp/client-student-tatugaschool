@@ -56,7 +56,13 @@ function ShellBody({ route }: { route: ShellRoute }) {
     );
   }
 
-  if (archived) return <ArchivedSubjectScreen subjectId={route.subjectId} />;
+  if (archived)
+    return (
+      <ArchivedSubjectScreen
+        subjectId={route.subjectId}
+        educationYear={subject.data?.educationYear}
+      />
+    );
 
   return (
     // Desktop: the sidebar, then the main area holding the tabs and the
