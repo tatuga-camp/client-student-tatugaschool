@@ -39,12 +39,19 @@ export function useGetSubjectById({ id }: { id: string }) {
 }
 
 export function useGetSubjectByStudent(
-  request: RequestGetSubjectFromStudentService,
+  request: RequestGetSubjectFromStudentService & {
+    /** Every term at once (no year sent): the archived-subject screen. */
+    allYears?: boolean;
+  },
 ) {
+  const { allYears = false, ...input } = request;
   return useQuery({
-    queryKey: ["subjects", request],
-    queryFn: () => GetSubjectFromStudentService(request),
+    queryKey: ["subjects", allYears ? { studentId: input.studentId } : input],
+    queryFn: () =>
+      GetSubjectFromStudentService(
+        allYears ? { studentId: input.studentId } : input,
+      ),
     // The Subjects tab mounts before the student and the year are known.
-    enabled: !!request.studentId && !!request.educationYear,
+    enabled: !!input.studentId && (allYears || !!input.educationYear),
   });
 }

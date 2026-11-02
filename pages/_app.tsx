@@ -17,7 +17,11 @@ import { installPrimeOverlayOffset } from "../utils/primeOverlay";
 import ErrorBoundary from "../components/common/ErrorBoundary";
 import RateLimitNotice from "../components/common/RateLimitNotice";
 import { installDomTranslationGuard } from "../utils/domTranslationGuard";
-import { installSwalRateLimitGuard, isRateLimitError } from "../utils/rateLimit";
+import {
+  installSwalRateLimitGuard,
+  isRateLimitError,
+} from "../utils/rateLimit";
+import { isSubjectArchivedError } from "../utils/subjectArchived";
 
 // Before React commits anything: keep browser translation from crashing
 // the app with NotFoundError on removeChild / insertBefore.
@@ -57,7 +61,9 @@ function MyApp({ Component, pageProps }: AppProps) {
                 errorObj?.message === "Session expired" ||
                 errorObj?.message === "Token not found" ||
                 // Retrying a 429 right away only fails again.
-                isRateLimitError(error)
+                isRateLimitError(error) ||
+                // An archived subject stays archived: show the screen now.
+                isSubjectArchivedError(error)
               ) {
                 return false;
               }
@@ -148,7 +154,10 @@ function MyApp({ Component, pageProps }: AppProps) {
             },
             toast: {
               root: {
-                className: classNames("w-96 max-w-[calc(100%-40px)]", "opacity-90"),
+                className: classNames(
+                  "w-96 max-w-[calc(100%-40px)]",
+                  "opacity-90",
+                ),
               },
               message: (option: any) => ({
                 className: classNames("my-4 rounded-2xl w-full", {

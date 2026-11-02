@@ -38,7 +38,8 @@ export async function GetSubjectByCodeService(
 
 export type RequestGetSubjectFromStudentService = {
   studentId: string;
-  educationYear: string;
+  /** Omitted: the student's active subjects from every term. */
+  educationYear?: string;
 };
 
 type ResponseGetSubjectFromStudentService = (Subject & {
@@ -52,7 +53,9 @@ export async function GetSubjectFromStudentService(
     const response = await axiosInstance({
       method: "GET",
       url: `v1/subjects/student/${input.studentId}`,
-      params: { educationYear: input.educationYear },
+      params: input.educationYear
+        ? { educationYear: input.educationYear }
+        : undefined,
     });
     return response.data;
   } catch (error: any) {
