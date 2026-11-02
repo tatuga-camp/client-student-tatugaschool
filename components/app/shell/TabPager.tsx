@@ -15,6 +15,7 @@ import {
   tabIndex,
   TABS,
 } from "../../../utils/tabs";
+import { useIsDesktop } from "../useLayoutMode";
 import PaneErrorBoundary from "./PaneErrorBoundary";
 import type { TabPaneProps } from "./useShellRoute";
 
@@ -56,6 +57,8 @@ export default function TabPager({
   onTabChange,
 }: Props) {
   const index = tabIndex(tab);
+  // Desktop switches tabs from the sidebar: no drag, no sliding strip.
+  const desktop = useIsDesktop();
   const viewportRef = useRef<HTMLDivElement>(null);
   const startTarget = useRef<EventTarget | null>(null);
   const suppressClick = useRef(false);
@@ -65,8 +68,8 @@ export default function TabPager({
 
   useEffect(() => {
     setVisited((prev) => (prev.has(index) ? prev : new Set(prev).add(index)));
-    api.start({ pos: index, config: SPRING });
-  }, [index, api]);
+    api.start({ pos: index, config: SPRING, immediate: desktop });
+  }, [index, api, desktop]);
 
   const width = () => viewportRef.current?.clientWidth || 1;
 
@@ -95,6 +98,7 @@ export default function TabPager({
       if (
         first &&
         (!enabled ||
+          desktop ||
           axis === "y" ||
           !canStartShellSwipe(viewportRef.current, startTarget.current))
       ) {

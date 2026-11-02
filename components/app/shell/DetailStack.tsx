@@ -15,6 +15,7 @@ import { interceptLayerPop } from "./layerBack";
 import { interceptPop, leaveGuardActive } from "../../../utils/leaveGuard";
 import PaneErrorBoundary from "./PaneErrorBoundary";
 import { inertProps, TAP_SLOP } from "./TabPager";
+import { useIsDesktop } from "../useLayoutMode";
 import { ShellRoute, takeInAppPop, useShellNav } from "./useShellRoute";
 
 export const DETAIL_SPRING = { tension: 320, friction: 34 };
@@ -46,6 +47,8 @@ export default function DetailStack({ subjectId, detail, depthApi }: Props) {
   const nav = useShellNav();
   // The shell only renders on the client (after router.isReady).
   const [iosTab] = useState(isIosBrowserTab);
+  // Desktop: no edge-swipe back (the back button and browser back remain).
+  const desktop = useIsDesktop();
   const popped = useRef(false);
   const currentKey = useRef<string | null>(null);
   currentKey.current = detail?.assignmentId ?? null;
@@ -255,7 +258,7 @@ export default function DetailStack({ subjectId, detail, depthApi }: Props) {
     const leaving = t.phase === "leave";
     return (
       <animated.div
-        {...(iosTab ? {} : bind(t.ctrl, item.assignmentId))}
+        {...(iosTab || desktop ? {} : bind(t.ctrl, item.assignmentId))}
         onPointerDownCapture={(e) => {
           startTarget.current = e.target;
         }}
@@ -272,7 +275,12 @@ export default function DetailStack({ subjectId, detail, depthApi }: Props) {
         {...inertProps(leaving)}
         className="absolute inset-0 z-20 overflow-hidden bg-background-color"
         style={{
-          transform: style.x.to((v) => `translate3d(${v}%,0,0)`),
+          // At rest on a computer: no transform, so a full-window layer in
+          // the page (an expanded video quiz) is fixed to the window, not
+          // boxed into this panel. Phones keep the transform.
+          transform: style.x.to((v) =>
+            desktop && v === 0 ? "none" : `translate3d(${v}%,0,0)`,
+          ),
           boxShadow: "-8px 0 24px rgba(20,24,48,.12)",
         }}
       >

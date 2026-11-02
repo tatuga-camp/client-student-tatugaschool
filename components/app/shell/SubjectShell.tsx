@@ -12,6 +12,7 @@ import { safeSet } from "../../../utils/safeStorage";
 import ArchivedBanner from "../../subject/ArchivedBanner";
 import LoadingSpinner from "../../common/LoadingSpinner";
 import DetailStack from "./DetailStack";
+import SideNav from "./SideNav";
 import TabBar from "./TabBar";
 import TabPager, { inertProps } from "./TabPager";
 import { ShellRoute, useShellNav, useShellRoute } from "./useShellRoute";
@@ -51,65 +52,76 @@ function ShellBody({ route }: { route: ShellRoute }) {
   }
 
   return (
-    <div
-      className="relative h-full w-full overflow-hidden bg-background-color"
-      // An off-screen detail page widens this clipped box; never let
-      // scrollIntoView or focus scroll it sideways.
-      onScroll={(e) => {
-        e.currentTarget.scrollLeft = 0;
-      }}
-    >
-      <Head>
-        <title>
-          {subject.data?.title
-            ? `${subject.data.title} | Tatuga School`
-            : homeLanguage.subjectTitleFallback(lang)}
-        </title>
-        <meta name="description" content={subject.data?.title} />
-      </Head>
-      <animated.div
-        aria-hidden={detailOpen || undefined}
-        {...inertProps(detailOpen)}
-        className="absolute inset-0 flex flex-col"
-        style={{
-          transform: depth.to((d) =>
-            d === 0 ? "none" : `translate3d(${-30 * d}%,0,0)`,
-          ),
-          // Fully covered: skip painting it.
-          visibility: depth.to((d) => (d >= 1 ? "hidden" : "visible")),
+    // Desktop: the sidebar, then the main area holding the tabs and the
+    // detail page. The main area gets no z-index, so a detail page's
+    // full-window layers (an expanded video quiz) stack above the sidebar.
+    <div className="relative flex h-full w-full overflow-hidden bg-background-color">
+      <SideNav
+        tab={tab}
+        student={student.data}
+        language={lang}
+        onSelect={nav.sidebarTab}
+      />
+      <div
+        className="relative h-full min-w-0 flex-1 overflow-hidden"
+        // An off-screen detail page widens this clipped box; never let
+        // scrollIntoView or focus scroll it sideways.
+        onScroll={(e) => {
+          e.currentTarget.scrollLeft = 0;
         }}
       >
-        <div className="relative min-h-0 flex-1">
-          {/* A new subject starts fresh on Home. */}
-          <TabPager
-            key={route.subjectId}
-            subjectId={route.subjectId}
-            tab={tab}
-            enabled={!detailOpen}
-            onTabChange={nav.goTab}
-          />
-        </div>
-        {/* Below the tabs: up top it sits under the framed status bar. */}
-        {subject.data?.isAchieved && (
-          <ArchivedBanner lang={lang} className="mb-6" />
-        )}
-        <TabBar
-          tab={tab}
-          student={student.data}
-          language={lang}
-          onSelect={nav.goTab}
-        />
+        <Head>
+          <title>
+            {subject.data?.title
+              ? `${subject.data.title} | Tatuga School`
+              : homeLanguage.subjectTitleFallback(lang)}
+          </title>
+          <meta name="description" content={subject.data?.title} />
+        </Head>
         <animated.div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 bg-[#141830]"
-          style={{ opacity: depth.to((d) => d * 0.15) }}
+          aria-hidden={detailOpen || undefined}
+          {...inertProps(detailOpen)}
+          className="absolute inset-0 flex flex-col"
+          style={{
+            transform: depth.to((d) =>
+              d === 0 ? "none" : `translate3d(${-30 * d}%,0,0)`,
+            ),
+            // Fully covered: skip painting it.
+            visibility: depth.to((d) => (d >= 1 ? "hidden" : "visible")),
+          }}
+        >
+          <div className="relative min-h-0 flex-1">
+            {/* A new subject starts fresh on Home. */}
+            <TabPager
+              key={route.subjectId}
+              subjectId={route.subjectId}
+              tab={tab}
+              enabled={!detailOpen}
+              onTabChange={nav.goTab}
+            />
+          </div>
+          {/* Below the tabs: up top it sits under the framed status bar. */}
+          {subject.data?.isAchieved && (
+            <ArchivedBanner lang={lang} className="mb-6" />
+          )}
+          <TabBar
+            tab={tab}
+            student={student.data}
+            language={lang}
+            onSelect={nav.goTab}
+          />
+          <animated.div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 bg-[#141830]"
+            style={{ opacity: depth.to((d) => d * 0.15) }}
+          />
+        </animated.div>
+        <DetailStack
+          subjectId={route.subjectId}
+          detail={route.detail}
+          depthApi={depthApi}
         />
-      </animated.div>
-      <DetailStack
-        subjectId={route.subjectId}
-        detail={route.detail}
-        depthApi={depthApi}
-      />
+      </div>
     </div>
   );
 }

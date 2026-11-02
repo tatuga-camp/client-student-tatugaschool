@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useSyncExternalStore } from "react";
 
 // The modal layers on screen (sheets and full-screen viewers), topmost last.
 // Esc closes only the topmost; a sheet is inert while a modal is above it; and
@@ -59,4 +59,20 @@ export function useModalLayer(open: boolean, onClose: () => void): void {
       notifyStack();
     };
   }, [open]);
+}
+
+const subscribeStack = (onChange: () => void) => {
+  stackListeners.add(onChange);
+  return () => {
+    stackListeners.delete(onChange);
+  };
+};
+
+/** True while any modal layer (sheet, dialog, viewer) is open. */
+export function useAnyModalOpen(): boolean {
+  return useSyncExternalStore(
+    subscribeStack,
+    () => openStack.length > 0,
+    () => false,
+  );
 }

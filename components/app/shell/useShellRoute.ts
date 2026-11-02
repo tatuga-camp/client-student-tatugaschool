@@ -3,7 +3,7 @@ import { useEffect, useMemo } from "react";
 import { queryString } from "../../common/RouteParamsGate";
 import { leaveIfAllowed } from "../../../utils/leaveGuard";
 import { createHistoryIndex, restoreDelta } from "../../../utils/historyIndex";
-import { backTarget, parseTab, TabKey } from "../../../utils/tabs";
+import { backTarget, parseTab, TabKey, tabHref } from "../../../utils/tabs";
 
 export type ShellRoute = {
   subjectId: string;
@@ -165,24 +165,40 @@ export function useShellRoute(): ShellRoute | null {
 /** Navigation actions for the shell's tabs and detail pages. */
 export function useShellNav(): {
   goTab(tab: TabKey): void;
+  /** The desktop sidebar: on an assignment page, a normal navigation to the
+   *  tab (push, through the unsent-work guard); elsewhere, `goTab`. */
+  sidebarTab(tab: TabKey): void;
   openAssignment(id: string): void;
   /** Resolves "stayed" when the unsent-work guard kept the student here. */
   back(): Promise<"left" | "stayed">;
   switchSubject(id: string): void;
 } {
   const router = useRouter();
-  return useMemo(
-    () => ({
-      // Native tab bars don't add history: replace, shallow, no scroll.
-      // Home omits `tab`; a one-shot announcement_id is dropped too, or it
-      // would keep forcing Classwork.
-      goTab(tab: TabKey) {
-        const { tab: _tab, announcement_id: _a, ...rest } = router.query;
-        router.replace(
-          { query: tab === "home" ? rest : { ...rest, tab } },
-          undefined,
-          { shallow: true, scroll: false },
-        );
+  return useMemo(() => {
+    // Native tab bars don't add history: replace, shallow, no scroll.
+    // Home omits `tab`; a one-shot announcement_id is dropped too, or it
+    // would keep forcing Classwork.
+    const goTab = (tab: TabKey) => {
+      const { tab: _tab, announcement_id: _a, ...rest } = router.query;
+      router.replace(
+        { query: tab === "home" ? rest : { ...rest, tab } },
+        undefined,
+        { shallow: true, scroll: false },
+      );
+    };
+    return {
+      goTab,
+      sidebarTab(tab: TabKey) {
+        const subjectId = queryString(router.query.subjectId);
+        if (!subjectId) return;
+        if (router.pathname !== ASSIGNMENT_PATHNAME) {
+          goTab(tab);
+          return;
+        }
+        // Back from the tab reopens the assignment, as on any website.
+        void leaveIfAllowed(() => {
+          void router.push(tabHref(subjectId, tab));
+        });
       },
       openAssignment(id: string) {
         const subjectId = queryString(router.query.subjectId);
@@ -208,7 +224,6 @@ export function useShellNav(): {
       switchSubject(id: string) {
         router.push(`/subject/${id}`);
       },
-    }),
-    [router],
-  );
+    };
+  }, [router]);
 }
