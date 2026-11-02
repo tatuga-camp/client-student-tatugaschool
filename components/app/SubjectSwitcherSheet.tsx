@@ -1,13 +1,13 @@
 import { InlineError } from "./InlineError";
 import React from "react";
 import {
-  LuArchive,
   LuBookOpen,
   LuCheck,
   LuChevronRight,
   LuLayoutGrid,
 } from "react-icons/lu";
-import { homeLanguage, subjectHomeLanguage } from "../../data/languages";
+import { homeLanguage } from "../../data/languages";
+import { activeSubjects } from "../../utils/subjectArchived";
 import { Language } from "../../interfaces";
 import {
   useGetLanguage,
@@ -57,7 +57,8 @@ function SwitcherList({
     educationYear: subject.data?.educationYear ?? "",
   });
   // The Subjects tab's default order: the teacher's.
-  const list = [...(subjects.data ?? [])].sort(
+  // Archived subjects are closed to students: never offer them.
+  const list = [...activeSubjects(subjects.data ?? [])].sort(
     (a, b) => (a.order ?? 0) - (b.order ?? 0),
   );
 
@@ -107,14 +108,6 @@ function SwitcherList({
                     <span className="flex items-center gap-1 text-xs font-bold text-primary-color">
                       <LuCheck aria-hidden size={13} />
                       {homeLanguage.currentSubject(lang)}
-                    </span>
-                  )}
-                  {s.isAchieved && (
-                    <span className="mt-0.5 flex">
-                      <span className="inline-flex items-center gap-0.5 rounded-[7px] bg-[#EEF1F6] px-1.5 py-px text-[10px] font-bold text-[#7A80A0]">
-                        <LuArchive aria-hidden size={10} />
-                        {subjectHomeLanguage.archived(lang)}
-                      </span>
                     </span>
                   )}
                 </span>

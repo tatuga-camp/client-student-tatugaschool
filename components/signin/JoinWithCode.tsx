@@ -2,12 +2,16 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { LuArrowRight } from "react-icons/lu";
-import { welcomeDataLanguage as t } from "../../data/languages";
+import {
+  subjectHomeLanguage,
+  welcomeDataLanguage as t,
+} from "../../data/languages";
 import { useGetLanguage } from "../../react-query";
 import { subjectByCodeQuery } from "../../react-query/subject";
 import { joinCodeForLookup } from "../../utils/joinCode";
 import { reactMascot } from "../../utils/mascot";
 import { safeSet } from "../../utils/safeStorage";
+import { isSubjectArchivedError } from "../../utils/subjectArchived";
 import { CodeBoxes } from "./CodeBoxes";
 import { WELCOME_REACT_ID } from "./WelcomeMascots";
 
@@ -17,6 +21,8 @@ export function JoinWithCode() {
   const lang = useGetLanguage().data ?? "en";
   const [code, setCode] = useState("");
   const [invalid, setInvalid] = useState(false);
+  // The code is right but its subject is archived: say so, not "not found".
+  const [archived, setArchived] = useState(false);
   const [shakeKey, setShakeKey] = useState(0);
   const [busy, setBusy] = useState(false);
   const [navFailed, setNavFailed] = useState(false);
@@ -31,9 +37,10 @@ export function JoinWithCode() {
         ...subjectByCodeQuery(lookup),
         retry: false,
       });
-    } catch {
+    } catch (error) {
       reactMascot(WELCOME_REACT_ID, "sad");
       setShakeKey((n) => n + 1);
+      setArchived(isSubjectArchivedError(error));
       setInvalid(true);
       setBusy(false);
       return;
@@ -64,6 +71,7 @@ export function JoinWithCode() {
         onChange={(v) => {
           setCode(v);
           setInvalid(false);
+          setArchived(false);
         }}
         invalid={invalid}
         shakeKey={shakeKey}
@@ -74,7 +82,13 @@ export function JoinWithCode() {
         role="alert"
         className="mt-2 min-h-[20px] text-center text-sm font-semibold text-[#F04438]"
       >
-        {invalid ? t.notFound(lang) : navFailed ? t.joinFailed(lang) : ""}
+        {invalid
+          ? archived
+            ? subjectHomeLanguage.archivedJoinInline(lang)
+            : t.notFound(lang)
+          : navFailed
+            ? t.joinFailed(lang)
+            : ""}
       </p>
       <button
         type="submit"

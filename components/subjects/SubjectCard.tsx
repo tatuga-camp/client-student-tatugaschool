@@ -1,10 +1,7 @@
 import Image from "next/image";
-import { LuArchive, LuBookOpen, LuCheck } from "react-icons/lu";
+import { LuBookOpen, LuCheck } from "react-icons/lu";
 import { defaultCanvas } from "../../data";
-import {
-  subjectHomeLanguage,
-  subjectsPageLanguage,
-} from "../../data/languages";
+import { subjectsPageLanguage } from "../../data/languages";
 import { Language, Subject } from "../../interfaces";
 
 export type SubjectWithStatus = Subject & {
@@ -28,7 +25,7 @@ export function SubjectCard({ subject, current, lang, onOpen }: Props) {
       aria-current={current ? "true" : undefined}
       className={`mb-2 flex w-full overflow-hidden rounded-2xl border-2 border-b-4 bg-white text-left font-Anuphan [-webkit-tap-highlight-color:transparent] active:translate-y-px active:border-b-2 ${
         current ? "border-primary-color" : "border-[#E3E8F0]"
-      } ${subject.isAchieved ? "opacity-60" : ""}`}
+      }`}
     >
       <div
         className="relative grid w-[70px] shrink-0 place-items-center text-white/90"
@@ -74,12 +71,6 @@ export function SubjectCard({ subject, current, lang, onOpen }: Props) {
           ) : (
             <span className="rounded-[7px] bg-[#FFF5CC] px-1.5 py-px text-[10px] font-bold text-[#8A6A00]">
               {subjectsPageLanguage.todo(lang)}
-            </span>
-          )}
-          {subject.isAchieved && (
-            <span className="inline-flex items-center gap-0.5 rounded-[7px] bg-[#EEF1F6] px-1.5 py-px text-[10px] font-bold text-[#7A80A0]">
-              <LuArchive aria-hidden size={10} />
-              {subjectHomeLanguage.archived(lang)}
             </span>
           )}
         </div>

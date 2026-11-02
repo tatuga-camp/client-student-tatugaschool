@@ -40,6 +40,10 @@ export const subjectHomeLanguage = {
     "You can't join it. Check the code with your teacher.",
     "เข้าร่วมรายวิชานี้ไม่ได้ ลองตรวจสอบรหัสกับครูผู้สอน",
   ),
+  archivedJoinInline: t(
+    "This subject is archived. You can't join it.",
+    "รายวิชานี้ถูกเก็บถาวร เข้าร่วมไม่ได้",
+  ),
 
   // Classwork switch
   tabAssignments: t("Assignments", "งาน"),

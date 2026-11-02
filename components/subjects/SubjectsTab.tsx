@@ -18,6 +18,7 @@ import { DESK_COL, TAB_BODY_CLASS, TabHeader } from "../app/TabHeader";
 import { useShellNav, type TabPaneProps } from "../app/shell/useShellRoute";
 import { EducationYearSheet } from "./EducationYearSheet";
 import { SubjectCard } from "./SubjectCard";
+import { activeSubjects } from "../../utils/subjectArchived";
 
 type SortOption = "default" | "newest" | "oldest" | "az" | "za";
 type StatusFilter = "all" | "complete" | "uncomplete";
@@ -53,10 +54,16 @@ export default function SubjectsTab({ subjectId }: TabPaneProps) {
     educationYear: educationYear as EducationYear,
   });
 
+  // Archived subjects are closed to students: they don't list them.
+  const openSubjects = React.useMemo(
+    () => (subjects.data ? activeSubjects(subjects.data) : undefined),
+    [subjects.data],
+  );
+
   const filteredSubjects = React.useMemo(() => {
-    if (!subjects.data) return [];
+    if (!openSubjects) return [];
     const q = search.trim().toLowerCase();
-    const filtered = subjects.data.filter((s) => {
+    const filtered = openSubjects.filter((s) => {
       const matchSearch =
         q === "" ||
         s.title.toLowerCase().includes(q) ||
@@ -85,11 +92,11 @@ export default function SubjectsTab({ subjectId }: TabPaneProps) {
         sorted.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
     }
     return sorted;
-  }, [subjects.data, search, sortBy, statusFilter]);
+  }, [openSubjects, search, sortBy, statusFilter]);
 
-  const totalCount = subjects.data?.length ?? 0;
+  const totalCount = openSubjects?.length ?? 0;
   const completedCount =
-    subjects.data?.filter((s) => s.status === "complete").length ?? 0;
+    openSubjects?.filter((s) => s.status === "complete").length ?? 0;
   const counts: Record<StatusFilter, number> = {
     all: totalCount,
     complete: completedCount,
