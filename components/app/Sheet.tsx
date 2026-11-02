@@ -1,5 +1,4 @@
 import { animated, useSpring } from "@react-spring/web";
-import { type Handler, useDrag } from "@use-gesture/react";
 import React, {
   useContext,
   useEffect,
@@ -14,8 +13,11 @@ import { useGetLanguage } from "../../react-query";
 import { keepTabInside, reclaimFocus } from "../../utils/focusTrap";
 import { OVERLAY_ROOT_ID } from "../../utils/frameRoutes";
 import { keyboardFit } from "../../utils/keyboardFit";
-import { isEditableTarget, sheetDragOutcome } from "../../utils/tabs";
+import { dialogMotion, sheetMode } from "../../utils/sheetMode";
+import { isEditableTarget } from "../../utils/tabs";
 import { OverlayRootContext } from "./OverlayScope";
+import { useIsDesktop } from "./useLayoutMode";
+import { useSheetDrag } from "./useSheetDrag";
 import {
   allocLayerId,
   notifyStack,
@@ -77,12 +79,10 @@ function setInert(el: HTMLElement, inert: boolean) {
 
 const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
 
-// Where the browser has touch events, the drag listens to them (a body drag
-// can then stop the native scroll), and a mouse, which sends only pointer
-// events (a touch laptop, a hasTouch browser), gets a binding of its own.
-const TOUCH_EVENTS = typeof window !== "undefined" && "ontouchstart" in window;
-
-/** Bottom sheet; see SheetProps for where it renders. */
+/**
+ * Bottom sheet; see SheetProps for where it renders. On a computer it is a
+ * centred dialog instead (a peek stays a width-limited bottom sheet).
+ */
 export function Sheet({
   open,
   onClose,
@@ -119,6 +119,8 @@ export function Sheet({
   const [fit, setFit] = useState<{ lift: number; room: number } | null>(null);
 
   const isPeek = peek !== undefined;
+  const mode = sheetMode({ desktop: useIsDesktop(), isPeek });
+  const dialog = mode === "dialog";
   const visible = isPeek ? true : open;
   // Peek panel collapsed = no backdrop; expanded or normal sheet = backdrop.
   const modal = isPeek ? expanded : true;
@@ -241,7 +243,8 @@ export function Sheet({
       // Deferred: the openStack effect below (declared later, so cleaned up
       // later) un-inerts the sheet under us, and the opener may be in it.
       queueMicrotask(() => {
-        if (opener && document.contains(opener)) opener.focus({ preventScroll: true });
+        if (opener && document.contains(opener))
+          opener.focus({ preventScroll: true });
       });
     };
   }, [visible, rendered, modal, isPeek]);
@@ -260,8 +263,16 @@ export function Sheet({
   // Latest props for Esc, so re-renders (inline onClose lambdas) don't
   // re-register: the stack must follow the order sheets opened in.
   const gestureClosable = dismissible && !guardClose;
-  const escRef = useRef({ dismiss, dismissible: gestureClosable, plain: dismissible });
-  escRef.current = { dismiss, dismissible: gestureClosable, plain: dismissible };
+  const escRef = useRef({
+    dismiss,
+    dismissible: gestureClosable,
+    plain: dismissible,
+  });
+  escRef.current = {
+    dismiss,
+    dismissible: gestureClosable,
+    plain: dismissible,
+  };
 
   useEffect(() => {
     if (!visible || !modal) return;
@@ -333,70 +344,60 @@ export function Sheet({
     },
   };
 
-  const usePanelDrag = (fromBody: boolean) => {
-    const onDrag: Handler<"drag"> = ({
-      first,
-      last,
-      tap,
-      movement: [, my],
-      velocity: [, vy],
-      direction: [, dirY],
-      event,
-      cancel,
-    }) => {
-      if (!tap) draggedRef.current = true;
-      const collapsedPeek = isPeek && !expanded;
-      if (!gestureClosable && !collapsedPeek) return cancel();
-      if (first && fromBody && (bodyRef.current?.scrollTop ?? 0) > 0)
-        return cancel();
-      const height = panelRef.current?.offsetHeight || heightRef.current;
-      heightRef.current = height;
-      if (isPeek && !expanded) {
-        // Collapsed peek: dragging up expands.
-        if (last && (my < -40 || (vy > 0.5 && dirY < 0)))
-          onExpandedChange?.(true);
-        return;
-      }
-      if (my > 0 && event.cancelable) event.preventDefault();
-      if (!last) return void api.start({ y: Math.max(0, my), immediate: true });
-      const outcome = sheetDragOutcome({
-        dy: my,
-        vy: dirY > 0 ? vy : 0,
-        height,
-      });
-      if (outcome === "close") dismiss();
-      else api.start({ y: 0, immediate: false });
-    };
-    const options = {
-      axis: "y",
-      filterTaps: true,
-      eventOptions: { passive: false },
-    } as const;
-    const touch = useDrag(onDrag, { ...options, pointer: { touch: true } });
-    const mouse = useDrag(onDrag, {
-      ...options,
-      enabled: TOUCH_EVENTS,
-      pointer: { keys: false },
-    });
-    return () => {
-      if (!TOUCH_EVENTS) return touch();
-      const m = mouse();
-      return {
-        ...touch(),
-        ...m,
-        // A finger also sends pointer events: the touch binding has those.
-        onPointerDown: (e: React.PointerEvent) => {
-          if (e.pointerType === "mouse") m.onPointerDown?.(e);
-        },
-      };
-    };
+  const dragOptions = {
+    enabled: !dialog,
+    isPeek,
+    expanded,
+    gestureClosable,
+    draggedRef,
+    bodyRef,
+    panelRef,
+    heightRef,
+    api,
+    onExpandedChange,
+    dismiss,
   };
-  const bindHandle = usePanelDrag(false);
-  const bindBody = usePanelDrag(true);
+  const bindHandle = useSheetDrag({ ...dragOptions, fromBody: false });
+  const bindBody = useSheetDrag({ ...dragOptions, fromBody: true });
 
   if (!root || !rendered) return null;
 
   const full = size === "full";
+  const progress = (v: number) => clamp01(v / heightRef.current);
+  // A desktop dialog: centred (inset 0 + auto margins), fading and shrinking
+  // a little with the same spring a bottom sheet slides on.
+  const panelStyle = dialog
+    ? {
+        opacity: y.to((v) => dialogMotion(progress(v)).opacity),
+        transform: y.to((v) => `scale(${dialogMotion(progress(v)).scale})`),
+        pointerEvents: visible ? ("auto" as const) : ("none" as const),
+        width: full
+          ? "min(720px, calc(100% - 32px))"
+          : "min(480px, calc(100% - 32px))",
+        height: full ? "85%" : "fit-content",
+        maxHeight: "85%",
+        borderRadius: 22,
+        boxShadow: "0 20px 50px rgba(20,24,48,.3)",
+      }
+    : {
+        y,
+        pointerEvents: visible ? ("auto" as const) : ("none" as const),
+        bottom: fit ? fit.lift : undefined,
+        height: full && modal ? (fit ? fit.room : "100%") : undefined,
+        // Full screen: keep the handle and ✕ clear of the status bar / notch.
+        paddingTop: full && modal ? "var(--safe-top)" : undefined,
+        maxHeight: fit
+          ? Math.round(fit.room * (full ? 1 : 0.9))
+          : full
+            ? "100%"
+            : "90%",
+        // A desktop peek: limited to the content column, centred.
+        ...(mode === "bottom-narrow"
+          ? { maxWidth: 640, marginInline: "auto" }
+          : {}),
+        borderRadius: full && modal ? 0 : "20px 20px 0 0",
+        boxShadow: "0 -4px 0 #E3E8F0",
+      };
   return createPortal(
     <div
       ref={sheetRootRef}
@@ -412,7 +413,7 @@ export function Sheet({
           className="absolute inset-0"
           style={{
             background: "rgba(20,24,48,.45)",
-            opacity: y.to((v) => 1 - clamp01(v / heightRef.current)),
+            opacity: y.to((v) => 1 - progress(v)),
           }}
         />
       )}
@@ -422,34 +423,22 @@ export function Sheet({
         aria-modal={modal}
         aria-label={ariaLabel}
         tabIndex={-1}
-        className="absolute inset-x-0 bottom-0 flex flex-col bg-white outline-none"
-        style={{
-          y,
-          pointerEvents: visible ? "auto" : "none",
-          bottom: fit ? fit.lift : undefined,
-          height: full && modal ? (fit ? fit.room : "100%") : undefined,
-          // Full screen: keep the handle and ✕ clear of the status bar / notch.
-          paddingTop: full && modal ? "var(--safe-top)" : undefined,
-          maxHeight: fit
-            ? Math.round(fit.room * (full ? 1 : 0.9))
-            : full
-              ? "100%"
-              : "90%",
-          borderRadius: full && modal ? 0 : "20px 20px 0 0",
-          boxShadow: "0 -4px 0 #E3E8F0",
-        }}
+        className={`absolute flex flex-col bg-white outline-none ${
+          dialog ? "inset-0 m-auto" : "inset-x-0 bottom-0"
+        }`}
+        style={panelStyle}
       >
         <div
           {...bindHandle()}
           {...dragClickProps}
           data-testid="sheet-handle"
           // The ✕'s row keeps its height while a busy sheet hides the ✕.
-          className={`relative flex shrink-0 cursor-grab justify-center pt-3 ${
-            modal && closeButton ? "min-h-[44px]" : "pb-2"
-          }`}
-          style={{ touchAction: "none" }}
+          className={`relative flex shrink-0 justify-center pt-3 ${
+            dialog ? "" : "cursor-grab"
+          } ${modal && closeButton ? "min-h-[44px]" : "pb-2"}`}
+          style={{ touchAction: dialog ? undefined : "none" }}
         >
-          <div className="h-1.5 w-10 rounded-full bg-[#E3E8F0]" />
+          {!dialog && <div className="h-1.5 w-10 rounded-full bg-[#E3E8F0]" />}
         </div>
         {dismissible && modal && closeButton && (
           // Outside the handle, so pressing it never starts a drag.
@@ -458,7 +447,7 @@ export function Sheet({
             aria-label={profileLanguage.close(language.data ?? "en")}
             onClick={dismiss}
             className="absolute right-1 flex h-11 w-11 items-center justify-center rounded-full text-[#383767]"
-            style={{ top: full && modal ? "var(--safe-top)" : 0 }}
+            style={{ top: full && modal && !dialog ? "var(--safe-top)" : 0 }}
           >
             <LuX size={20} />
           </button>
