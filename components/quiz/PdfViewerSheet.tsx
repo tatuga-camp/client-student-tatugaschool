@@ -40,7 +40,9 @@ export default function PdfViewerSheet({ url, name, language, onClose }: Props) 
   const dialogRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const opener = document.activeElement as HTMLElement | null;
-    dialogRef.current?.focus({ preventScroll: true });
+    // The pages themselves take focus, so ↑ ↓ PgUp PgDn Space scroll them
+    // at once (no click first).
+    (scrollRef.current ?? dialogRef.current)?.focus({ preventScroll: true });
     return () => {
       if (opener?.isConnected) opener.focus({ preventScroll: true });
     };
@@ -149,7 +151,11 @@ export default function PdfViewerSheet({ url, name, language, onClose }: Props) 
         </button>
       </header>
 
-      <div ref={scrollRef} className="flex-1 overflow-auto px-4 py-4">
+      <div
+        ref={scrollRef}
+        tabIndex={-1}
+        className="flex-1 overflow-auto px-4 py-4 outline-none"
+      >
         {error ? (
           <div className="mx-auto mt-16 flex max-w-xs flex-col items-center gap-3 rounded-2xl bg-white p-6 text-center">
             <p className="text-icon-color">{quizLanguage.pdfLoadError(language)}</p>
