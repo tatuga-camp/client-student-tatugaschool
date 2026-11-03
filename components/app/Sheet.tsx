@@ -13,6 +13,7 @@ import { useGetLanguage } from "../../react-query";
 import { keepTabInside, reclaimFocus } from "../../utils/focusTrap";
 import { OVERLAY_ROOT_ID } from "../../utils/frameRoutes";
 import { keyboardFit } from "../../utils/keyboardFit";
+import { openerElement } from "../../utils/opener";
 import { dialogBox, dialogMotion, sheetMode } from "../../utils/sheetMode";
 import { isEditableTarget } from "../../utils/tabs";
 import { OverlayRootContext } from "./OverlayScope";
@@ -125,11 +126,13 @@ export function Sheet({
   // Peek panel collapsed = no backdrop; expanded or normal sheet = backdrop.
   const modal = isPeek ? expanded : true;
   visibleRef.current = visible;
-  // Who had focus the moment this sheet was asked to open: render runs before
-  // the children mount, so before an autoFocus field inside takes focus.
+  // What opened this sheet, taken the moment it was asked to open: render
+  // runs before the children mount, so before an autoFocus field inside takes
+  // focus. The last pressed control, not only the focused element: Safari
+  // gives a tapped button no focus.
   if (!visible) openerAtOpenRef.current = null;
   else if (!openerAtOpenRef.current && typeof document !== "undefined")
-    openerAtOpenRef.current = document.activeElement as HTMLElement | null;
+    openerAtOpenRef.current = openerElement();
 
   useEffect(() => {
     if (scopedRoot === undefined) {
@@ -230,12 +233,9 @@ export function Sheet({
   // Focus in on open, back to the opener on close.
   useEffect(() => {
     if (!visible || !rendered || !modal) return;
-    // A peek captures at expand time; a sheet uses the focus from open time.
+    // A peek captures at expand time; a sheet uses the opener from open time.
     const atOpen = isPeek ? null : openerAtOpenRef.current;
-    openerRef.current =
-      atOpen && atOpen !== document.body
-        ? atOpen
-        : (document.activeElement as HTMLElement | null);
+    openerRef.current = atOpen ?? openerElement();
     panelRef.current?.focus({ preventScroll: true });
     return () => {
       const opener = openerRef.current;
