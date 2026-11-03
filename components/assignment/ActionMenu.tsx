@@ -47,10 +47,13 @@ export default function ActionMenu({ items, ariaLabel, disabled }: Props) {
   // before the item runs, so a dialog or field it opens keeps the focus it
   // takes) or by Tab moving focus on. Only other closes refocus ⋯.
   const chose = useRef(false);
-  // A press on ⋯ is under way: it toggles the menu itself when it clicks.
-  // Until the click (after pointerup, for a finger), the menu's blur from that
-  // press must not close it too, whatever the browser focuses meanwhile.
-  const pressingButton = useRef(false);
+  // A press on ⋯ or on an item is under way: ⋯ toggles the menu and an item
+  // closes it itself when it clicks. Until the click (after pointerup, for a
+  // finger), the menu's blur from that press must not close it too, whatever
+  // the browser focuses meanwhile: Safari gives a pressed button no focus and
+  // focuses the nearest focusable ancestor instead, the sheet's dialog panel,
+  // so the item's click would land on an unmounted menu and never run.
+  const pressing = useRef(false);
 
   // Focus moves into the menu on open and back to the button on close.
   useEffect(() => {
@@ -103,7 +106,7 @@ export default function ActionMenu({ items, ariaLabel, disabled }: Props) {
     // Capture + stop: Esc closes this menu, not the sheet around it.
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Tab") {
-        pressingButton.current = false;
+        pressing.current = false;
         // Shift+Tab out of the menu goes back to its own ⋯, whatever sits
         // before the list in the DOM (it renders at the end of the dialog).
         const first = listRef.current?.querySelector('[role="menuitem"]');
@@ -140,13 +143,13 @@ export default function ActionMenu({ items, ariaLabel, disabled }: Props) {
         aria-haspopup="menu"
         aria-expanded={open}
         onPointerDown={() => {
-          pressingButton.current = true;
+          pressing.current = true;
         }}
         onPointerCancel={() => {
-          pressingButton.current = false;
+          pressing.current = false;
         }}
         onClick={() => {
-          pressingButton.current = false;
+          pressing.current = false;
           setHost(
             buttonRef.current?.closest<HTMLElement>('[role="dialog"]') ?? null,
           );
@@ -162,17 +165,24 @@ export default function ActionMenu({ items, ariaLabel, disabled }: Props) {
             ref={listRef}
             role="menu"
             // Focus moved on out of the menu (Tab past the last item): close
-            // it, and leave focus where it went. A press on ⋯ toggles it.
+            // it, and leave focus where it went. A press on ⋯ toggles it; a
+            // press on an item closes it when it clicks.
             onBlur={(e) => {
               const next = e.relatedTarget as Node | null;
               if (
-                pressingButton.current ||
+                pressing.current ||
                 !next ||
                 listRef.current?.contains(next)
               )
                 return;
               chose.current = true;
               setOpen(false);
+            }}
+            onPointerDown={() => {
+              pressing.current = true;
+            }}
+            onPointerCancel={() => {
+              pressing.current = false;
             }}
             className="chunky absolute z-[70] min-w-[150px] list-none overflow-hidden p-1 shadow-lg"
             style={{
@@ -187,6 +197,7 @@ export default function ActionMenu({ items, ariaLabel, disabled }: Props) {
                   type="button"
                   role="menuitem"
                   onClick={() => {
+                    pressing.current = false;
                     chose.current = true;
                     buttonRef.current?.focus({ preventScroll: true });
                     setOpen(false);
