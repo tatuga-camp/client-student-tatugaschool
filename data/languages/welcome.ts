@@ -14,6 +14,16 @@ export const welcomeDataLanguage = {
     language === "th" ? "กำลังตรวจสอบ..." : "Checking...",
   notFound: (language: Language) =>
     language === "th" ? "ไม่พบห้องเรียนนี้" : "We couldn't find that class",
+  // The request failed (no answer, a block, a 5xx): not a wrong code.
+  loadFailed: (language: Language) =>
+    language === "th"
+      ? "เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ ลองใหม่อีกครั้ง"
+      : "Couldn't reach the server. Please try again.",
+  // Under the detail line, so the screenshot reaches someone who can read it.
+  screenshotHint: (language: Language) =>
+    language === "th"
+      ? "ถ้ายังเข้าไม่ได้ ส่งภาพหน้าจอนี้ให้คุณครู"
+      : "Still stuck? Send a screenshot of this to your teacher.",
   joinFailed: (language: Language) =>
     language === "th"
       ? "เปิดห้องเรียนไม่สำเร็จ ลองใหม่อีกครั้ง"

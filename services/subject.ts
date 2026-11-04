@@ -1,6 +1,8 @@
 import axios from "axios";
 import { StudentOnSubject, Subject, TeacherOnSubject } from "../interfaces";
 import createAxiosInstance from "./apiService";
+import { lookupErrorFromAxios } from "../utils/joinLookupError";
+import { reportRateLimit, waitForRateLimit } from "../utils/rateLimit";
 
 const axiosInstance = createAxiosInstance();
 
@@ -17,22 +19,29 @@ export async function GetSubjectByCodeService(
   input: RequestGetSubjectByCodeService,
 ): Promise<ResponseGetSubjectByCodeService> {
   try {
+    // Same hold as the shared axios instance: while a 429 wait is on, don't
+    // send a request the server would only reject again.
+    await waitForRateLimit();
+    // No Content-Type: a GET has no body, and the header would turn this
+    // into a preflighted request with one more thing that can be blocked.
     const response = await axios({
       method: "GET",
       url: `${process.env.NEXT_PUBLIC_SERVER_URL}/v1/subjects/code/${input.code}`,
-      headers: {
-        "Content-Type": "application/json",
-      },
     });
 
     return response.data;
   } catch (error: any) {
-    // No response means a network failure; rethrow something readable.
+    // Keep status, message and code; say when there was no answer at all
+    // (see utils/joinLookupError) so the welcome page can show what happened.
     console.error(
       "Get Subject request failed:",
       error?.response?.data ?? error?.message,
     );
-    throw error?.response?.data ?? { message: "Network error" };
+    // The shared instance's 429 handling, by hand: this public lookup can't
+    // use that instance (its request interceptor sends a student with no
+    // token back to /welcome, which is where this is called from).
+    if (error?.response?.status === 429) reportRateLimit(error.response.data);
+    throw lookupErrorFromAxios(error);
   }
 }
 
