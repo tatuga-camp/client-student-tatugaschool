@@ -1,3 +1,5 @@
+import { byStudentNumber } from "./studentNumber";
+
 type Searchable = { firstName: string; lastName: string; number: string };
 
 /**
@@ -36,8 +38,7 @@ export function searchStudents<T extends Searchable>(
     .sort(byNumber);
 }
 
-const byNumber = (a: Searchable, b: Searchable) =>
-  Number(a.number) - Number(b.number);
+const byNumber = byStudentNumber;
 
 /** Split `text` around the first case-insensitive occurrence of `query`. */
 export function highlightMatch(

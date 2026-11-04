@@ -43,6 +43,7 @@ import { Password as PasswordPrimereact } from "primereact/password";
 import RouteParamsGate, {
   queryString,
 } from "../../components/common/RouteParamsGate";
+import { byStudentNumber } from "../../utils/studentNumber";
 
 function Index({ id }: { id: string }) {
   const [selectStudent, setSelectStudent] = useState<
@@ -496,7 +497,7 @@ function Index({ id }: { id: string }) {
               ) : students && students.length > 0 ? (
                 <ul className="flex flex-1 flex-col gap-1 overflow-auto px-2 py-2 sm:px-3">
                   {students
-                    .sort((a, b) => Number(a.number) - Number(b.number))
+                    .sort(byStudentNumber)
                     .map((student, index) => {
                       const odd = index % 2 === 0;
                       return (
