@@ -9,9 +9,9 @@ import {
 import { useGetLanguage } from "../../react-query";
 import { subjectByCodeQuery } from "../../react-query/subject";
 import { joinCodeForLookup } from "../../utils/joinCode";
+import { describeJoinFailure, JoinFailure } from "../../utils/joinLookupError";
 import { reactMascot } from "../../utils/mascot";
 import { safeSet } from "../../utils/safeStorage";
-import { isSubjectArchivedError } from "../../utils/subjectArchived";
 import { CodeBoxes } from "./CodeBoxes";
 import { WELCOME_REACT_ID } from "./WelcomeMascots";
 
@@ -20,9 +20,9 @@ export function JoinWithCode() {
   const queryClient = useQueryClient();
   const lang = useGetLanguage().data ?? "en";
   const [code, setCode] = useState("");
-  const [invalid, setInvalid] = useState(false);
-  // The code is right but its subject is archived: say so, not "not found".
-  const [archived, setArchived] = useState(false);
+  // Why the last Join didn't go through: a wrong code, an archived class, or
+  // a request that failed. The detail line is there for a screenshot.
+  const [failure, setFailure] = useState<JoinFailure | null>(null);
   const [shakeKey, setShakeKey] = useState(0);
   const [busy, setBusy] = useState(false);
   const [navFailed, setNavFailed] = useState(false);
@@ -40,8 +40,7 @@ export function JoinWithCode() {
     } catch (error) {
       reactMascot(WELCOME_REACT_ID, "sad");
       setShakeKey((n) => n + 1);
-      setArchived(isSubjectArchivedError(error));
-      setInvalid(true);
+      setFailure(describeJoinFailure(error, lookup, new Date()));
       setBusy(false);
       return;
     }
@@ -54,6 +53,16 @@ export function JoinWithCode() {
       setBusy(false);
     }
   };
+
+  const headline = failure
+    ? failure.kind === "archived"
+      ? subjectHomeLanguage.archivedJoinInline(lang)
+      : failure.kind === "not-found"
+        ? t.notFound(lang)
+        : t.loadFailed(lang)
+    : navFailed
+      ? t.joinFailed(lang)
+      : "";
 
   return (
     <form
@@ -70,26 +79,33 @@ export function JoinWithCode() {
         value={code}
         onChange={(v) => {
           setCode(v);
-          setInvalid(false);
-          setArchived(false);
+          setFailure(null);
         }}
-        invalid={invalid}
+        invalid={!!failure}
         shakeKey={shakeKey}
         ariaLabel={t.codeLabel(lang)}
         autoFocus
       />
-      <p
-        role="alert"
-        className="mt-2 min-h-[20px] text-center text-sm font-semibold text-[#F04438]"
-      >
-        {invalid
-          ? archived
-            ? subjectHomeLanguage.archivedJoinInline(lang)
-            : t.notFound(lang)
-          : navFailed
-            ? t.joinFailed(lang)
-            : ""}
-      </p>
+      <div role="alert" className="mt-2 min-h-[20px] text-center">
+        <p className="text-sm font-semibold text-[#F04438]">{headline}</p>
+        {failure && (
+          <>
+            {/* Plain text, selectable: what the server answered, which code,
+                when. Enough for a screenshot to be diagnosed. */}
+            <p
+              className="mt-1 select-all break-words font-mono text-[11px] leading-4 text-[#7A80A0]"
+              data-testid="join-failure-detail"
+            >
+              {failure.detail}
+            </p>
+            {failure.kind === "failed" && (
+              <p className="mt-1 text-xs text-[#7A80A0]">
+                {t.screenshotHint(lang)}
+              </p>
+            )}
+          </>
+        )}
+      </div>
       <button
         type="submit"
         disabled={code.length < 6 || busy}
