@@ -25,6 +25,7 @@ import ButtonProfile from "../../components/ButtonProfile";
 import RouteParamsGate, {
   queryString,
 } from "../../components/common/RouteParamsGate";
+import { byStudentNumber } from "../../utils/studentNumber";
 
 const MAX_ANSWER_LENGTH = 999;
 
@@ -172,7 +173,7 @@ function Index({ id }: { id: string }) {
         s.number.toString().includes(search.trim())
       );
     })
-    .sort((a, b) => Number(a.number) - Number(b.number));
+    .sort(byStudentNumber);
 
   return (
     <>
