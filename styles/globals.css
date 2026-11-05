@@ -199,6 +199,20 @@
   pointer-events: auto;
 }
 
+/* TinyMCE's fullscreen (View > Fullscreen) is position: fixed at 100%. A
+   transformed ancestor (a sheet sliding in, the desktop dialog's scale, a
+   detail panel on a phone) would box it into that ancestor, and an ancestor's
+   z-index (a detail panel's z-20) would let the rest of the shell paint over
+   it. So while an editor is fullscreen, everything around it lets go: it
+   covers the whole screen. TinyMCE puts .tox-fullscreen on <html> meanwhile. */
+html.tox-fullscreen :has(.tox-tinymce.tox-fullscreen) {
+  transform: none !important;
+  filter: none !important;
+  contain: none !important;
+  will-change: auto !important;
+  z-index: auto !important;
+}
+
 /* Shell swipe areas (tab pager, detail edge-back): vertical panning stays
    native and sideways drags reach the gesture. A scroller re-enables panning
    for itself, so the panes' scrollers need the rule too. */

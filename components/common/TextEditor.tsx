@@ -60,7 +60,10 @@ function TextEditor({
   ariaText,
   plugins = ALL_PLUGINS,
   menubar = true,
-  toolbar = "undo redo | formatselect | blocks | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | image | link",
+  toolbar = "undo redo | formatselect | blocks | " +
+    "bold italic backcolor | alignleft aligncenter " +
+    "alignright alignjustify | bullist numlist outdent indent | " +
+    "removeformat | image | link ",
 }: Props) {
   const [isLoaded, setIsLoaded] = React.useState(false);
   const language = useGetLanguage();
@@ -72,6 +75,7 @@ function TextEditor({
         </span>
       )}
       <Editor
+        licenseKey="gpl"
         onInit={(_event, editor) => {
           // iframe_aria_text labels the body; outside Firefox TinyMCE titles
           // the iframe "Rich Text Area" whatever the option says.
@@ -114,14 +118,13 @@ function TextEditor({
 
             input.addEventListener("change", async (e: any) => {
               const file: File = e.target.files[0];
-              const blobUrl = URL.createObjectURL(file);
               const signURL = await getSignedURLStudentService({
                 fileName: file.name,
                 fileType: file.type,
                 schoolId: schoolId,
                 fileSize: file.size,
               });
-              const upload = await UploadSignURLService({
+              await UploadSignURLService({
                 contentType: file.type,
                 file: file,
                 signURL: signURL.signURL,
@@ -132,8 +135,6 @@ function TextEditor({
             input.click();
           },
           plugins: [...plugins, ...(autoHeight ? ["autoresize"] : [])],
-          contextmenu:
-            "paste | link  inserttable | cell row column deletetable",
 
           content_style:
             "body { font-family:Helvetica,Arial,sans-serif; font-size:14px }",

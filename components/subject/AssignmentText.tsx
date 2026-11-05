@@ -126,10 +126,6 @@ function AssignmentText({
             onReady={setInitialValue}
             schoolId={schoolId}
             disabled={readOnly}
-            menubar={false}
-            statusbar={false}
-            toolbar={NOTE_TOOLBAR}
-            plugins={NOTE_PLUGINS}
             ariaText={assignmentPageLanguage.noteText(lang)}
           />
         ) : (
