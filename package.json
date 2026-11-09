@@ -13,7 +13,7 @@
     "typecheck": "bun check",
     "test": "tsx --test \"utils/**/*.test.ts\" \"components/**/*.test.ts\"",
     "check:compat": "node scripts/check-browser-compat.mjs",
-    "test:ios": "node tests/ios/run-ios.mjs"
+    "test:ios": "node --env-file-if-exists=tests/ios/.env tests/ios/run-ios.mjs"
   },
   "dependencies": {
     "@react-spring/web": "^10.1.2",

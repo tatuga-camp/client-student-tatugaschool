@@ -51,3 +51,4 @@ next-env.d.ts
 
 # real-iPhone smoke test screenshots
 /tests/ios/artifacts/
+/tests/ios/.env

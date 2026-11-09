@@ -18,6 +18,10 @@ iOS version (`list_browsers` in the BrowserStack MCP, or their device list).
 
 ## Run it
 
+Easiest: copy `tests/ios/.env.example` to `tests/ios/.env` (gitignored) and
+fill it in; `npm run test:ios` loads it. Real environment variables win over
+the file. Or export them in the shell:
+
 ```sh
 export BROWSERSTACK_USERNAME=…      # BrowserStack → Account → Access keys
 export BROWSERSTACK_ACCESS_KEY=…
