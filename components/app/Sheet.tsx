@@ -184,10 +184,36 @@ export function Sheet({
 
   // Track the visual viewport: the keyboard shrinks it, not the layout.
   // A collapsed peek stays put: the keyboard is then for the page's fields.
+  //
+  // iPhone Safari also scrolls the page, and every overflow-hidden box around
+  // the root, to bring a focused field into view. That moved the root, so
+  // the sheet moved, so Safari scrolled again: the sheet shook without end
+  // and could settle shrunk to a sliver. Those boxes never scroll on purpose,
+  // so while a sheet tracks the keyboard they are held where they were; only
+  // the visual viewport (which the sheet follows) and the sheet's own body
+  // move.
   useEffect(() => {
     const vv = window.visualViewport;
-    if (!rendered || !root || !vv || !modal) return;
+    if (!rendered || !root || !vv || !modal || dialog) return;
+    const held: { el: Element; top: number; left: number }[] = [];
+    for (let el = root.parentElement; el; el = el.parentElement) {
+      const s = getComputedStyle(el);
+      const clipped = /hidden|clip/.test(`${s.overflowX} ${s.overflowY}`);
+      if (clipped || el === document.documentElement)
+        held.push({ el, top: el.scrollTop, left: el.scrollLeft });
+    }
+    const winX = window.scrollX;
+    const winY = window.scrollY;
+    const hold = () => {
+      for (const h of held) {
+        if (h.el.scrollTop !== h.top) h.el.scrollTop = h.top;
+        if (h.el.scrollLeft !== h.left) h.el.scrollLeft = h.left;
+      }
+      if (window.scrollX !== winX || window.scrollY !== winY)
+        window.scrollTo(winX, winY);
+    };
     const update = () => {
+      hold();
       const r = root.getBoundingClientRect();
       const next = keyboardFit({
         rootTop: r.top,
@@ -207,12 +233,15 @@ export function Sheet({
     update();
     vv.addEventListener("resize", update);
     vv.addEventListener("scroll", update);
+    // Capture: scroll events don't bubble, and the boxes are ancestors.
+    document.addEventListener("scroll", update, true);
     return () => {
       vv.removeEventListener("resize", update);
       vv.removeEventListener("scroll", update);
+      document.removeEventListener("scroll", update, true);
       setFit(null);
     };
-  }, [rendered, root, modal]);
+  }, [rendered, root, modal, dialog]);
 
   // After the sheet shrinks, scroll the focused field back into its body.
   useEffect(() => {
