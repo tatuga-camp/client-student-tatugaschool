@@ -246,7 +246,7 @@ export function mascotKeyForStudent(student: {
   photo?: string | null;
 }): string {
   // Own keys only: "constructor" or "toString" is not a mascot.
-  if (student.photo && Object.hasOwn(MASCOTS, student.photo)) {
+  if (student.photo && Object.prototype.hasOwnProperty.call(MASCOTS, student.photo)) {
     return student.photo;
   }
   return MASCOT_HASH_KEYS[mascotHash(student.id) % MASCOT_HASH_KEYS.length];
@@ -276,7 +276,7 @@ export function realPhoto(photo: string | null | undefined): string | null {
 }
 
 export function mascotForPhoto(photo: string | undefined): MascotClips | null {
-  if (!photo || !Object.hasOwn(MASCOTS, photo)) return null;
+  if (!photo || !Object.prototype.hasOwnProperty.call(MASCOTS, photo)) return null;
   return MASCOTS[photo];
 }
 

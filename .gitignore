@@ -48,3 +48,7 @@ next-env.d.ts
 
 # superpowers working files
 .superpowers/
+
+# real-iPhone smoke test screenshots
+/tests/ios/artifacts/
+/tests/ios/.env
