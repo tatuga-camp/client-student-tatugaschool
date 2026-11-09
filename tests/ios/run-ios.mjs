@@ -259,15 +259,19 @@ async function flow(s, steps) {
         `${BASE_URL}/subject/${SUBJECT_ID}/assignment/${ASSIGNMENT_ID}`,
       );
       await s.run(TRAP_ERRORS);
-      const add = await waitFor("the Add work button", () =>
-        s.find("xpath", "//button[contains(., 'Add work') or contains(., 'เพิ่มงาน')]"),
+      // The peek's first button expands it whatever state the work is in:
+      // "Add work" while open, the whole peek once turned in or reviewed.
+      const peekButton = "[role=dialog][aria-modal=false] button";
+      const opener = await waitFor("the Your work peek", () =>
+        s.find("css selector", peekButton),
       );
-      await waitFor("the Add work button to hydrate", () =>
-        s.run(HYDRATED, ["[role=dialog] button"]),
+      await waitFor("the Your work peek to hydrate", () =>
+        s.run(HYDRATED, [peekButton]),
       );
-      await s.click(add);
-      await waitFor("the Note option in the opened sheet", () =>
-        s.find("xpath", "//button[normalize-space(.)='Note' or normalize-space(.)='โน้ต']"),
+      await s.click(opener);
+      // Expanded, the sheet becomes modal.
+      await waitFor("the Your work sheet to open", () =>
+        s.find("css selector", "[role=dialog][aria-modal=true]"),
       );
     });
   }
