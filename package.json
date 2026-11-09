@@ -55,10 +55,10 @@
     "typescript": "^5"
   },
   "browserslist": [
-    "chrome >= 87",
-    "edge >= 88",
-    "firefox >= 78",
-    "safari >= 14",
-    "ios_saf >= 14"
+    "chrome >= 108",
+    "edge >= 108",
+    "firefox >= 101",
+    "safari >= 15.4",
+    "ios_saf >= 15.4"
   ]
 }

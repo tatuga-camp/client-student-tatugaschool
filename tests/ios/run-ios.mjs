@@ -24,9 +24,13 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
-/** One device per iOS major; iPhone 12 or newer (BrowserStack's list). */
+/**
+ * One device per iOS major; iPhone 12 or newer (BrowserStack's list). The app
+ * needs iOS 15.4+; below that the page must show the "too old" notice
+ * (utils/unsupportedBrowser.ts) instead of the app.
+ */
 export const MATRIX = [
-  { ios: "14", device: "iPhone 12" },
+  { ios: "14", device: "iPhone 12", expect: "notice" },
   { ios: "15", device: "iPhone 13" },
   { ios: "16", device: "iPhone 13" },
   { ios: "17", device: "iPhone 12" },
@@ -208,11 +212,33 @@ const TRAP_ERRORS = `
     });
   }`;
 
+/** Below iOS 15.4: the notice shows, the app is hidden. */
+async function noticeFlow(s, steps) {
+  steps.push("too-old notice shows instead of the app");
+  await s.open(`${BASE_URL}/welcome`);
+  await waitFor("the unsupported-browser notice", () =>
+    s.run(`
+      var n = document.getElementById('unsupported-browser');
+      var app = document.getElementById('__next');
+      return !!n && !n.hidden && n.offsetHeight > 0 &&
+        (!app || app.offsetHeight === 0) &&
+        n.textContent.indexOf('iOS 15.4') !== -1;`),
+  );
+}
+
 async function flow(s, steps) {
   const step = async (name, fn) => {
     steps.push(name);
     await fn();
   };
+
+  await step("no too-old notice on a supported iOS", async () => {
+    await s.open(`${BASE_URL}/welcome`);
+    const shown = await s.run(`
+      var n = document.getElementById('unsupported-browser');
+      return !!n && !n.hidden;`);
+    if (shown) throw new Error("The unsupported-browser notice showed");
+  });
 
   await step("welcome page hydrates", async () => {
     await s.open(`${BASE_URL}/welcome`);
@@ -287,9 +313,15 @@ async function runOne(target) {
   let s;
   try {
     s = await Session.start(target);
-    await flow(s, steps);
+    if (target.expect === "notice") await noticeFlow(s, steps);
+    else await flow(s, steps);
     const link = await s.link();
-    await s.finish(true, "join → pick → subject passed");
+    await s.finish(
+      true,
+      target.expect === "notice"
+        ? "too-old notice shown"
+        : "join → pick → subject passed",
+    );
     return { label, ok: true, link };
   } catch (error) {
     const reason = `${steps.at(-1) ?? "start session"}: ${error.message}`;

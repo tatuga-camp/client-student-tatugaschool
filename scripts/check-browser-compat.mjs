@@ -12,7 +12,9 @@
 // Syntax only: a missing API fails just where it's called, and can be
 // feature-detected or polyfilled; a syntax error kills the whole chunk.
 //
-// Usage: node scripts/check-browser-compat.mjs [--min-ios=14]
+// Usage: node scripts/check-browser-compat.mjs [--min-ios=15.4]
+// (The app needs iOS 15.4+; older browsers get the notice in
+// utils/unsupportedBrowser.ts, which is inline ES5 and not checked here.)
 // Runs as the postbuild script.
 
 import { Parser } from "acorn";
@@ -20,7 +22,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 
 const MIN_IOS = Number(
-  process.argv.find((a) => a.startsWith("--min-ios="))?.split("=")[1] ?? 14,
+  process.argv.find((a) => a.startsWith("--min-ios="))?.split("=")[1] ?? 15.4,
 );
 const CHUNKS = join(process.cwd(), ".next", "static", "chunks");
 

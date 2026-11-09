@@ -9,6 +9,12 @@ major (14 → 27, iPhone 12 or newer) on BrowserStack Automate:
 4. land on `/subject/…`, hydrated
 5. *(optional)* open an assignment and its **Your work** sheet
 
+**Minimum: iOS 15.4** (and Chrome 108). The app's CSS sits in `@layer` and its
+layout uses `dvh`, both 15.4+. Older browsers get a Thai/English "this browser
+is too old, update iOS" notice instead of an unstyled page
+(`utils/unsupportedBrowser.ts`, rendered by `pages/_document.tsx`). The iOS 14
+device checks that notice shows instead of running the flow.
+
 Any uncaught page error along the way fails the run. A failure saves a
 screenshot to `tests/ios/artifacts/` and prints the BrowserStack session link
 (video and console log are there).
@@ -61,7 +67,7 @@ BrowserStack Live session.
 ## Related guard
 
 `npm run build` now runs `scripts/check-browser-compat.mjs` afterwards. It
-parses every client chunk and fails the build on syntax iOS 14 can't parse
-(class static blocks, RegExp lookbehind, the RegExp `v` flag, private methods).
+parses every client chunk and fails the build on syntax iOS 15.4 can't parse
+(class static blocks, RegExp lookbehind, the RegExp `v` flag).
 That catches the "nothing is tappable on older iPhones" bug before deploy; this
 smoke test confirms it on real devices.
