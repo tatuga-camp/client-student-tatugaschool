@@ -49,7 +49,9 @@ export async function StudentSignInService(
     });
     return response.data;
   } catch (error: any) {
-    console.log(error);
+    // Status only: the axios error carries the request body, which holds
+    // the password and the Turnstile token.
+    console.error("Student sign-in failed:", error?.response?.status);
     throw error?.response?.data;
   }
 }

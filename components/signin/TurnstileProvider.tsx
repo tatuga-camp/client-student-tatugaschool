@@ -53,10 +53,20 @@ export function TurnstileProvider({ children }: { children: React.ReactNode }) {
   langRef.current = lang;
 
   const failure = (): ErrorMessages => ({
-    error: subjectDataLanguage.securityCheckFailed(langRef.current),
+    error: subjectDataLanguage.securityCheckTitle(langRef.current),
     message: subjectDataLanguage.securityCheckFailed(langRef.current),
     statusCode: 0,
   });
+
+  // Fails every sign-in waiting for a token, so a widget that can't produce
+  // one (blocked, unsupported browser, script blocked by the network) shows
+  // the error right away instead of after the full timeout.
+  const failWaiters = () => {
+    for (const w of waiters.current.splice(0)) {
+      clearTimeout(w.timer);
+      w.reject(failure());
+    }
+  };
 
   const register = useCallback(() => {
     setUsers((n) => n + 1);
@@ -65,14 +75,13 @@ export function TurnstileProvider({ children }: { children: React.ReactNode }) {
 
   const mounted = users > 0 && Boolean(SITE_KEY);
 
-  // Unmounting the widget drops its token and fails anyone still waiting.
+  // Unmounting the widget drops its token. Anyone still waiting is left
+  // unsettled rather than rejected: the screen that asked has gone, and a
+  // rejection would pop an error over whatever page the student moved to.
   useEffect(() => {
     if (mounted) return;
     token.current = null;
-    for (const w of waiters.current.splice(0)) {
-      clearTimeout(w.timer);
-      w.reject(failure());
-    }
+    for (const w of waiters.current.splice(0)) clearTimeout(w.timer);
   }, [mounted]);
 
   const getToken = useCallback((): Promise<string | undefined> => {
@@ -116,29 +125,36 @@ export function TurnstileProvider({ children }: { children: React.ReactNode }) {
     <TurnstileContext.Provider value={value}>
       {children}
       {mounted && (
-        // Bottom-centred so it is visible on the phone screen if Cloudflare
-        // does show a challenge; empty and click-through otherwise.
+        // Top-centred so a challenge, when Cloudflare shows one, is visible on
+        // the phone screen without covering the submit button of a bottom
+        // sheet (the password sheet). Empty and click-through otherwise.
         <div
           className="pointer-events-none fixed inset-x-0 z-[1200] flex justify-center px-4"
-          style={{ bottom: "calc(var(--safe-bottom, 0px) + 16px)" }}
+          style={{ top: "calc(var(--safe-top, 0px) + 12px)" }}
         >
           <div className="pointer-events-auto">
             <Turnstile
               ref={widget}
               siteKey={SITE_KEY as string}
+              // No `language`: Turnstile follows the browser, and passing the
+              // app language would re-render the widget once it loads.
               options={{
                 action: "student-sign-in",
                 appearance: "interaction-only",
                 theme: "light",
-                language: lang,
               }}
+              scriptOptions={{ onError: failWaiters }}
               onSuccess={handleSuccess}
               onExpire={() => {
                 token.current = null;
               }}
+              // Turnstile retries by itself after an error, so the next tap
+              // can still get a token.
               onError={() => {
                 token.current = null;
+                failWaiters();
               }}
+              onUnsupported={failWaiters}
             />
           </div>
         </div>

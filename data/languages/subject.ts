@@ -269,6 +269,8 @@ export const subjectDataLanguage = {
       : "Enter your password to continue",
   signInButton: (language: Language) =>
     language === "th" ? "เข้าสู่ระบบ" : "Sign in",
+  securityCheckTitle: (language: Language) =>
+    language === "th" ? "ตรวจสอบความปลอดภัย" : "Security check",
   securityCheckFailed: (language: Language) =>
     language === "th"
       ? "ตรวจสอบความปลอดภัยไม่สำเร็จ ลองใหม่อีกครั้ง"
