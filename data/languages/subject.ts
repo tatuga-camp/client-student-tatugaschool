@@ -271,6 +271,18 @@ export const subjectDataLanguage = {
     language === "th" ? "เข้าสู่ระบบ" : "Sign in",
   securityCheckTitle: (language: Language) =>
     language === "th" ? "ตรวจสอบความปลอดภัย" : "Security check",
+  securityCheckPopupTitle: (language: Language) =>
+    language === "th" ? "ขอตรวจสอบสักครู่" : "Quick check",
+  securityCheckPopupBody: (language: Language) =>
+    language === "th"
+      ? "แตะช่องด้านล่างเพื่อยืนยันว่าเป็นคุณจริง ๆ"
+      : "Tick the box below so we know it's really you.",
+  securityCheckPopupHint: (language: Language) =>
+    language === "th"
+      ? "ขั้นตอนนี้ช่วยให้ห้องเรียนของคุณปลอดภัย"
+      : "This keeps your class safe.",
+  securityCheckCancel: (language: Language) =>
+    language === "th" ? "ยกเลิก" : "Cancel",
   securityCheckFailed: (language: Language) =>
     language === "th"
       ? "ตรวจสอบความปลอดภัยไม่สำเร็จ ลองใหม่อีกครั้ง"

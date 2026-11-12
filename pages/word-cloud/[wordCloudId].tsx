@@ -26,6 +26,7 @@ import RouteParamsGate, {
   queryString,
 } from "../../components/common/RouteParamsGate";
 import { byStudentNumber } from "../../utils/studentNumber";
+import { isSignInCancelled } from "../../utils/signInError";
 
 const MAX_ANSWER_LENGTH = 999;
 
@@ -119,6 +120,8 @@ function Index({ id }: { id: string }) {
       await signIn.mutateAsync({ studentId: sid });
       setSignedIn(true);
     } catch (error) {
+      // The student closed the security check popup.
+      if (isSignInCancelled(error)) return;
       const result = error as ErrorMessages;
       if (result?.message === "Please enter your password") {
         setSelectStudentId(sid);
@@ -144,6 +147,8 @@ function Index({ id }: { id: string }) {
       setSelectStudentId(null);
       setSignedIn(true);
     } catch (error) {
+      // The student closed the security check popup.
+      if (isSignInCancelled(error)) return;
       const result = error as ErrorMessages;
       Swal.fire({
         icon: "error",
