@@ -15,7 +15,11 @@ import { errorSwalContent } from "../../utils";
 import Swal from "../../utils/appSwal";
 import { subjectHref } from "../../utils/notificationLink";
 import { safeSet } from "../../utils/safeStorage";
-import { isPasswordRejection, needsPassword } from "../../utils/signInError";
+import {
+  isPasswordRejection,
+  isSignInCancelled,
+  needsPassword,
+} from "../../utils/signInError";
 import { signInRequest } from "../../utils/signInRequest";
 import { hiddenQueryReady, searchStudents } from "../../utils/studentSearch";
 import { useLayerBack } from "../app/shell/layerBack";
@@ -110,6 +114,10 @@ export function PickNameScreen({ subjectCode, announcementId }: Props) {
     try {
       await signIn.mutateAsync(signInRequest(pwStudent, password));
     } catch (error) {
+      if (isSignInCancelled(error)) {
+        setPwBusy(false);
+        return;
+      }
       // The server names the password in its 400 message; show the localized
       // copy for that and the server text for anything else.
       const { text } = errorSwalContent(error);
@@ -141,7 +149,7 @@ export function PickNameScreen({ subjectCode, announcementId }: Props) {
         setPasswordError(null);
         setPwStudent(student);
         setPwOpen(true);
-      } else {
+      } else if (!isSignInCancelled(error)) {
         Swal.fire({
           title: result?.error ? result.error : "Something Went Wrong",
           text: result?.message?.toString(),

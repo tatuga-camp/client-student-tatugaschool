@@ -44,6 +44,7 @@ import RouteParamsGate, {
   queryString,
 } from "../../components/common/RouteParamsGate";
 import { byStudentNumber } from "../../utils/studentNumber";
+import { isSignInCancelled } from "../../utils/signInError";
 
 function Index({ id }: { id: string }) {
   const [selectStudent, setSelectStudent] = useState<
@@ -165,6 +166,8 @@ function Index({ id }: { id: string }) {
       );
       setTriggerFormSignIn(false);
     } catch (error) {
+      // The student closed the security check popup.
+      if (isSignInCancelled(error)) return;
       Swal.fire({
         ...errorSwalContent(error),
         icon: "error",
@@ -189,6 +192,8 @@ function Index({ id }: { id: string }) {
           null,
       );
     } catch (error) {
+      // The student closed the security check popup.
+      if (isSignInCancelled(error)) return;
       let result = error as ErrorMessages;
       console.error(error);
       if (result?.message === "Please enter your password") {
