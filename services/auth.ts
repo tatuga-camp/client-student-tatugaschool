@@ -29,6 +29,8 @@ export async function StudentRefetchTokenService(
 export type RequestStudentSignInService = {
   studentId: string;
   password?: string;
+  /** Cloudflare Turnstile token; single-use. */
+  turnstileToken?: string;
 };
 
 type ResponseStudentSignInService = {
