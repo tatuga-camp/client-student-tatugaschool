@@ -67,28 +67,30 @@ function run({
       })[sel] ?? null,
   };
   const html = { className: "" };
-  const probe = el();
+  let measured = false;
   const document = {
     documentElement: html,
-    head: { appendChild() {}, removeChild() {} },
-    body: {
-      appendChild(child: FakeEl) {
-        if (child === probe) probe.offsetWidth = layers ? 7 : 0;
-      },
-      removeChild() {},
+    // Any layout read would be wrong: the body may still be display:none.
+    head: { appendChild: () => (measured = true), removeChild() {} },
+    body: { appendChild: () => (measured = true), removeChild() {} },
+    createElement: () => {
+      measured = true;
+      return el();
     },
-    createElement: (tag: string) => (tag === "div" ? probe : el()),
     getElementById: (id: string) => (id === NOTICE_ID ? notice : null),
   };
   const CSS = { supports: (_p: string, v: string) => v !== "100dvh" || dvh };
+  const window = layers
+    ? { CSS, CSSLayerBlockRule: function CSSLayerBlockRule() {} }
+    : { CSS };
   new Function("window", "CSS", "document", "navigator", "location", NOTICE_SCRIPT)(
-    { CSS },
+    window,
     CSS,
     document,
     { userAgent: ua },
     { href: "https://student.tatugaschool.com/?subject_code=abc123" },
   );
-  return { html, notice, device, ios, link };
+  return { html, notice, device, ios, link, measured };
 }
 
 const IOS_14 =
@@ -100,6 +102,13 @@ test("a modern browser keeps the app: no notice", () => {
   const r = run({ dvh: true, layers: true, ua: IOS_14 });
   assert.equal(r.html.className, "");
   assert.equal(r.notice.hidden, true);
+});
+
+// `next dev` hides <body> until its CSS loads; a layout probe read 0px there
+// and showed the notice on Chrome on Windows.
+test("detection reads no layout, so a still-hidden body can't trip it", () => {
+  const r = run({ dvh: true, layers: true, ua: IOS_14 });
+  assert.equal(r.measured, false);
 });
 
 test("no dvh (iOS < 15.4): notice with the iOS version and the link", () => {

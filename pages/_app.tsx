@@ -16,6 +16,7 @@ import { overlayTarget } from "../utils/frameRoutes";
 import { installPrimeOverlayOffset } from "../utils/primeOverlay";
 import ErrorBoundary from "../components/common/ErrorBoundary";
 import RateLimitNotice from "../components/common/RateLimitNotice";
+import { TurnstileProvider } from "../components/signin/TurnstileProvider";
 import { installDomTranslationGuard } from "../utils/domTranslationGuard";
 import {
   installSwalRateLimitGuard,
@@ -260,13 +261,15 @@ function MyApp({ Component, pageProps }: AppProps) {
         </Head>
         <div className={prompt.className}>
           <PhoneFrame scroll={!getLayout}>
-            <ErrorBoundary>
-              {getLayout ? (
-                getLayout(<Component {...pageProps} />)
-              ) : (
-                <Component {...pageProps} />
-              )}
-            </ErrorBoundary>
+            <TurnstileProvider>
+              <ErrorBoundary>
+                {getLayout ? (
+                  getLayout(<Component {...pageProps} />)
+                ) : (
+                  <Component {...pageProps} />
+                )}
+              </ErrorBoundary>
+            </TurnstileProvider>
             <RateLimitNotice />
           </PhoneFrame>
         </div>

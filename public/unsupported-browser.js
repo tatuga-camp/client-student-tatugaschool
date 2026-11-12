@@ -3,26 +3,20 @@
 // app's CSS is skipped and the page would render unstyled. Tests the features,
 // not the user agent. ES5 on purpose: it runs on the browsers it guards
 // against, before React (utils/unsupportedBrowser.test.ts parses it as ES5).
+//
+// No layout measurement: this runs while the page is still loading, and
+// `next dev` hides <body> (display:none) until its CSS arrives, so a measured
+// probe read 0px and showed the notice on every modern browser in dev.
+// CSSLayerBlockRule ships with @layer itself (Chrome 99, Safari 15.4,
+// Firefox 97), so its presence is the same test without layout.
 (function () {
   try {
     var ok = !!(
       window.CSS &&
       CSS.supports &&
-      CSS.supports("height", "100dvh")
+      CSS.supports("height", "100dvh") &&
+      window.CSSLayerBlockRule
     );
-    if (ok) {
-      var s = document.createElement("style");
-      s.textContent = "@layer ub{#ub-probe{width:7px}}";
-      document.head.appendChild(s);
-      var p = document.createElement("div");
-      p.id = "ub-probe";
-      p.style.position = "absolute";
-      p.style.visibility = "hidden";
-      document.body.appendChild(p);
-      ok = p.offsetWidth === 7;
-      document.body.removeChild(p);
-      document.head.removeChild(s);
-    }
     if (ok) return;
 
     document.documentElement.className += " ub-old";
