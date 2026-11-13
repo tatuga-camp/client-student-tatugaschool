@@ -20,6 +20,21 @@ const SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 // an interactive challenge if Cloudflare asks for one.
 const TOKEN_TIMEOUT_MS = 60_000;
 
+// Error codes Turnstile retries by itself after ("challenge timed out",
+// "interaction timed out", "iframe load error", and the 300*/600* "generic
+// challenge failure" families). A retry can pass, or come back as the
+// checkbox, so a waiting sign-in rides these out instead of failing.
+// https://developers.cloudflare.com/turnstile/troubleshooting/client-side-errors/error-codes/
+const RETRIED_CODE = /^(110600|110620|200500|300\d*|600\d*)$/;
+
+// How many errors in a row a waiting sign-in sits through before giving up.
+const MAX_ERRORS_WHILE_WAITING = 3;
+
+// Turnstile's own default is 8s, too long for a student watching a spinner.
+const RETRY_INTERVAL_MS = 3_000;
+
+const SCRIPT_BLOCKED = "script-blocked";
+
 type Waiter = {
   resolve: (token: string) => void;
   reject: (error: ErrorMessages | SignInCancelled) => void;
@@ -63,9 +78,18 @@ export function TurnstileProvider({ children }: { children: React.ReactNode }) {
   const langRef = useRef(lang);
   langRef.current = lang;
 
-  const failure = (): ErrorMessages => ({
+  // Why the widget can't produce a token at all (a code Turnstile doesn't
+  // retry, a blocked script, an unsupported browser). Taps fail right away
+  // while this is set, instead of hanging for the full timeout.
+  const fatal = useRef<string | null>(null);
+  // Errors in a row since a sign-in started waiting.
+  const errorsWhileWaiting = useRef(0);
+
+  // The code goes in the message so a teacher's screenshot tells us which
+  // Turnstile failure a school's PCs are hitting.
+  const failure = (code: string): ErrorMessages => ({
     error: t.securityCheckTitle(langRef.current),
-    message: t.securityCheckFailed(langRef.current),
+    message: `${t.securityCheckFailed(langRef.current)} (${code})`,
     statusCode: 0,
   });
 
@@ -78,10 +102,33 @@ export function TurnstileProvider({ children }: { children: React.ReactNode }) {
     setWaiting(0);
   };
 
-  // A widget that can't produce a token (blocked, unsupported browser,
-  // script blocked by the network) fails the sign-in right away instead of
-  // after the full timeout.
-  const failWaiters = () => rejectWaiters(failure);
+  const failWaiters = (code: string) => rejectWaiters(() => failure(code));
+
+  // A widget that can't produce a token at all fails the sign-in right away
+  // instead of after the full timeout.
+  const failForGood = (code: string) => {
+    fatal.current = code;
+    failWaiters(code);
+  };
+
+  const handleError = (raw?: unknown) => {
+    const code = raw == null || raw === "" ? "unknown" : String(raw);
+    console.warn(`[turnstile] error ${code}`);
+    token.current = null;
+    setInteractive(false);
+    if (!RETRIED_CODE.test(code)) {
+      failForGood(code);
+      return;
+    }
+    // Turnstile is about to retry. Keep any sign-in waiting: the retry may
+    // pass or ask for the checkbox, which opens the popup.
+    if (waiters.current.length === 0) return;
+    errorsWhileWaiting.current += 1;
+    if (errorsWhileWaiting.current >= MAX_ERRORS_WHILE_WAITING) {
+      errorsWhileWaiting.current = 0;
+      failWaiters(code);
+    }
+  };
 
   // The student closed the popup: end the sign-in quietly (callers show no
   // error for this). The challenge stays as it is, for the next tap.
@@ -100,6 +147,8 @@ export function TurnstileProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (mounted) return;
     token.current = null;
+    // The next mount renders a new widget; only a blocked script stays so.
+    if (fatal.current !== SCRIPT_BLOCKED) fatal.current = null;
     for (const w of waiters.current.splice(0)) clearTimeout(w.timer);
     setWaiting(0);
     setInteractive(false);
@@ -115,7 +164,13 @@ export function TurnstileProvider({ children }: { children: React.ReactNode }) {
       widget.current?.reset();
       return Promise.resolve(ready);
     }
+    if (fatal.current) {
+      // Start over for the next tap, in case whatever broke has cleared.
+      if (fatal.current !== SCRIPT_BLOCKED) widget.current?.reset();
+      return Promise.reject(failure(fatal.current));
+    }
     return new Promise<string>((resolve, reject) => {
+      if (waiters.current.length === 0) errorsWhileWaiting.current = 0;
       const waiter: Waiter = {
         resolve,
         reject,
@@ -123,7 +178,7 @@ export function TurnstileProvider({ children }: { children: React.ReactNode }) {
           waiters.current = waiters.current.filter((w) => w !== waiter);
           setWaiting(waiters.current.length);
           widget.current?.reset();
-          reject(failure());
+          reject(failure("timeout"));
         }, TOKEN_TIMEOUT_MS),
       };
       waiters.current.push(waiter);
@@ -133,6 +188,8 @@ export function TurnstileProvider({ children }: { children: React.ReactNode }) {
 
   const handleSuccess = (next: string) => {
     setInteractive(false);
+    fatal.current = null;
+    errorsWhileWaiting.current = 0;
     const waiter = waiters.current.shift();
     if (!waiter) {
       token.current = next;
@@ -220,22 +277,17 @@ export function TurnstileProvider({ children }: { children: React.ReactNode }) {
                   action: "student-sign-in",
                   appearance: "interaction-only",
                   theme: "light",
+                  retryInterval: RETRY_INTERVAL_MS,
                 }}
-                scriptOptions={{ onError: failWaiters }}
+                scriptOptions={{ onError: () => failForGood(SCRIPT_BLOCKED) }}
                 onBeforeInteractive={() => setInteractive(true)}
                 onAfterInteractive={() => setInteractive(false)}
                 onSuccess={handleSuccess}
                 onExpire={() => {
                   token.current = null;
                 }}
-                // Turnstile retries by itself after an error, so the next
-                // tap can still get a token.
-                onError={() => {
-                  token.current = null;
-                  setInteractive(false);
-                  failWaiters();
-                }}
-                onUnsupported={failWaiters}
+                onError={handleError}
+                onUnsupported={() => failForGood("unsupported")}
               />
             </div>
             <p className="mt-3 px-5 text-xs text-[#9AA3B8]">
