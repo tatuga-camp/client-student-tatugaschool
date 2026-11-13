@@ -17,8 +17,10 @@ export async function GetStudentService(): Promise<ResponseGetStudentService> {
     });
     return response.data;
   } catch (error: any) {
-    console.error("GetStudent request failed:", error.response.data);
-    throw error?.response?.data;
+    // No response (offline, or the API client refused to send): keep the
+    // error itself, so the screen can tell a lost session from a failed load.
+    console.error("GetStudent request failed:", error?.response?.data ?? error);
+    throw error?.response?.data ?? error;
   }
 }
 

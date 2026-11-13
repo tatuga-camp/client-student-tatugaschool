@@ -12,6 +12,7 @@ import { safeSet } from "../../../utils/safeStorage";
 import ArchivedBanner from "../../subject/ArchivedBanner";
 import { isSubjectArchived } from "../../../utils/subjectArchived";
 import { ArchivedSubjectScreen } from "../ArchivedSubjectScreen";
+import { StudentLoadError } from "../StudentLoadError";
 import LoadingSpinner from "../../common/LoadingSpinner";
 import DetailStack from "./DetailStack";
 import SideNav from "./SideNav";
@@ -43,16 +44,16 @@ function ShellBody({ route }: { route: ShellRoute }) {
     if (!archived) safeSet("subject_id", route.subjectId);
   }, [route.subjectId, archived]);
 
-  if (student.error) {
+  // Only when there is no student to show: a background refetch that fails
+  // (a dropped connection) must not replace a working app with an error.
+  if (student.error && !student.data) {
     return (
-      <div
-        className="flex h-full w-full items-center justify-center bg-background-color px-4 font-Anuphan"
-        style={{ paddingTop: "var(--safe-top)" }}
-      >
-        <h1 className="text-2xl font-bold text-icon-color">
-          {homeLanguage.studentNotFound(lang)}
-        </h1>
-      </div>
+      <StudentLoadError
+        error={student.error}
+        lang={lang}
+        retrying={student.isFetching}
+        onRetry={() => void student.refetch()}
+      />
     );
   }
 
