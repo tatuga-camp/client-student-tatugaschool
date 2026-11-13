@@ -11,6 +11,23 @@ export const homeLanguage = {
   tabMe: (l: Language) => t(l, "Me", "ฉัน"),
   tabBar: (l: Language) => t(l, "Subject tabs", "แท็บของวิชา"),
   studentNotFound: (l: Language) => t(l, "Student not found", "ไม่พบนักเรียน"),
+  studentNotFoundBody: (l: Language) =>
+    t(
+      l,
+      "This student may have been removed from the class. Ask your teacher, or sign in again.",
+      "นักเรียนคนนี้อาจถูกลบออกจากห้องเรียนแล้ว ลองสอบถามคุณครู หรือเข้าสู่ระบบอีกครั้ง",
+    ),
+  sessionEndedTitle: (l: Language) =>
+    t(l, "Please sign in again", "กรุณาเข้าสู่ระบบอีกครั้ง"),
+  sessionEndedBody: (l: Language) =>
+    t(
+      l,
+      "Your sign-in has ended. Pick your name again to keep going.",
+      "การเข้าสู่ระบบสิ้นสุดแล้ว เลือกชื่อของคุณอีกครั้งเพื่อใช้งานต่อ",
+    ),
+  signInAgain: (l: Language) => t(l, "Sign in again", "เข้าสู่ระบบอีกครั้ง"),
+  studentLoadFailedTitle: (l: Language) =>
+    t(l, "Couldn't load your account", "โหลดข้อมูลของคุณไม่สำเร็จ"),
   /** Browser tab title until the subject's own title loads. */
   subjectTitleFallback: (l: Language) => t(l, "Subject", "รายวิชา"),
   back: (l: Language) => t(l, "Back", "ย้อนกลับ"),

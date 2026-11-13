@@ -13,6 +13,7 @@ import {
   reportRateLimit,
   waitForRateLimit,
 } from "../utils/rateLimit";
+import { serverNowSeconds } from "../utils/serverClock";
 
 const createAxiosInstance = () => {
   const instance = axios.create({
@@ -162,9 +163,9 @@ const isTokenExpired = (token: string, leewaySeconds = 0) => {
     const decodedPayload = JSON.parse(decodedString);
     const exp = decodedPayload.exp;
 
-    // Optional: Add a 10-second buffer to prevent clock skew issues
-    // if you really want to keep the client-side check.
-    return Math.floor(Date.now() / 1000) + leewaySeconds >= exp;
+    // `exp` is the server's time, so compare by the server's clock: the
+    // device's own may be hours off on a school PC.
+    return serverNowSeconds() + leewaySeconds >= exp;
   } catch (error) {
     console.log("error decoding token", error);
     return true; // Assume expired if we can't decode

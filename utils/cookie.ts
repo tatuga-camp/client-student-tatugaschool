@@ -1,5 +1,6 @@
 import { GetServerSidePropsContext } from "next";
 import { destroyCookie, parseCookies, setCookie } from "nookies";
+import { recordServerClock } from "./serverClock";
 
 export function getRefetchtoken(ctx?: GetServerSidePropsContext): {
   refresh_token: string | null;
@@ -16,6 +17,8 @@ export function getAccessToken(): { access_token: string | null } {
 }
 
 export function setAccessToken({ access_token }: { access_token: string }) {
+  // Every caller passes a token the server has just issued.
+  recordServerClock(access_token);
   setCookie(null, "student_access_token", access_token, {
     path: "/",
     maxAge: 5 * 24 * 60 * 60,
