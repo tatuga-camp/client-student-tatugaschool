@@ -34,6 +34,7 @@ const MAX_ERRORS_WHILE_WAITING = 3;
 const RETRY_INTERVAL_MS = 3_000;
 
 const SCRIPT_BLOCKED = "script-blocked";
+const CLOCK_WRONG = "200100";
 
 type Waiter = {
   resolve: (token: string) => void;
@@ -89,7 +90,13 @@ export function TurnstileProvider({ children }: { children: React.ReactNode }) {
   // Turnstile failure a school's PCs are hitting.
   const failure = (code: string): ErrorMessages => ({
     error: t.securityCheckTitle(langRef.current),
-    message: `${t.securityCheckFailed(langRef.current)} (${code})`,
+    // 200100 is Turnstile refusing a device whose clock is wrong. No
+    // checkbox can fix that, so tell the student what will.
+    message: `${
+      code === CLOCK_WRONG
+        ? t.securityCheckClockWrong(langRef.current)
+        : t.securityCheckFailed(langRef.current)
+    } (${code})`,
     statusCode: 0,
   });
 

@@ -287,6 +287,10 @@ export const subjectDataLanguage = {
     language === "th"
       ? "ตรวจสอบความปลอดภัยไม่สำเร็จ ลองใหม่อีกครั้ง"
       : "The security check didn't finish. Please try again.",
+  securityCheckClockWrong: (language: Language) =>
+    language === "th"
+      ? "วันที่และเวลาของเครื่องนี้ไม่ถูกต้อง กรุณาตั้งวันที่และเวลาให้ตรงกับปัจจุบัน แล้วลองใหม่อีกครั้ง"
+      : "This computer's date and time are wrong. Set them to the current date and time, then try again.",
   forgotPassword: (language: Language) =>
     language === "th"
       ? "ลืมรหัสผ่าน? ขอให้คุณครูรีเซ็ตรหัสผ่านให้"
