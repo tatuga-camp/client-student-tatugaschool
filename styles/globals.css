@@ -213,6 +213,14 @@ html.tox-fullscreen :has(.tox-tinymce.tox-fullscreen) {
   z-index: auto !important;
 }
 
+/* A sheet squeezed above the on-screen keyboard (Sheet's data-keyboard) has
+   room for little more than the text being typed: the editor keeps its
+   toolbar and gives the menubar and status bar's height to the text. */
+[data-keyboard] .tox .tox-menubar,
+[data-keyboard] .tox .tox-statusbar {
+  display: none;
+}
+
 /* Shell swipe areas (tab pager, detail edge-back): vertical panning stays
    native and sideways drags reach the gesture. A scroller re-enables panning
    for itself, so the panes' scrollers need the rule too. */

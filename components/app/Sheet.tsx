@@ -458,7 +458,10 @@ export function Sheet({
         aria-modal={modal}
         aria-label={ariaLabel}
         tabIndex={-1}
-        className={`flex flex-col bg-white outline-none ${
+        // Set while the sheet sits squeezed above the on-screen keyboard:
+        // content can drop what it can spare (`group-data-[keyboard]/sheet:`).
+        data-keyboard={fit ? "" : undefined}
+        className={`group/sheet flex flex-col bg-white outline-none ${
           dialog ? "relative" : "absolute inset-x-0 bottom-0"
         }`}
         style={panelStyle}

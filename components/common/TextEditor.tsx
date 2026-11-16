@@ -109,6 +109,8 @@ function TextEditor({
           paste_data_images: false,
           smart_paste: true,
           branding: false,
+          // TinyMCE's own "Upgrade" ad beside the menubar.
+          promotion: false,
           file_picker_types: "image",
 
           file_picker_callback: async (callback, value, meta) => {
@@ -136,8 +138,10 @@ function TextEditor({
           },
           plugins: [...plugins, ...(autoHeight ? ["autoresize"] : [])],
 
+          // 16px, not less: iPhone zooms the whole page in when the text
+          // being edited is smaller, and the page then no longer fits.
           content_style:
-            "body { font-family:Helvetica,Arial,sans-serif; font-size:14px }",
+            "body { font-family:Helvetica,Arial,sans-serif; font-size:16px }",
         }}
       />
     </>
