@@ -103,6 +103,16 @@ function TextEditor({
           }),
           menubar: menubar,
           toolbar: toolbar,
+          // The text's language (lang on the editing area): screen readers
+          // and the keyboard's spellcheck read it. Set once, as it mounts.
+          content_language: language.data ?? "en",
+          // Lists nest three levels deep at most (the option counts indents,
+          // so 2): deeper ones run off a phone. Lists saved deeper are kept.
+          list_max_depth: 2,
+          // A new table starts with a header row, made of real header cells
+          // (<thead> with <th>), so it looks and reads as one.
+          table_default_header_rows: 1,
+          table_header_type: "sectionCells",
 
           image_title: true,
           automatic_uploads: true,
