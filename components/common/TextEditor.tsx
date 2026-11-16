@@ -109,6 +109,8 @@ function TextEditor({
           paste_data_images: false,
           smart_paste: true,
           branding: false,
+          // TinyMCE's own "Upgrade" ad beside the menubar.
+          promotion: false,
           file_picker_types: "image",
 
           file_picker_callback: async (callback, value, meta) => {
