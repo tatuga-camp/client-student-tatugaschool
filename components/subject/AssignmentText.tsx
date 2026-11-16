@@ -106,18 +106,42 @@ function AssignmentText({
     }
   };
 
+  const saveLabel = pending ? (
+    <LuLoader aria-hidden className="animate-spin" />
+  ) : (
+    assignmentPageLanguage.save(lang)
+  );
+
+  // Above the on-screen keyboard a phone leaves this sheet some 250px. So
+  // while it is up (Sheet's data-keyboard) everything but the title, the
+  // toolbar and the text steps aside: the menubar and status bar hide
+  // (styles/globals.css), and Save moves up beside the title.
   return (
-    <form onSubmit={handleSave} className="flex h-full flex-col gap-2 pb-2">
-      <input
-        onChange={(e) => setTitle(e.target.value)}
-        value={title ?? ""}
-        type="text"
-        placeholder={assignmentPageLanguage.noteTitlePlaceholder(lang)}
-        aria-label={assignmentPageLanguage.noteTitlePlaceholder(lang)}
-        required
-        readOnly={readOnly}
-        className="h-11 w-full shrink-0 rounded-xl border-2 border-[#E3E8F0] px-3 text-base font-bold text-icon-color outline-none focus:border-primary-color"
-      />
+    <form
+      onSubmit={handleSave}
+      className="flex h-full flex-col gap-2 pb-2 group-data-[keyboard]/sheet:-mb-4 group-data-[keyboard]/sheet:h-[calc(100%+1rem)] group-data-[keyboard]/sheet:pb-1"
+    >
+      <div className="flex shrink-0 items-start gap-2">
+        <input
+          onChange={(e) => setTitle(e.target.value)}
+          value={title ?? ""}
+          type="text"
+          placeholder={assignmentPageLanguage.noteTitlePlaceholder(lang)}
+          aria-label={assignmentPageLanguage.noteTitlePlaceholder(lang)}
+          required
+          readOnly={readOnly}
+          className="h-11 min-w-0 flex-1 rounded-xl border-2 border-[#E3E8F0] px-3 text-base font-bold text-icon-color outline-none focus:border-primary-color"
+        />
+        {!readOnly && (
+          <button
+            type="submit"
+            disabled={pending}
+            className="chunky-btn hidden shrink-0 disabled:opacity-60 group-data-[keyboard]/sheet:inline-flex"
+          >
+            {saveLabel}
+          </button>
+        )}
+      </div>
       <div data-no-swipe className="min-h-0 flex-1">
         {editorShown ? (
           <TextEditor
@@ -139,13 +163,9 @@ function AssignmentText({
         <button
           type="submit"
           disabled={pending}
-          className="chunky-btn w-full shrink-0 disabled:opacity-60"
+          className="chunky-btn w-full shrink-0 disabled:opacity-60 group-data-[keyboard]/sheet:hidden"
         >
-          {pending ? (
-            <LuLoader aria-hidden className="animate-spin" />
-          ) : (
-            assignmentPageLanguage.save(lang)
-          )}
+          {saveLabel}
         </button>
       )}
     </form>
