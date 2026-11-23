@@ -45,6 +45,19 @@ export function teacherFileKind(file: {
   return mode === "external" ? "file" : mode;
 }
 
+/** Files that can show a thumbnail (image, PDF, video) apart from the rest. */
+export function splitTeacherFiles<
+  T extends { type?: string | null; url: string },
+>(files: T[]): { previews: T[]; others: T[] } {
+  const previews: T[] = [];
+  const others: T[] = [];
+  for (const file of files) {
+    const kind = teacherFileKind(file);
+    (kind === "link" || kind === "file" ? others : previews).push(file);
+  }
+  return { previews, others };
+}
+
 export function teacherFileName(file: {
   name?: string | null;
   url: string;

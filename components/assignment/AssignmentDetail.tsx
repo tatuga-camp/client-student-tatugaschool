@@ -213,6 +213,30 @@ export default function AssignmentDetail({
         />
       )}
       <TitleCard assignment={assignment} lang={lang} now={new Date()} />
+      {/* Above the instructions, so the files are seen before reading on.
+          `wide` makes them a highlighted panel of thumbnails. */}
+      {assignment.files?.length > 0 && (
+        <section
+          className={
+            wide
+              ? "rounded-2xl border-2 border-b-4 border-[#BFDBF5] bg-[#EAF3FC] px-3 pb-3 pt-2"
+              : undefined
+          }
+        >
+          <h3 className={`${sectionLabel} flex items-center gap-1.5`}>
+            {assignmentPageLanguage.fromTeacher(lang)}
+            {wide && (
+              <span className="rounded-full bg-primary-color px-2 py-px normal-case tracking-normal text-white">
+                {assignmentPageLanguage.fileCount(
+                  lang,
+                  assignment.files.length,
+                )}
+              </span>
+            )}
+          </h3>
+          <TeacherFiles files={assignment.files} lang={lang} wide={wide} />
+        </section>
+      )}
       {(assignment.type === "Assignment" || assignment.type === "Material") &&
         hasRichContent(assignment.description) && (
           <section>
@@ -232,14 +256,6 @@ export default function AssignmentDetail({
             </div>
           </section>
         )}
-      {assignment.files?.length > 0 && (
-        <section>
-          <h3 className={sectionLabel}>
-            {assignmentPageLanguage.fromTeacher(lang)}
-          </h3>
-          <TeacherFiles files={assignment.files} lang={lang} />
-        </section>
-      )}
     </>
   );
   const comments = assignment && (
