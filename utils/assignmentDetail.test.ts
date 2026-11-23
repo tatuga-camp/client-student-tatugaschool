@@ -15,12 +15,14 @@ import {
   nextAssignmentAfter,
   reviewedMood,
   teacherFileOpenMode,
+  splitTeacherFiles,
   turnInSummary,
   uploadFailure,
   workErrorContent,
   workItemMenu,
   yourWorkMode,
 } from "./assignmentDetail";
+import { assignmentPageLanguage } from "../data/languages/classwork";
 import { errorSwalContent } from "./errorSwal";
 import {
   UnreadableFileError,
@@ -182,6 +184,26 @@ test("isLinkFile and teacherFileKind", () => {
   assert.equal(teacherFileKind({ type: "video/mp4", url: "u" }), "video");
   assert.equal(teacherFileKind({ type: "image/png", url: "u" }), "image");
   assert.equal(teacherFileKind({ type: "application/zip", url: "u" }), "file");
+});
+
+test("splitTeacherFiles keeps order and previews only images, PDFs and videos", () => {
+  const pdf = { type: "application/pdf", url: "https://x/a.pdf" };
+  const link = { type: "LINK", url: "https://x/page.pdf" };
+  const image = { type: "image/png", url: "https://x/a.png" };
+  const doc = { type: "application/msword", url: "https://x/a.doc" };
+  const heic = { type: "image/heic", url: "https://x/a.heic" };
+  const video = { type: "video/mp4", url: "https://x/a.mp4" };
+  assert.deepEqual(splitTeacherFiles([pdf, link, image, doc, heic, video]), {
+    previews: [pdf, image, video],
+    others: [link, doc, heic],
+  });
+  assert.deepEqual(splitTeacherFiles([]), { previews: [], others: [] });
+});
+
+test("fileCount", () => {
+  assert.equal(assignmentPageLanguage.fileCount("en", 1), "1 file");
+  assert.equal(assignmentPageLanguage.fileCount("en", 5), "5 files");
+  assert.equal(assignmentPageLanguage.fileCount("th", 5), "5 ไฟล์");
 });
 
 test("teacherFileName prefers the name, then the decoded last path segment", () => {

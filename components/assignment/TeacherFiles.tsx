@@ -15,6 +15,7 @@ import { FileOnAssignment, Language } from "../../interfaces";
 import { cleanUrl } from "../../utils/safeHtml";
 import {
   fileSizeLabel,
+  splitTeacherFiles,
   teacherFileKind,
   teacherFileName,
   teacherFileOpenMode,
@@ -24,9 +25,15 @@ const PdfViewerSheet = dynamic(() => import("../quiz/PdfViewerSheet"), {
   ssr: false,
 });
 import ImageViewerSheet from "./ImageViewerSheet";
+import TeacherFileThumb from "./TeacherFileThumb";
 import VideoFileSheet from "./VideoFileSheet";
 
-type Props = { files: FileOnAssignment[]; lang: Language };
+type Props = {
+  files: FileOnAssignment[];
+  lang: Language;
+  /** Desktop: thumbnail cards, then chips for what has no preview. */
+  wide?: boolean;
+};
 
 // Full class names only: Tailwind cannot see classes built from strings.
 const KINDS: Record<Kind, { tile: string; icon: React.ReactNode }> = {
@@ -38,7 +45,7 @@ const KINDS: Record<Kind, { tile: string; icon: React.ReactNode }> = {
 };
 
 /** The teacher's files: a chunky list; each opens in the best in-app viewer. */
-export default function TeacherFiles({ files, lang }: Props) {
+export default function TeacherFiles({ files, lang, wide = false }: Props) {
   const [open, setOpen] = useState<{
     file: FileOnAssignment;
     mode: "video" | "pdf" | "image";
@@ -70,13 +77,95 @@ export default function TeacherFiles({ files, lang }: Props) {
             ? assignmentPageLanguage.link(lang)
             : assignmentPageLanguage.fileKindFile(lang);
 
+  const meta = (file: FileOnAssignment, kind: Kind) =>
+    [kindLabel(kind), kind === "link" ? "" : fileSizeLabel(file.size)]
+      .filter(Boolean)
+      .join(" · ");
+  const { previews, others } = splitTeacherFiles(files);
+
+  const wideLayout = (
+    <>
+      {previews.length > 0 && (
+        <ul className="grid list-none grid-cols-3 gap-2.5">
+          {previews.map((file) => {
+            const kind = teacherFileKind(file) as "image" | "pdf" | "video";
+            const name = teacherFileName(file);
+            return (
+              <li key={file.id} className="min-w-0">
+                <button
+                  type="button"
+                  onClick={() => openFile(file)}
+                  title={name}
+                  className="chunky block w-full overflow-hidden text-left transition-colors hover:border-primary-color active:translate-y-0.5"
+                >
+                  <TeacherFileThumb
+                    kind={kind}
+                    url={file.url}
+                    fallback={
+                      <span
+                        className={`flex h-12 w-12 items-center justify-center rounded-[14px] text-2xl ${KINDS[kind].tile}`}
+                      >
+                        {KINDS[kind].icon}
+                      </span>
+                    }
+                  />
+                  <span className="block border-t-2 border-[#EEF1F6] px-2.5 py-2">
+                    <span className="block truncate text-[13px] font-bold text-icon-color">
+                      {name}
+                    </span>
+                    <span className="block text-[11px] font-semibold text-[#9AA3B8]">
+                      {meta(file, kind)}
+                    </span>
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+      {others.length > 0 && (
+        <ul
+          className={`flex list-none flex-wrap gap-2 ${previews.length > 0 ? "mt-2.5" : ""}`}
+        >
+          {others.map((file) => {
+            const kind = teacherFileKind(file);
+            const name = teacherFileName(file);
+            return (
+              <li key={file.id} className="min-w-0 max-w-full">
+                <button
+                  type="button"
+                  onClick={() => openFile(file)}
+                  title={name}
+                  className="flex min-h-[36px] max-w-full items-center gap-2 rounded-full border-2 border-[#E3E8F0] bg-white py-0.5 pl-1 pr-3 text-left transition-colors hover:border-primary-color"
+                >
+                  <span
+                    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm ${KINDS[kind].tile}`}
+                  >
+                    {KINDS[kind].icon}
+                  </span>
+                  <span className="min-w-0 truncate text-[13px] font-bold text-icon-color">
+                    {name}
+                  </span>
+                  <LuExternalLink
+                    aria-hidden
+                    className="shrink-0 text-sm text-[#9AA3B8]"
+                  />
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </>
+  );
+
   return (
     <>
-      <ul className="chunky list-none px-3 py-1">
+      {wide && wideLayout}
+      <ul className={wide ? "hidden" : "chunky list-none px-3 py-1"}>
         {files.map((file) => {
           const kind = teacherFileKind(file);
           const name = teacherFileName(file);
-          const size = kind === "link" ? "" : fileSizeLabel(file.size);
           return (
             <li
               key={file.id}
@@ -98,7 +187,7 @@ export default function TeacherFiles({ files, lang }: Props) {
                     {name}
                   </span>
                   <span className="block text-[11px] font-semibold text-[#9AA3B8]">
-                    {[kindLabel(kind), size].filter(Boolean).join(" · ")}
+                    {meta(file, kind)}
                   </span>
                 </span>
                 <span aria-hidden className="shrink-0 text-base text-[#9AA3B8]">

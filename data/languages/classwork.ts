@@ -186,6 +186,8 @@ export const assignmentPageLanguage = {
     l === "th" ? `${n} คะแนน` : `${n} ${n === 1 ? "point" : "points"}`,
   instructions: t("Instructions", "คำชี้แจง"),
   fromTeacher: t("From your teacher", "จากครูของคุณ"),
+  fileCount: (l: Language, n: number) =>
+    l === "th" ? `${n} ไฟล์` : `${n} ${n === 1 ? "file" : "files"}`,
   timeLeft: (l: Language, d: string) =>
     l === "th" ? `เหลือ ${d}` : `${d} left`,
   timeAgo: (l: Language, d: string) => (l === "th" ? `เลยมา ${d}` : `${d} ago`),
