@@ -19,6 +19,25 @@ function cap(text: string | null | undefined, max: number): string {
 
 type SendState = "idle" | "sending" | "sent" | "failed";
 
+/** Posts a crash to /v1/issues/reports; resolves to the short reference. */
+export async function sendCrashReport(
+  error: unknown,
+  componentStack: string | null,
+  capturedAt: string,
+): Promise<string> {
+  const { name, message } = describeError(error);
+  const result = await CreateIssueReportService({
+    errorName: cap(name, REPORT_CAPS.errorName),
+    message: cap(message, REPORT_CAPS.message),
+    stack: cap(error instanceof Error ? error.stack : "", REPORT_CAPS.stack),
+    componentStack: cap(componentStack, REPORT_CAPS.componentStack),
+    pageUrl: cap(window.location.href, REPORT_CAPS.pageUrl),
+    userAgent: cap(navigator.userAgent, REPORT_CAPS.userAgent),
+    capturedAt,
+  });
+  return result.reportId.slice(-6).toUpperCase();
+}
+
 /**
  * Global React Error Boundary.
  *
@@ -54,7 +73,7 @@ function trimLines(text: string | null | undefined, max: number): string {
   return `${lines.slice(0, max).join("\n")}\n… (${lines.length - max} more lines)`;
 }
 
-function describeError(error: unknown): { name: string; message: string } {
+export function describeError(error: unknown): { name: string; message: string } {
   if (error instanceof Error) {
     return { name: error.name || "Error", message: error.message };
   }
@@ -137,17 +156,9 @@ function ErrorFallback({ error, componentStack, capturedAt }: FallbackProps) {
     if (sendState === "sending" || sentForRef.current === capturedAt) return;
     setSendState("sending");
     try {
-      const result = await CreateIssueReportService({
-        errorName: cap(name, REPORT_CAPS.errorName),
-        message: cap(message, REPORT_CAPS.message),
-        stack: cap(error.stack, REPORT_CAPS.stack),
-        componentStack: cap(componentStack, REPORT_CAPS.componentStack),
-        pageUrl: cap(pageUrl, REPORT_CAPS.pageUrl),
-        userAgent: cap(browser, REPORT_CAPS.userAgent),
-        capturedAt,
-      });
+      const ref = await sendCrashReport(error, componentStack, capturedAt);
       sentForRef.current = capturedAt;
-      setReference(result.reportId.slice(-6).toUpperCase());
+      setReference(ref);
       setSendState("sent");
     } catch {
       setSendState("failed");

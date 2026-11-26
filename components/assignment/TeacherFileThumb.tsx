@@ -4,6 +4,31 @@ import { LuPlay } from "react-icons/lu";
 
 const PdfThumb = dynamic(() => import("./PdfThumb"), { ssr: false });
 
+/**
+ * A thumbnail is decoration: if drawing it throws (pdf.js on a browser it
+ * does not support, a chunk that fails to load), the card keeps its icon
+ * instead of the crash taking the whole assignment page down.
+ */
+class ThumbBoundary extends React.Component<
+  { onError: () => void; children: React.ReactNode },
+  { failed: boolean }
+> {
+  state = { failed: false };
+
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+
+  componentDidCatch(error: Error) {
+    console.error("[TeacherFileThumb] Preview failed:", error);
+    this.props.onError();
+  }
+
+  render() {
+    return this.state.failed ? null : this.props.children;
+  }
+}
+
 type Props = {
   kind: "image" | "pdf" | "video";
   url: string;
@@ -66,7 +91,9 @@ export default function TeacherFileThumb({ kind, url, fallback }: Props) {
       )}
       {show && kind === "pdf" && width > 0 && (
         <div className="relative">
-          <PdfThumb url={url} width={width} onError={fail} />
+          <ThumbBoundary onError={fail}>
+            <PdfThumb url={url} width={width} onError={fail} />
+          </ThumbBoundary>
         </div>
       )}
       {show && kind === "video" && (

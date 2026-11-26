@@ -34,6 +34,16 @@ export const homeLanguage = {
   paneError: (l: Language) =>
     t(l, "Something went wrong on this page", "หน้านี้เกิดข้อผิดพลาด"),
   retry: (l: Language) => t(l, "Try again", "ลองอีกครั้ง"),
+  paneSendReport: (l: Language) => t(l, "Send report", "ส่งรายงาน"),
+  paneSending: (l: Language) => t(l, "Sending…", "กำลังส่ง…"),
+  paneSent: (l: Language, ref: string) =>
+    t(l, `Sent · ref ${ref}`, `ส่งแล้ว · ref ${ref}`),
+  paneSendFailed: (l: Language) =>
+    t(
+      l,
+      "Could not send. Please screenshot this screen for your teacher.",
+      "ส่งไม่สำเร็จ กรุณาแคปหน้าจอนี้ส่งให้คุณครู",
+    ),
   switchSubject: (l: Language) => t(l, "Switch subject", "เปลี่ยนวิชา"),
   currentSubject: (l: Language) => t(l, "Current", "วิชาปัจจุบัน"),
   seeAllSubjects: (l: Language) => t(l, "See all subjects", "ดูวิชาทั้งหมด"),

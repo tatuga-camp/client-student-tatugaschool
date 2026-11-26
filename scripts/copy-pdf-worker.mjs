@@ -12,8 +12,10 @@ if (existsSync(nested)) {
     .dependencies["pdfjs-dist"];
   throw new Error(`react-pdf bundles its own pdfjs-dist; pin "pdfjs-dist": "${wanted}" in package.json`);
 }
+// The legacy build: it polyfills what Chrome older than 119 lacks, and it
+// must match the legacy API build aliased in next.config.mjs.
 copyFileSync(
-  join(root, "node_modules/pdfjs-dist/build/pdf.worker.min.mjs"),
+  join(root, "node_modules/pdfjs-dist/legacy/build/pdf.worker.min.mjs"),
   join(root, "public/pdf.worker.min.mjs"),
 );
 console.log("Copied pdf.worker.min.mjs to public/");
